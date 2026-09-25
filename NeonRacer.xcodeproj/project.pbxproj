@@ -1,0 +1,750 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		200000000000000000000001 /* NeonRacerApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 300000000000000000000001 /* NeonRacerApp.swift */; };
+		200000000000000000000002 /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 300000000000000000000002 /* RootView.swift */; };
+		200000000000000000000003 /* MainMenuView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 300000000000000000000003 /* MainMenuView.swift */; };
+		200000000000000000000004 /* RaceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 300000000000000000000004 /* RaceView.swift */; };
+		200000000000000000000005 /* PlayerCommand.swift in Sources */ = {isa = PBXBuildFile; fileRef = 300000000000000000000005 /* PlayerCommand.swift */; };
+		200000000000000000000006 /* RaceConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 300000000000000000000006 /* RaceConfiguration.swift */; };
+		200000000000000000000007 /* RaceSimulation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 300000000000000000000007 /* RaceSimulation.swift */; };
+		200000000000000000000008 /* RaceScene.swift in Sources */ = {isa = PBXBuildFile; fileRef = 300000000000000000000008 /* RaceScene.swift */; };
+		200000000000000000000009 /* StageDefinition.swift in Sources */ = {isa = PBXBuildFile; fileRef = 300000000000000000000009 /* StageDefinition.swift */; };
+		20000000000000000000000A /* AudioService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 30000000000000000000000A /* AudioService.swift */; };
+		20000000000000000000000B /* HapticsService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 30000000000000000000000B /* HapticsService.swift */; };
+		20000000000000000000000C /* ProfileStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 30000000000000000000000C /* ProfileStore.swift */; };
+		20000000000000000000000D /* NeonPalette.swift in Sources */ = {isa = PBXBuildFile; fileRef = 30000000000000000000000D /* NeonPalette.swift */; };
+		20000000000000000000000E /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 30000000000000000000000E /* Assets.xcassets */; };
+		20000000000000000000000F /* RaceSimulationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 30000000000000000000000F /* RaceSimulationTests.swift */; };
+		200000000000000000000010 /* NeonRacerUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 300000000000000000000010 /* NeonRacerUITests.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		400000000000000000000001 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 500000000000000000000001 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 100000000000000000000001;
+			remoteInfo = NeonRacer;
+		};
+		400000000000000000000002 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 500000000000000000000001 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 100000000000000000000001;
+			remoteInfo = NeonRacer;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		300000000000000000000001 /* NeonRacerApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NeonRacerApp.swift; sourceTree = "<group>"; };
+		300000000000000000000002 /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
+		300000000000000000000003 /* MainMenuView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainMenuView.swift; sourceTree = "<group>"; };
+		300000000000000000000004 /* RaceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RaceView.swift; sourceTree = "<group>"; };
+		300000000000000000000005 /* PlayerCommand.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerCommand.swift; sourceTree = "<group>"; };
+		300000000000000000000006 /* RaceConfiguration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RaceConfiguration.swift; sourceTree = "<group>"; };
+		300000000000000000000007 /* RaceSimulation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RaceSimulation.swift; sourceTree = "<group>"; };
+		300000000000000000000008 /* RaceScene.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RaceScene.swift; sourceTree = "<group>"; };
+		300000000000000000000009 /* StageDefinition.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StageDefinition.swift; sourceTree = "<group>"; };
+		30000000000000000000000A /* AudioService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioService.swift; sourceTree = "<group>"; };
+		30000000000000000000000B /* HapticsService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HapticsService.swift; sourceTree = "<group>"; };
+		30000000000000000000000C /* ProfileStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileStore.swift; sourceTree = "<group>"; };
+		30000000000000000000000D /* NeonPalette.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NeonPalette.swift; sourceTree = "<group>"; };
+		30000000000000000000000E /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		30000000000000000000000F /* RaceSimulationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RaceSimulationTests.swift; sourceTree = "<group>"; };
+		300000000000000000000010 /* NeonRacerUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NeonRacerUITests.swift; sourceTree = "<group>"; };
+		300000000000000000000011 /* NeonRacer.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = NeonRacer.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		300000000000000000000012 /* NeonRacerTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = NeonRacerTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		300000000000000000000013 /* NeonRacerUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = NeonRacerUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		600000000000000000000001 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		600000000000000000000002 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		600000000000000000000003 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		700000000000000000000001 = {
+			isa = PBXGroup;
+			children = (
+				700000000000000000000002 /* NeonRacer */,
+				70000000000000000000000F /* NeonRacerTests */,
+				700000000000000000000010 /* NeonRacerUITests */,
+				700000000000000000000011 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		700000000000000000000002 /* NeonRacer */ = {
+			isa = PBXGroup;
+			children = (
+				700000000000000000000003 /* App */,
+				700000000000000000000004 /* Features */,
+				700000000000000000000007 /* Game */,
+				70000000000000000000000A /* Content */,
+				70000000000000000000000B /* Services */,
+				70000000000000000000000D /* Shared */,
+				70000000000000000000000E /* Resources */,
+			);
+			path = NeonRacer;
+			sourceTree = "<group>";
+		};
+		700000000000000000000003 /* App */ = {
+			isa = PBXGroup;
+			children = (
+				300000000000000000000001 /* NeonRacerApp.swift */,
+				300000000000000000000002 /* RootView.swift */,
+			);
+			path = App;
+			sourceTree = "<group>";
+		};
+		700000000000000000000004 /* Features */ = {
+			isa = PBXGroup;
+			children = (
+				700000000000000000000005 /* MainMenu */,
+				700000000000000000000006 /* Race */,
+			);
+			path = Features;
+			sourceTree = "<group>";
+		};
+		700000000000000000000005 /* MainMenu */ = {
+			isa = PBXGroup;
+			children = (
+				300000000000000000000003 /* MainMenuView.swift */,
+			);
+			path = MainMenu;
+			sourceTree = "<group>";
+		};
+		700000000000000000000006 /* Race */ = {
+			isa = PBXGroup;
+			children = (
+				300000000000000000000004 /* RaceView.swift */,
+			);
+			path = Race;
+			sourceTree = "<group>";
+		};
+		700000000000000000000007 /* Game */ = {
+			isa = PBXGroup;
+			children = (
+				700000000000000000000008 /* Simulation */,
+				700000000000000000000009 /* Rendering */,
+			);
+			path = Game;
+			sourceTree = "<group>";
+		};
+		700000000000000000000008 /* Simulation */ = {
+			isa = PBXGroup;
+			children = (
+				300000000000000000000005 /* PlayerCommand.swift */,
+				300000000000000000000006 /* RaceConfiguration.swift */,
+				300000000000000000000007 /* RaceSimulation.swift */,
+			);
+			path = Simulation;
+			sourceTree = "<group>";
+		};
+		700000000000000000000009 /* Rendering */ = {
+			isa = PBXGroup;
+			children = (
+				300000000000000000000008 /* RaceScene.swift */,
+			);
+			path = Rendering;
+			sourceTree = "<group>";
+		};
+		70000000000000000000000A /* Content */ = {
+			isa = PBXGroup;
+			children = (
+				300000000000000000000009 /* StageDefinition.swift */,
+			);
+			path = Content;
+			sourceTree = "<group>";
+		};
+		70000000000000000000000B /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				70000000000000000000000C /* Audio */,
+				700000000000000000000012 /* Haptics */,
+				700000000000000000000013 /* Persistence */,
+			);
+			path = Services;
+			sourceTree = "<group>";
+		};
+		70000000000000000000000C /* Audio */ = {
+			isa = PBXGroup;
+			children = (
+				30000000000000000000000A /* AudioService.swift */,
+			);
+			path = Audio;
+			sourceTree = "<group>";
+		};
+		700000000000000000000012 /* Haptics */ = {
+			isa = PBXGroup;
+			children = (
+				30000000000000000000000B /* HapticsService.swift */,
+			);
+			path = Haptics;
+			sourceTree = "<group>";
+		};
+		700000000000000000000013 /* Persistence */ = {
+			isa = PBXGroup;
+			children = (
+				30000000000000000000000C /* ProfileStore.swift */,
+			);
+			path = Persistence;
+			sourceTree = "<group>";
+		};
+		70000000000000000000000D /* Shared */ = {
+			isa = PBXGroup;
+			children = (
+				700000000000000000000014 /* Design */,
+			);
+			path = Shared;
+			sourceTree = "<group>";
+		};
+		700000000000000000000014 /* Design */ = {
+			isa = PBXGroup;
+			children = (
+				30000000000000000000000D /* NeonPalette.swift */,
+			);
+			path = Design;
+			sourceTree = "<group>";
+		};
+		70000000000000000000000E /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				30000000000000000000000E /* Assets.xcassets */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
+		70000000000000000000000F /* NeonRacerTests */ = {
+			isa = PBXGroup;
+			children = (
+				30000000000000000000000F /* RaceSimulationTests.swift */,
+			);
+			path = NeonRacerTests;
+			sourceTree = "<group>";
+		};
+		700000000000000000000010 /* NeonRacerUITests */ = {
+			isa = PBXGroup;
+			children = (
+				300000000000000000000010 /* NeonRacerUITests.swift */,
+			);
+			path = NeonRacerUITests;
+			sourceTree = "<group>";
+		};
+		700000000000000000000011 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				300000000000000000000011 /* NeonRacer.app */,
+				300000000000000000000012 /* NeonRacerTests.xctest */,
+				300000000000000000000013 /* NeonRacerUITests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		100000000000000000000001 /* NeonRacer */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 800000000000000000000001 /* Build configuration list for PBXNativeTarget "NeonRacer" */;
+			buildPhases = (
+				900000000000000000000001 /* Sources */,
+				600000000000000000000001 /* Frameworks */,
+				A00000000000000000000001 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = NeonRacer;
+			packageProductDependencies = (
+			);
+			productName = NeonRacer;
+			productReference = 300000000000000000000011 /* NeonRacer.app */;
+			productType = "com.apple.product-type.application";
+		};
+		100000000000000000000002 /* NeonRacerTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 800000000000000000000002 /* Build configuration list for PBXNativeTarget "NeonRacerTests" */;
+			buildPhases = (
+				900000000000000000000002 /* Sources */,
+				600000000000000000000002 /* Frameworks */,
+				A00000000000000000000002 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				B00000000000000000000001 /* PBXTargetDependency */,
+			);
+			name = NeonRacerTests;
+			packageProductDependencies = (
+			);
+			productName = NeonRacerTests;
+			productReference = 300000000000000000000012 /* NeonRacerTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		100000000000000000000003 /* NeonRacerUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 800000000000000000000003 /* Build configuration list for PBXNativeTarget "NeonRacerUITests" */;
+			buildPhases = (
+				900000000000000000000003 /* Sources */,
+				600000000000000000000003 /* Frameworks */,
+				A00000000000000000000003 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				B00000000000000000000002 /* PBXTargetDependency */,
+			);
+			name = NeonRacerUITests;
+			packageProductDependencies = (
+			);
+			productName = NeonRacerUITests;
+			productReference = 300000000000000000000013 /* NeonRacerUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		500000000000000000000001 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 2600;
+				LastUpgradeCheck = 2600;
+				TargetAttributes = {
+					100000000000000000000001 = {
+						CreatedOnToolsVersion = 26.0;
+					};
+					100000000000000000000002 = {
+						CreatedOnToolsVersion = 26.0;
+						TestTargetID = 100000000000000000000001;
+					};
+					100000000000000000000003 = {
+						CreatedOnToolsVersion = 26.0;
+						TestTargetID = 100000000000000000000001;
+					};
+				};
+			};
+			buildConfigurationList = 800000000000000000000004 /* Build configuration list for PBXProject "NeonRacer" */;
+			compatibilityVersion = "Xcode 16.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 700000000000000000000001;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 700000000000000000000011 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				100000000000000000000001 /* NeonRacer */,
+				100000000000000000000002 /* NeonRacerTests */,
+				100000000000000000000003 /* NeonRacerUITests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		A00000000000000000000001 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				20000000000000000000000E /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A00000000000000000000002 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A00000000000000000000003 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		900000000000000000000001 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				200000000000000000000001 /* NeonRacerApp.swift in Sources */,
+				200000000000000000000002 /* RootView.swift in Sources */,
+				200000000000000000000003 /* MainMenuView.swift in Sources */,
+				200000000000000000000004 /* RaceView.swift in Sources */,
+				200000000000000000000005 /* PlayerCommand.swift in Sources */,
+				200000000000000000000006 /* RaceConfiguration.swift in Sources */,
+				200000000000000000000007 /* RaceSimulation.swift in Sources */,
+				200000000000000000000008 /* RaceScene.swift in Sources */,
+				200000000000000000000009 /* StageDefinition.swift in Sources */,
+				20000000000000000000000A /* AudioService.swift in Sources */,
+				20000000000000000000000B /* HapticsService.swift in Sources */,
+				20000000000000000000000C /* ProfileStore.swift in Sources */,
+				20000000000000000000000D /* NeonPalette.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		900000000000000000000002 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				20000000000000000000000F /* RaceSimulationTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		900000000000000000000003 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				200000000000000000000010 /* NeonRacerUITests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		B00000000000000000000001 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 100000000000000000000001 /* NeonRacer */;
+			targetProxy = 400000000000000000000001 /* PBXContainerItemProxy */;
+		};
+		B00000000000000000000002 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 100000000000000000000001 /* NeonRacer */;
+			targetProxy = 400000000000000000000002 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		C00000000000000000000001 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "Neon Racer";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.racing-games";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UIRequiresFullScreen = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 0.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.ryanrife.neonracer;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		C00000000000000000000002 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "Neon Racer";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.racing-games";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UIRequiresFullScreen = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 0.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.ryanrife.neonracer;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		C00000000000000000000003 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.ryanrife.neonracer.tests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/NeonRacer.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/NeonRacer";
+			};
+			name = Debug;
+		};
+		C00000000000000000000004 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.ryanrife.neonracer.tests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/NeonRacer.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/NeonRacer";
+			};
+			name = Release;
+		};
+		C00000000000000000000005 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.ryanrife.neonracer.uitests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = NeonRacer;
+			};
+			name = Debug;
+		};
+		C00000000000000000000006 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.ryanrife.neonracer.uitests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = NeonRacer;
+			};
+			name = Release;
+		};
+		C00000000000000000000007 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		C00000000000000000000008 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SWIFT_COMPILATION_MODE = wholemodule;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		800000000000000000000001 /* Build configuration list for PBXNativeTarget "NeonRacer" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				C00000000000000000000001 /* Debug */,
+				C00000000000000000000002 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		800000000000000000000002 /* Build configuration list for PBXNativeTarget "NeonRacerTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				C00000000000000000000003 /* Debug */,
+				C00000000000000000000004 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		800000000000000000000003 /* Build configuration list for PBXNativeTarget "NeonRacerUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				C00000000000000000000005 /* Debug */,
+				C00000000000000000000006 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		800000000000000000000004 /* Build configuration list for PBXProject "NeonRacer" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				C00000000000000000000007 /* Debug */,
+				C00000000000000000000008 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 500000000000000000000001 /* Project object */;
+}
