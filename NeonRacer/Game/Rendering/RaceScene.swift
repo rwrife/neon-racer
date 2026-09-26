@@ -7,7 +7,7 @@ final class RaceScene: SKScene {
     private let speedLabel = SKLabelNode(fontNamed: "Menlo-Bold")
     private let roadNode = SKNode()
 
-    convenience init() {
+    override convenience init() {
         self.init(size: CGSize(width: 1920, height: 1080))
     }
 
