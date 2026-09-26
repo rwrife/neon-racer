@@ -48,7 +48,7 @@ final class RaceScene: SKScene {
             )
         )
 
-        render(state: simulation.state, currentTime: currentTime)
+        render(snapshot: simulation.renderSnapshot, currentTime: currentTime)
     }
 
     private func buildHorizon() {
@@ -133,10 +133,17 @@ final class RaceScene: SKScene {
         addChild(speedLabel)
     }
 
-    private func render(state: RaceState, currentTime: TimeInterval) {
-        carNode.position.x = CGFloat(state.lateralPosition) * 420
-        carNode.zRotation = CGFloat(-state.lateralPosition) * 0.08
-        roadNode.position.y = CGFloat(state.distance.truncatingRemainder(dividingBy: 35))
+    private func render(snapshot: RaceRenderSnapshot, currentTime: TimeInterval) {
+        let alpha = CGFloat(snapshot.interpolationAlpha)
+        let interpolatedLateral = CGFloat(snapshot.previous.lateralPosition) * (1 - alpha)
+            + CGFloat(snapshot.current.lateralPosition) * alpha
+        let interpolatedDistance = snapshot.previous.distance * (1 - Double(alpha))
+            + snapshot.current.distance * Double(alpha)
+        let state = snapshot.current
+
+        carNode.position.x = interpolatedLateral * 420
+        carNode.zRotation = -interpolatedLateral * 0.08
+        roadNode.position.y = CGFloat(interpolatedDistance.truncatingRemainder(dividingBy: 35))
         speedLabel.text = "SPEED \(Int(state.speed * 2.4))"
 
         let pulse = 0.88 + sin(currentTime * 4) * 0.05
