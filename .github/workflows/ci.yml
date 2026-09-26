@@ -1,0 +1,72 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  core-tests:
+    name: Core simulation (Linux Swift 6.2)
+    runs-on: ubuntu-latest
+    container:
+      image: swift:6.2-noble
+    steps:
+      - name: Check out exact triggering commit
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+      - name: Swift version
+        run: swift --version
+      - name: Run deterministic simulation tests
+        run: swift test
+
+  ios-build:
+    name: iOS 26 build contract (Xcode 26.0.1)
+    runs-on: macos-15
+    timeout-minutes: 30
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_26.0.1.app/Contents/Developer
+      TARGET_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+    steps:
+      - name: Check out exact triggering commit
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: ${{ env.TARGET_SHA }}
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Verify pinned Xcode and iOS simulator SDK
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$TARGET_SHA"
+          test "$(xcodebuild -version | sed -n '1s/^Xcode //p')" = "26.0.1"
+          test "$(xcodebuild -version | sed -n '2s/^Build version //p')" = "17A400"
+          xcodebuild -showsdks | grep -F 'iphonesimulator26.0'
+
+      - name: Build app and tests for iOS Simulator
+        run: |
+          set -euo pipefail
+          xcodebuild build-for-testing \
+            -project NeonRacer.xcodeproj \
+            -scheme NeonRacer \
+            -destination 'generic/platform=iOS Simulator' \
+            CODE_SIGNING_ALLOWED=NO
+
+      - name: Verify iPhone-only bundle identity
+        run: |
+          set -euo pipefail
+          APP=$(find "$HOME/Library/Developer/Xcode/DerivedData" -path '*Build/Products/Debug-iphonesimulator/NeonRacer.app' -print -quit)
+          test -n "$APP"
+          test "$(plutil -extract CFBundleIdentifier raw "$APP/Info.plist")" = "com.infinityball.neonracer"
+          FAMILY=$(plutil -extract UIDeviceFamily json -o - "$APP/Info.plist")
+          test "$FAMILY" = '[1]'
+          echo "Built bundle: $APP"
+          echo "CFBundleIdentifier: com.infinityball.neonracer"
+          echo "UIDeviceFamily: $FAMILY"
+          echo "iOS build contract: PASS"

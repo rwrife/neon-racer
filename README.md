@@ -8,7 +8,7 @@ Neon Racer is an original native iOS arcade racing game with a retro-futurist ne
 - iOS 26 or later
 - Swift 6
 
-The app is universal and supports iPhone and iPad in landscape orientation.
+The app is iPhone-only and runs in landscape orientation.
 
 ## Architecture
 
@@ -19,13 +19,13 @@ The app is universal and supports iPhone and iPad in landscape orientation.
 - `Services`: Audio, haptics, and persistence boundaries.
 - `Shared`: Cross-cutting design tokens and diagnostics.
 
-The gameplay simulation uses a fixed timestep and accepts explicit player commands. Rendering is handled separately by `RaceScene`, which makes the simulation testable without SpriteKit.
+The gameplay simulation uses a fixed timestep, seeded randomness, explicit player commands, bounded catch-up, pause/restart semantics, and immutable interpolated render snapshots. Rendering is handled separately by `RaceScene`, so core tests run without SpriteKit.
 
 ## Build and run
 
 1. Open `NeonRacer.xcodeproj` in Xcode 26 or later.
 2. Select the `NeonRacer` scheme.
-3. Choose an iOS 26 iPhone or iPad simulator.
+3. Choose an iOS 26 iPhone simulator.
 4. Build and run.
 
 The placeholder main menu launches an animated SpriteKit scene that validates the app shell, fixed-step simulation, and native rendering integration.
