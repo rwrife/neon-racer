@@ -255,6 +255,11 @@ struct RaceSimulationTests {
                 if case .checkpointCrossed(_, "start", "left", 4) = event { return true }
                 return false
             })
+            #expect(left.state.phase == .racing)
+            let distanceAtCheckpoint = left.state.distance
+            left.advance(frameDelta: 1.0 / 60.0, command: command)
+            #expect(left.state.distance > distanceAtCheckpoint)
+            #expect(left.state.phase == .racing)
     }
 
     @Test

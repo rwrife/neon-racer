@@ -13,11 +13,12 @@ vertex NeonPostVertexOut neonPostProcessVertex(uint vertexID [[vertex_id]]) {
         float2(-1.0,  1.0),
         float2( 1.0,  1.0)
     };
+    // Metal's render target UV origin is at the top; NDC's lower vertices sample its bottom.
     float2 uvs[4] = {
-        float2(0.0, 0.0),
-        float2(1.0, 0.0),
         float2(0.0, 1.0),
-        float2(1.0, 1.0)
+        float2(1.0, 1.0),
+        float2(0.0, 0.0),
+        float2(1.0, 0.0)
     };
     NeonPostVertexOut out;
     out.position = float4(positions[vertexID], 0.0, 1.0);

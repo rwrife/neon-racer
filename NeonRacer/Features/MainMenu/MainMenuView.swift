@@ -25,51 +25,55 @@ struct MainMenuView: View {
         ZStack {
             TitleArtBackground()
 
-            VStack {
-                Spacer(minLength: 0)
+            GeometryReader { geometry in
+                let isLargeLayout = geometry.size.height >= 600
 
-                HStack(spacing: 14) {
-                    Button(action: startRace) {
-                        Label("RACE", systemImage: "flag.checkered")
-                            .frame(maxWidth: .infinity)
-                    }
-                    .buttonStyle(.borderedProminent)
-                    .tint(palette.secondary.color)
-                    .accessibilityHint("Starts a new race")
-                    .focused($focusedButton, equals: .start)
+                VStack {
+                    Spacer(minLength: 0)
 
-                    Button {
-                        isShowingGarage = true
-                    } label: {
-                        Label("GARAGE", systemImage: "car.side.fill")
-                            .frame(maxWidth: .infinity)
-                    }
-                    .buttonStyle(.bordered)
-                    .tint(palette.primary.color)
-                    .accessibilityHint("Choose an unlocked car, palette, and route")
-                    .focused($focusedButton, equals: .garage)
+                    HStack(spacing: isLargeLayout ? 20 : 14) {
+                        Button(action: startRace) {
+                            Label("RACE", systemImage: "flag.checkered")
+                                .frame(maxWidth: .infinity)
+                        }
+                        .buttonStyle(.borderedProminent)
+                        .tint(palette.secondary.color)
+                        .accessibilityHint("Starts a new race")
+                        .focused($focusedButton, equals: .start)
 
-                    Button {
-                        isShowingSettings = true
-                    } label: {
-                        Label("SETTINGS", systemImage: "gearshape")
-                            .frame(maxWidth: .infinity)
+                        Button {
+                            isShowingGarage = true
+                        } label: {
+                            Label("GARAGE", systemImage: "car.side.fill")
+                                .frame(maxWidth: .infinity)
+                        }
+                        .buttonStyle(.bordered)
+                        .tint(palette.primary.color)
+                        .accessibilityHint("Choose an unlocked car, palette, and route")
+                        .focused($focusedButton, equals: .garage)
+
+                        Button {
+                            isShowingSettings = true
+                        } label: {
+                            Label("SETTINGS", systemImage: "gearshape")
+                                .frame(maxWidth: .infinity)
+                        }
+                        .buttonStyle(.bordered)
+                        .tint(palette.primary.color)
+                        .accessibilityHint("Opens audio, haptics, accessibility, and reset options")
+                        .focused($focusedButton, equals: .settings)
                     }
-                    .buttonStyle(.bordered)
-                    .tint(palette.primary.color)
-                    .accessibilityHint("Opens audio, haptics, accessibility, and reset options")
-                    .focused($focusedButton, equals: .settings)
+                    .font(isLargeLayout ? .title3.bold().monospaced() : .subheadline.bold().monospaced())
+                    .lineLimit(1)
+                    .controlSize(isLargeLayout ? .large : .regular)
+                    .frame(maxWidth: isLargeLayout ? 880 : 620)
+                    .padding(isLargeLayout ? 12 : 6)
+                    .background(.black.opacity(accessibility.settings.highContrast ? 0.9 : 0.55), in: Capsule())
                 }
-                .font(.subheadline.bold().monospaced())
-                .lineLimit(1)
-                .controlSize(.regular)
-                .frame(maxWidth: 620)
-                .padding(6)
-                .background(.black.opacity(accessibility.settings.highContrast ? 0.9 : 0.55), in: Capsule())
-                .offset(y: 16)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .padding(.horizontal, 24)
+                .padding(.bottom, isLargeLayout ? geometry.size.height * 0.20 : 0)
             }
-            .padding(.horizontal, 24)
-            .padding(.bottom, 0)
         }
         .sheet(isPresented: $isShowingSettings) {
             SettingsView(

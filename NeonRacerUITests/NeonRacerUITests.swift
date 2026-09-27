@@ -2,6 +2,21 @@ import XCTest
 
 final class NeonRacerUITests: XCTestCase {
     @MainActor
+    func testHighQualityRaceOrientation() {
+        let app = XCUIApplication()
+        app.launchArguments = ["UITestDisableRunRecovery", "UITestStartRace", "UITestHideHUD"]
+        app.launchEnvironment["NEON_RACER_QUALITY_TIER"] = "fidelity"
+        XCUIDevice.shared.orientation = .landscapeLeft
+        app.launch()
+        XCTAssertTrue(app.buttons["Pause race"].waitForExistence(timeout: 10))
+        sleep(2)
+        let race = XCTAttachment(screenshot: XCUIScreen.main.screenshot())
+        race.name = "high-quality-race-orientation"
+        race.lifetime = .keepAlways
+        add(race)
+    }
+
+    @MainActor
     func testAppStoreScreenshots() {
         let app = XCUIApplication()
         app.launchArguments.append("UITestDisableRunRecovery")

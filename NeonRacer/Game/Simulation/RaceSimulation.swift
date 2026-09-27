@@ -903,7 +903,8 @@ struct RaceSimulation: Sendable {
         state.currentStageDistance = max(0, state.distance - stageStartDistance)
         state.currentEnvironmentID = nextStage.environmentID
         state.stageProgress = min(state.currentStageDistance / nextStage.distance, 1)
-        state.phase = .checkpoint
+        // Checkpoints are events during a race, not an interruption to driving.
+        state.phase = .racing
         hasPresentedCurrentFork = false
         runEvents.append(
             .stageChanged(

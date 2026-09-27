@@ -34,6 +34,20 @@ struct NeonEffects3DTests {
     }
 
     @Test @MainActor
+    func checkpointLaunchesTwoFireworkBursts() throws {
+        let effects = NeonEffects3D()
+        effects.setPose(carPosition: SCNVector3(0, 0, 0), cameraForward: SCNVector3(0, 0, -1))
+        effects.trigger(.checkpoint)
+
+        let left = try #require(effects.rootNode.childNode(withName: "checkpoint-cyan-fireworks", recursively: false))
+        let right = try #require(effects.rootNode.childNode(withName: "checkpoint-magenta-fireworks", recursively: false))
+        let leftBurst = try #require(left.particleSystems?.first)
+        let rightBurst = try #require(right.particleSystems?.first)
+        #expect(leftBurst.birthRate > 0)
+        #expect(rightBurst.birthRate > 0)
+    }
+
+    @Test @MainActor
     func crashEffectsExposeReadableCameraHintsAndWeatherNoOps() {
         let effects = NeonEffects3D()
         effects.setWeather("rain")

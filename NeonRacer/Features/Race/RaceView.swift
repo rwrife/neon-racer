@@ -232,7 +232,6 @@ struct RaceView: View {
             inputService.controllerDisconnectHandler = {}
             hudFeedbackTask?.cancel()
             audioService.endObserving()
-            audioService.stop()
             hapticsService.stop()
         }
         .onChange(of: scenePhase, initial: true) { _, newPhase in

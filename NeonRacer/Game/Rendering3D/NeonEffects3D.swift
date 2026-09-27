@@ -107,10 +107,14 @@ final class NeonEffects3D {
     private var collisionSparkSystem: SCNParticleSystem?
     private var crashSparkSystem: SCNParticleSystem?
     private var nearMissSystem: SCNParticleSystem?
+    private var checkpointLeftSystem: SCNParticleSystem?
+    private var checkpointRightSystem: SCNParticleSystem?
     private var finishBurstSystem: SCNParticleSystem?
     private let collisionEmitter = SCNNode()
     private let crashEmitter = SCNNode()
     private let nearMissEmitter = SCNNode()
+    private let checkpointLeftEmitter = SCNNode()
+    private let checkpointRightEmitter = SCNNode()
     private let finishEmitter = SCNNode()
     private let checkpointRingNode = SCNNode()
     private let overtakePulseNode = SCNNode()
@@ -247,6 +251,11 @@ final class NeonEffects3D {
             checkpointRingNode.position = carPosition
             checkpointRingNode.position.y += 1.1
             fovKickEnergy = max(fovKickEnergy, 0.3)
+            let fireworksIntensity = scaling.effectiveIntensity(for: .sparks, configuration: configuration)
+            burst(checkpointLeftSystem, emitter: checkpointLeftEmitter,
+                  relativeToCar: SCNVector3(-6, 4.5, -9), birthRate: 620 * fireworksIntensity)
+            burst(checkpointRightSystem, emitter: checkpointRightEmitter,
+                  relativeToCar: SCNVector3(6, 4.5, -9), birthRate: 620 * fireworksIntensity)
         case .boostStart:
             boostRamp = max(boostRamp, 0.75)
             fovKickEnergy = max(fovKickEnergy, 0.45)
@@ -329,9 +338,13 @@ final class NeonEffects3D {
         collisionEmitter.name = "collision-spark-burst"
         crashEmitter.name = "crash-glitch-burst"
         nearMissEmitter.name = "near-miss-whoosh-burst"
+        checkpointLeftEmitter.name = "checkpoint-cyan-fireworks"
+        checkpointRightEmitter.name = "checkpoint-magenta-fireworks"
         finishEmitter.name = "finish-fireworks-burst"
         rootNode.addChildNode(collisionEmitter)
         rootNode.addChildNode(crashEmitter)
+        rootNode.addChildNode(checkpointLeftEmitter)
+        rootNode.addChildNode(checkpointRightEmitter)
         rootNode.addChildNode(finishEmitter)
         cameraStreakRoot.addChildNode(nearMissEmitter)
 
@@ -341,11 +354,15 @@ final class NeonEffects3D {
         nearMissSystem?.loops = false
         nearMissSystem?.particleLifeSpan = 0.18
         nearMissSystem?.particleVelocity = 36
+        checkpointLeftSystem = makeBurstSystem(color: UIColor(red: 0.10, green: 0.96, blue: 1, alpha: 1), size: 0.14, life: 1.1, velocity: 17, spread: 180)
+        checkpointRightSystem = makeBurstSystem(color: UIColor(red: 1, green: 0.18, blue: 0.78, alpha: 1), size: 0.14, life: 1.1, velocity: 17, spread: 180)
         finishBurstSystem = makeBurstSystem(color: UIColor(red: 0.28, green: 1, blue: 0.95, alpha: 1), size: 0.12, life: 1.15, velocity: 18, spread: 180)
 
         if let collisionSparkSystem { collisionEmitter.addParticleSystem(collisionSparkSystem) }
         if let crashSparkSystem { crashEmitter.addParticleSystem(crashSparkSystem) }
         if let nearMissSystem { nearMissEmitter.addParticleSystem(nearMissSystem) }
+        if let checkpointLeftSystem { checkpointLeftEmitter.addParticleSystem(checkpointLeftSystem) }
+        if let checkpointRightSystem { checkpointRightEmitter.addParticleSystem(checkpointRightSystem) }
         if let finishBurstSystem { finishEmitter.addParticleSystem(finishBurstSystem) }
 
         let ring = SCNTorus(ringRadius: 1.15, pipeRadius: 0.035)

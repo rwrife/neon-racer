@@ -75,16 +75,17 @@ final class RoadMeshBuilder3D {
             chunks[index] = nil
             chunkOrigins[index] = nil
         }
-        // Build at most a few chunks per frame (nearest first) to avoid frame hitches.
-        var built = 0
-        let limit = chunks.isEmpty ? Int.max : 3
-        for index in startIndex...endIndex where chunks[index] == nil {
-            guard built < limit else { break }
+        // A branch commits at a checkpoint and invalidates the route mesh. Keep that
+        // frame bounded, and restore the road under the car before distant chunks.
+        let playerChunk = Int(floor(playerDistance / chunkLength))
+        let missing = (startIndex...endIndex)
+            .filter { chunks[$0] == nil }
+            .sorted { abs($0 - playerChunk) < abs($1 - playerChunk) }
+        for index in missing.prefix(4) {
             let node = buildChunk(index: index, mapper: mapper)
             chunks[index] = node
             chunkOrigins[index] = mapper.originWorldPosition
             rootNode.addChildNode(node)
-            built += 1
         }
     }
 
