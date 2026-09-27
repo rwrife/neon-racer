@@ -119,7 +119,41 @@ struct ProfileStoreTests {
         #expect(preserved)
     }
 
+    @Test
+    func runRecoveryStorePersistsLoadsAndClearsInterruptedRunSnapshot() async throws {
+        let url = try recoveryURL()
+        let directory = url.deletingLastPathComponent()
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let snapshot = RunRecoverySnapshot(
+            routeID: "neon-loop",
+            routeName: "Neon Loop",
+            selectedVehicleID: "prototype-zero",
+            selectedPaletteID: "synthwave",
+            preferredInputMethod: .controller,
+            capturedAt: Date(timeIntervalSinceReferenceDate: 25),
+            elapsedTime: 12,
+            routeProgress: 0.34,
+            score: 900,
+            stageNumber: 2
+        )
+        let store = RunRecoveryStore(fileURL: url)
+
+        try await store.save(snapshot)
+        #expect(try await store.load() == snapshot)
+
+        try await store.clear()
+        #expect(try await store.load() == nil)
+    }
+
     private func profileURL() throws -> URL {
+        try testURL(filename: "player-profile.json")
+    }
+
+    private func recoveryURL() throws -> URL {
+        try testURL(filename: "run-recovery.json")
+    }
+
+    private func testURL(filename: String) throws -> URL {
         let root = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask)[0]
         let directory = root
             .appendingPathComponent("NeonRacerTests", isDirectory: true)
@@ -128,7 +162,7 @@ struct ProfileStoreTests {
             at: directory,
             withIntermediateDirectories: true
         )
-        return directory.appendingPathComponent("player-profile.json")
+        return directory.appendingPathComponent(filename)
     }
 
     private func finishedState(score: Double, elapsedTime: TimeInterval) -> RaceState {

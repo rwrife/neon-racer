@@ -115,6 +115,29 @@ struct RaceSimulationTests {
     }
 
     @Test
+    func routeControllerAndMemoryInterruptionsRequireExplicitRecovery() {
+        var routeChange = RunInterruptionCoordinator()
+        #expect(routeChange.handle(.audioRouteChanged) == [.pauseGameplay, .stopFeedback])
+        #expect(routeChange.state == .pausedForRecovery)
+        #expect(routeChange.handle(.resumeRequested) == [.startFeedback, .resumeGameplay])
+
+        var controllerDisconnect = RunInterruptionCoordinator()
+        #expect(controllerDisconnect.handle(.controllerDisconnected) == [.pauseGameplay, .stopFeedback])
+        #expect(controllerDisconnect.state == .pausedForRecovery)
+
+        var memoryWarning = RunInterruptionCoordinator()
+        #expect(
+            memoryWarning.handle(.memoryWarningReceived) == [
+                .pauseGameplay,
+                .stopFeedback,
+                .releaseRecreatableResources
+            ]
+        )
+        #expect(memoryWarning.state == .pausedForRecovery)
+        #expect(memoryWarning.handle(.memoryWarningReceived) == [.releaseRecreatableResources])
+    }
+
+    @Test
     func identicalSeedsAndCommandsProduceIdenticalState() {
         var first = RaceSimulation(seed: 0xBEEF)
         var second = RaceSimulation(seed: 0xBEEF)

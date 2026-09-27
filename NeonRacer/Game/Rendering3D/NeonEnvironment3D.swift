@@ -7,6 +7,7 @@ final class NeonEnvironment3D {
     let rootNode = SCNNode()
 
     private let quality: CosmeticQualityTier
+    private var renderSceneryScale: Double
     private weak var scene: SCNScene?
     private var currentTheme: EnvironmentTheme3D
     private var reduceMotion = false
@@ -68,6 +69,7 @@ final class NeonEnvironment3D {
 
     init(quality: CosmeticQualityTier) {
         self.quality = quality
+        self.renderSceneryScale = RenderQualityConfiguration.preset(for: RenderQualityTier(cosmeticTier: quality)).sceneryDensityScale
         self.currentTheme = .sunsetCoast
         self.gridCellSize = quality == .efficiency ? 48 : 36
         rootNode.name = "neon-environment-root"
@@ -127,6 +129,11 @@ final class NeonEnvironment3D {
         applyTheme(currentTheme, animated: false)
     }
 
+    func apply(renderQualityTier: RenderQualityTier) {
+        renderSceneryScale = RenderQualityConfiguration.preset(for: renderQualityTier).sceneryDensityScale
+        applyTheme(currentTheme, animated: false)
+    }
+
     /// Factory for future track-mapped roadside streaming. The core 3D race scene can place
     /// returned nodes along `TrackWorldMapper3D` frames and use `roadsidePropKinds` plus
     /// `roadsidePropSpacingHint` to choose a theme-appropriate pool without duplicating art.
@@ -167,6 +174,10 @@ final class NeonEnvironment3D {
         case "midnight-peaks": 115
         default: 78
         }
+    }
+
+    private var renderSceneryOpacityScale: CGFloat {
+        CGFloat(min(max(renderSceneryScale, 0.45), 1))
     }
 
     private func build() {
@@ -384,7 +395,12 @@ final class NeonEnvironment3D {
         )
         centralSkylineRimMaterials.append(rimMaterial)
         var x: Float = -315
-        for index in widths.indices {
+        let towerCount = switch quality {
+        case .efficiency: 9
+        case .balanced: 13
+        case .fidelity: widths.count
+        }
+        for index in 0..<towerCount {
             let width = widths[index]
             let height = heights[index]
             let tower = SCNNode(geometry: SCNBox(width: width, height: height, length: 10, chamferRadius: 0))
@@ -558,7 +574,8 @@ final class NeonEnvironment3D {
             UIColor(red: 0.42, green: 0.52, blue: 1, alpha: 1),
             UIColor(red: 0.85, green: 0.25, blue: 1, alpha: 1)
         ]
-        for index in 0..<3 {
+        let ribbonCount = quality == .efficiency ? 1 : 3
+        for index in 0..<ribbonCount {
             let ribbon = Self.softRibbonImage(color: colors[index])
             let material = Self.constantMaterial(.white, emission: ribbon, transparency: 0.34)
             material.diffuse.contents = ribbon
@@ -602,7 +619,7 @@ final class NeonEnvironment3D {
             self.coastNode.opacity = theme.id == "sunset-coast" ? 1 : (theme.id == "neon-city" ? 0.28 : 0.12)
             self.cityNode.opacity = theme.id == "neon-city" ? 1 : (theme.id == "sunset-coast" ? 0.10 : 0.16)
             self.peaksNode.opacity = theme.id == "midnight-peaks" ? 1 : (theme.id == "neon-city" ? 0.28 : 0.14)
-            self.centralSkylineNode.opacity = theme.id == "midnight-peaks" ? 0.55 : 1.0
+            self.centralSkylineNode.opacity = (theme.id == "midnight-peaks" ? 0.55 : 1.0) * self.renderSceneryOpacityScale
             self.facetedMountainNode.opacity = theme.id == "neon-city" ? 0.48 : 0.70
             self.horizonLineNode.opacity = self.highContrast ? 1.0 : 0.78
             self.auroraNode.opacity = theme.id == "midnight-peaks" ? (self.reduceMotion ? 0.42 : 0.70) : 0.05
@@ -1007,7 +1024,7 @@ final class NeonEnvironment3D {
         let coastActive = currentTheme.id == "sunset-coast"
         let cityActive = currentTheme.id == "neon-city"
         let peaksActive = currentTheme.id == "midnight-peaks"
-        eyeCandyRoot.opacity = highContrast ? 0.86 : 1
+        eyeCandyRoot.opacity = (highContrast ? 0.86 : 1) * renderSceneryOpacityScale
         updateHoverTraffic(time: time, speedRatio: speedRatio)
         updateBlimp(time: time, active: cityActive || coastActive)
         updateSearchlights(time: time, active: cityActive || peaksActive)

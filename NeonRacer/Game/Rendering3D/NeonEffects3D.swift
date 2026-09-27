@@ -126,6 +126,7 @@ final class NeonEffects3D {
 
     private var configuration: NeonEffectsConfiguration = .standard
     private var quality: CosmeticQualityTier = .balanced
+    private var renderQuality = RenderQualityConfiguration.preset(for: .medium)
     private var weatherMode: NeonEffects3DWeatherMode = .clear
     private var reduceMotion = false
     private var reduceFlashing = false
@@ -295,6 +296,17 @@ final class NeonEffects3D {
         refreshTechnique()
     }
 
+    func apply(renderQuality: RenderQualityConfiguration) {
+        self.renderQuality = renderQuality
+        camera?.wantsHDR = renderQuality.bloomEnabled
+        if !renderQuality.bloomEnabled {
+            camera?.bloomIntensity = 0
+            camera?.bloomBlurRadius = 0
+            camera?.colorFringeIntensity = 0
+        }
+        refreshTechnique()
+    }
+
     func apply(configuration: NeonEffectsConfiguration) {
         self.configuration = configuration
         refreshTechnique()
@@ -419,8 +431,8 @@ final class NeonEffects3D {
     }
 
     private func updateCamera(speed: Double, speedActivation: Double, scaling: NeonEffects3DScaling, time: TimeInterval) {
-        let bloom = scaling.effectiveIntensity(for: .bloom, configuration: configuration)
-        let chromatic = scaling.effectiveIntensity(for: .chromaticSeparation, configuration: configuration)
+        let bloom = renderQuality.bloomEnabled ? scaling.effectiveIntensity(for: .bloom, configuration: configuration) : 0
+        let chromatic = renderQuality.bloomEnabled ? scaling.effectiveIntensity(for: .chromaticSeparation, configuration: configuration) : 0
         let vignette = scaling.effectiveIntensity(for: .vignette, configuration: configuration)
         let colorGrade = scaling.effectiveIntensity(for: .colorGrade, configuration: configuration)
         camera?.bloomIntensity = CGFloat((1.0 + speed * 0.45 + boostRamp * 0.6 + finishEnergy * 0.45 + collisionEnergy * 0.72 + glitchEnergy * 0.55) * bloom)
@@ -712,7 +724,7 @@ final class NeonEffects3D {
 
     private func refreshTechnique() {
         guard let view else { return }
-        view.technique = nil
+        view.technique = renderQuality.postProcessingEnabled ? Self.makeTechnique() : nil
     }
 
     private func burst(_ system: SCNParticleSystem?, emitter: SCNNode, relativeToCar offset: SCNVector3, birthRate: Double) {

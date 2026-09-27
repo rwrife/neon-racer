@@ -57,9 +57,7 @@ final class TrackMarkers3D {
         case .forkSplit:
             return makeForkSign(stage: routeStage)
         case .finishLine:
-            let node = makeArch(title: "FINISH", material: magenta, height: 8, width: 16, includeLights: false)
-            node.addChildNode(makeCheckeredStripe(width: 13.5, depth: 5.5))
-            return node
+            return makeMonumentalFinishGantry()
         }
     }
 
@@ -142,57 +140,87 @@ final class TrackMarkers3D {
 
 
     private func makeMonumentalStartGantry() -> SCNNode {
+        makeMonumentalGantry(title: "START", isFinish: false)
+    }
+
+    private func makeMonumentalFinishGantry() -> SCNNode {
+        makeMonumentalGantry(title: "FINISH", isFinish: true)
+    }
+
+    private func makeMonumentalGantry(title: String, isFinish: Bool) -> SCNNode {
         let node = SCNNode()
-        node.name = "monumental-angular-start-gantry"
-        let width: CGFloat = 24
-        let height: CGFloat = 10.5
-        let panel = SCNNode(geometry: SCNBox(width: width - 4.4, height: 3.2, length: 0.32, chamferRadius: 0.14))
-        panel.name = "start-dark-glass-sign-panel"
+        node.name = isFinish ? "monumental-angular-finish-gantry" : "monumental-angular-start-gantry"
+        let width: CGFloat = isFinish ? 23.2 : 24.8
+        let height: CGFloat = isFinish ? 10.0 : 10.9
+        let panel = SCNNode(geometry: SCNBox(width: width - 4.0, height: 3.45, length: 0.22, chamferRadius: 0.12))
+        panel.name = "\(title.lowercased())-dark-glass-sign-panel"
         panel.geometry?.materials = [darkPanel]
-        panel.position = SCNVector3(0, Float(height - 2.1), -0.95)
+        panel.position = SCNVector3(0, Float(height - 2.08), -0.98)
+        panel.renderingOrder = -20
         node.addChildNode(panel)
 
-        addBeam(to: node, name: "start-left-angled-pillar", from: SCNVector3(Float(-width / 2), 0, 0), to: SCNVector3(Float(-width / 2 + 3.2), Float(height), 0), radius: 0.34, material: cyan)
-        addBeam(to: node, name: "start-right-angled-pillar", from: SCNVector3(Float(width / 2), 0, 0), to: SCNVector3(Float(width / 2 - 3.2), Float(height), 0), radius: 0.34, material: magenta)
-        addBeam(to: node, name: "start-top-truss-cyan", from: SCNVector3(Float(-width / 2 + 3.1), Float(height), 0), to: SCNVector3(0, Float(height), 0), radius: 0.30, material: cyan)
-        addBeam(to: node, name: "start-top-truss-magenta", from: SCNVector3(0, Float(height), 0), to: SCNVector3(Float(width / 2 - 3.1), Float(height), 0), radius: 0.30, material: magenta)
-        addBeam(to: node, name: "start-overhead-lightbar", from: SCNVector3(-6.7, Float(height - 1.0), -0.38), to: SCNVector3(6.7, Float(height - 1.0), -0.38), radius: 0.075, material: cyan)
-        addBeam(to: node, name: "start-lower-hot-pink-tube", from: SCNVector3(-8.0, Float(height - 3.85), -0.42), to: SCNVector3(8.0, Float(height - 3.85), -0.42), radius: 0.055, material: hotPink)
+        let leftFoot = SCNVector3(Float(-width / 2), 0, 0)
+        let rightFoot = SCNVector3(Float(width / 2), 0, 0)
+        let leftShoulder = SCNVector3(Float(-width / 2 + 3.1), Float(height), 0)
+        let rightShoulder = SCNVector3(Float(width / 2 - 3.1), Float(height), 0)
+        addBeam(to: node, name: "\(title.lowercased())-outer-left-cyan-tube", from: leftFoot, to: leftShoulder, radius: 0.34, material: cyan)
+        addBeam(to: node, name: "\(title.lowercased())-outer-right-magenta-tube", from: rightFoot, to: rightShoulder, radius: 0.34, material: magenta)
+        addBeam(to: node, name: "\(title.lowercased())-inner-left-magenta-tube", from: SCNVector3(leftFoot.x + 1.25, 0.95, -0.16), to: SCNVector3(leftShoulder.x + 0.70, leftShoulder.y - 0.95, -0.16), radius: 0.075, material: hotPink)
+        addBeam(to: node, name: "\(title.lowercased())-inner-right-cyan-tube", from: SCNVector3(rightFoot.x - 1.25, 0.95, -0.16), to: SCNVector3(rightShoulder.x - 0.70, rightShoulder.y - 0.95, -0.16), radius: 0.075, material: cyan)
+        addBeam(to: node, name: "\(title.lowercased())-top-left-cyan-truss", from: leftShoulder, to: SCNVector3(-0.2, Float(height), 0), radius: 0.30, material: cyan)
+        addBeam(to: node, name: "\(title.lowercased())-top-right-magenta-truss", from: SCNVector3(0.2, Float(height), 0), to: rightShoulder, radius: 0.30, material: magenta)
+        addBeam(to: node, name: "\(title.lowercased())-top-inner-hot-pink-outline", from: SCNVector3(leftShoulder.x + 1.0, leftShoulder.y - 0.64, -0.18), to: SCNVector3(rightShoulder.x - 1.0, rightShoulder.y - 0.64, -0.18), radius: 0.075, material: hotPink)
+        addBeam(to: node, name: "\(title.lowercased())-overhead-cyan-lightbar", from: SCNVector3(-6.9, Float(height - 1.05), -0.42), to: SCNVector3(6.9, Float(height - 1.05), -0.42), radius: 0.078, material: cyan)
+        addBeam(to: node, name: "\(title.lowercased())-lower-hot-pink-tube", from: SCNVector3(-8.4, Float(height - 3.98), -0.46), to: SCNVector3(8.4, Float(height - 3.98), -0.46), radius: 0.058, material: hotPink)
+        for x in [-8.8 as Float, 8.8] {
+            addBeam(to: node, name: "\(title.lowercased())-short-panel-upright", from: SCNVector3(x, Float(height - 3.78), -0.44), to: SCNVector3(x, Float(height - 0.72), -0.44), radius: 0.045, material: x < 0 ? cyan : magenta)
+        }
 
-        let startText = textNode("START", size: 2.15, material: hotPink)
-        startText.name = "huge-hot-pink-outlined-start-tube-lettering"
-        startText.position = SCNVector3(0, Float(height - 2.2), -0.55)
-        node.addChildNode(startText)
-        let textGlow = textNode("START", size: 2.23, material: magenta)
-        textGlow.opacity = 0.28
-        textGlow.position = SCNVector3(0, Float(height - 2.2), -0.62)
-        node.addChildNode(textGlow)
+        let mainText = textNode(title, size: isFinish ? 1.82 : 2.15, material: hotPink)
+        mainText.name = "huge-hot-pink-outlined-\(title.lowercased())-tube-lettering"
+        mainText.position = SCNVector3(isFinish ? 0.18 : 0, Float(height - 2.18), -0.52)
+        mainText.renderingOrder = 20
+        node.addChildNode(mainText)
+        let cyanOutline = textNode(title, size: isFinish ? 1.90 : 2.24, material: cyan)
+        cyanOutline.name = "\(title.lowercased())-cyan-outer-glow-lettering"
+        cyanOutline.opacity = 0.22
+        cyanOutline.position = SCNVector3(isFinish ? 0.18 : 0, Float(height - 2.18), -0.60)
+        cyanOutline.renderingOrder = 18
+        node.addChildNode(cyanOutline)
+        let magentaOutline = textNode(title, size: isFinish ? 1.98 : 2.32, material: magenta)
+        magentaOutline.name = "\(title.lowercased())-magenta-halo-lettering"
+        magentaOutline.opacity = 0.16
+        magentaOutline.position = SCNVector3(isFinish ? 0.18 : 0, Float(height - 2.18), -0.66)
+        magentaOutline.renderingOrder = 16
+        node.addChildNode(magentaOutline)
 
         let emblem = makeWingedHelmetEmblem()
-        emblem.position = SCNVector3(-8.4, Float(height - 2.75), -0.52)
+        emblem.position = SCNVector3(isFinish ? -8.9 : -8.65, Float(height - 2.72), -0.50)
         node.addChildNode(emblem)
 
         let pod = SCNNode(geometry: SCNBox(width: 1.2, height: 3.5, length: 0.35, chamferRadius: 0.12))
-        pod.name = "vertical-start-countdown-light-pod"
+        pod.name = "\(title.lowercased())-vertical-countdown-light-pod"
         pod.geometry?.materials = [darkPanel]
-        pod.position = SCNVector3(Float(-width / 2 + 1.7), 4.2, -0.45)
+        pod.position = SCNVector3(Float(-width / 2 + 1.75), 4.2, -0.45)
         node.addChildNode(pod)
-        lightNodes.removeAll(keepingCapacity: true)
+        if !isFinish { lightNodes.removeAll(keepingCapacity: true) }
         for (index, material) in [hotPink, orange, cyan].enumerated() {
             let light = SCNNode(geometry: SCNBox(width: 0.66, height: 0.66, length: 0.09, chamferRadius: 0.09))
-            light.name = "start-countdown-lamp-\(index)"
+            light.name = "\(title.lowercased())-countdown-lamp-\(index)"
             light.geometry?.materials = [material]
             light.position = SCNVector3(0, Float(1.05 - Double(index) * 1.05), 0.22)
-            lightNodes.append(light)
+            if !isFinish { lightNodes.append(light) }
             pod.addChildNode(light)
         }
 
-        addBillboardCluster(to: node, side: -1, x: -15.4)
-        addBillboardCluster(to: node, side: 1, x: 15.4)
+        addBillboardCluster(to: node, side: -1, x: -15.8, finish: isFinish)
+        addBillboardCluster(to: node, side: 1, x: 15.8, finish: isFinish)
         for child in node.childNodes {
-            child.position.z -= 18
+            child.position.z -= isFinish ? 15.0 : 18.0
         }
-        node.addChildNode(makeCheckeredStripe(width: 13.8, depth: 3.6))
+        let stripe = makeCheckeredStripe(width: isFinish ? 15.0 : 13.8, depth: isFinish ? 4.8 : 3.6)
+        stripe.name = isFinish ? "finish-wide-checkered-neon-line" : "start-wide-checkered-neon-line"
+        node.addChildNode(stripe)
         return node
     }
 
@@ -218,30 +246,39 @@ final class TrackMarkers3D {
         return node
     }
 
-    private func addBillboardCluster(to node: SCNNode, side: Double, x: Float) {
+    private func addBillboardCluster(to node: SCNNode, side: Double, x: Float, finish: Bool) {
         let ads = side < 0
-            ? ["RE-GEN:\nRECLAIM\nPOTENTIAL", "CONSUME\nPRODUCT X", "NOVA\nBIOMEDICA"]
-            : ["OBEY THE\nALGORITHM", "EYE-NET\nWATCHES", "JPC\nBIOWORKS"]
+            ? ["JPC\nBIOMEDICAL", "RE-GEN:\nRECLAIM YOUR\nPOTENTIAL", "CONSUME\nPRODUCT X"]
+            : ["M. ALEE (Race Ldr)\nC. CORE\nT. REK   13:39", "OBEY\nCORPORATE\nDIKTAT", "EYE-NET\nIS ALWAYS\nWATCHING"]
         for (index, copy) in ads.enumerated() {
-            let panel = makeHoloBillboard(copy, accent: index.isMultiple(of: 2) ? cyan : hotPink)
-            panel.position = SCNVector3(x, Float(2.2 + Double(index) * 1.55), Float(-4.5 - Double(index) * 3.8))
-            panel.eulerAngles.y = Float(side) * 0.22
+            let accent = index.isMultiple(of: 2) ? cyan : (side < 0 ? hotPink : orange)
+            let panel = copy.contains("Race Ldr")
+                ? makeHoloBillboard(copy, accent: orange, width: 4.9, height: 1.55, textSize: 0.24)
+                : makeHoloBillboard(copy, accent: accent, width: index == 0 && side < 0 ? 3.5 : 4.1, height: 1.46, textSize: 0.25)
+            let finishYOffset: Float = finish ? 0.45 : 0
+            panel.position = SCNVector3(x, Float(2.25 + Double(index) * 1.70) + finishYOffset, Float(-4.2 - Double(index) * 3.55))
+            panel.eulerAngles.y = Float(side) * 0.25
             node.addChildNode(panel)
         }
     }
 
-    private func makeHoloBillboard(_ copy: String, accent: SCNMaterial) -> SCNNode {
+    private func makeHoloBillboard(_ copy: String, accent: SCNMaterial, width: CGFloat = 3.7, height: CGFloat = 1.35, textSize: CGFloat = 0.28) -> SCNNode {
         let node = SCNNode()
         node.name = "start-holo-billboard-\(copy.replacingOccurrences(of: "\n", with: "-"))"
-        let panel = SCNNode(geometry: SCNBox(width: 3.7, height: 1.35, length: 0.12, chamferRadius: 0.06))
+        let panel = SCNNode(geometry: SCNBox(width: width, height: height, length: 0.10, chamferRadius: 0.06))
         panel.geometry?.materials = [darkPanel]
+        panel.position.z = -0.035
+        panel.renderingOrder = -10
         node.addChildNode(panel)
-        addBeam(to: node, name: "billboard-top", from: SCNVector3(-1.95, 0.78, 0.08), to: SCNVector3(1.95, 0.78, 0.08), radius: 0.035, material: accent)
-        addBeam(to: node, name: "billboard-bottom", from: SCNVector3(-1.95, -0.78, 0.08), to: SCNVector3(1.95, -0.78, 0.08), radius: 0.035, material: accent)
-        addBeam(to: node, name: "billboard-left", from: SCNVector3(-1.95, -0.78, 0.08), to: SCNVector3(-1.95, 0.78, 0.08), radius: 0.035, material: accent)
-        addBeam(to: node, name: "billboard-right", from: SCNVector3(1.95, -0.78, 0.08), to: SCNVector3(1.95, 0.78, 0.08), radius: 0.035, material: accent)
-        let label = textNode(copy, size: 0.28, material: accent)
-        label.position = SCNVector3(0, 0, 0.1)
+        let halfWidth = Float(width / 2 + 0.10)
+        let halfHeight = Float(height / 2 + 0.10)
+        addBeam(to: node, name: "billboard-top", from: SCNVector3(-halfWidth, halfHeight, 0.08), to: SCNVector3(halfWidth, halfHeight, 0.08), radius: 0.035, material: accent)
+        addBeam(to: node, name: "billboard-bottom", from: SCNVector3(-halfWidth, -halfHeight, 0.08), to: SCNVector3(halfWidth, -halfHeight, 0.08), radius: 0.035, material: accent)
+        addBeam(to: node, name: "billboard-left", from: SCNVector3(-halfWidth, -halfHeight, 0.08), to: SCNVector3(-halfWidth, halfHeight, 0.08), radius: 0.035, material: accent)
+        addBeam(to: node, name: "billboard-right", from: SCNVector3(halfWidth, -halfHeight, 0.08), to: SCNVector3(halfWidth, halfHeight, 0.08), radius: 0.035, material: accent)
+        let label = textNode(copy, size: textSize, material: accent)
+        label.position = SCNVector3(0, 0, 0.13)
+        label.renderingOrder = 12
         node.addChildNode(label)
         return node
     }

@@ -14,6 +14,8 @@ struct SettingsView: View {
     private enum SettingsControl: Hashable {
         case haptics
         case hapticIntensity
+        case renderQuality
+        case perfOverlay
         case remap(PlayerAction)
         case resetInput
         case accessibility
@@ -90,6 +92,26 @@ struct SettingsView: View {
                     .focused($focusedControl, equals: .hapticIntensity)
                 }
 
+                Section {
+                    Picker("Render Quality", selection: gameplayBinding(\.renderQualityPreference)) {
+                        ForEach(RenderQualityPreference.allCases) { preference in
+                            Text(preference.displayName).tag(preference)
+                        }
+                    }
+                    .focused($focusedControl, equals: .renderQuality)
+#if DEBUG
+                    Toggle(
+                        "Performance Overlay",
+                        isOn: gameplayBinding(\.debugPerformanceOverlayEnabled)
+                    )
+                    .focused($focusedControl, equals: .perfOverlay)
+#endif
+                } header: {
+                    Text("Graphics")
+                } footer: {
+                    Text("Automatic quality considers device memory and thermal pressure. Changes apply at the start of the next run.")
+                }
+
                 Section("Input Remapping") {
                     ForEach(Self.remappableActions, id: \.self) { action in
                         Picker(action.settingsTitle, selection: remappingBinding(for: action)) {
@@ -120,7 +142,7 @@ struct SettingsView: View {
                     }
                     .focused($focusedControl, equals: .resetProfile)
                 } footer: {
-                    Text("Settings are saved immediately. Race input and haptic changes apply at the start of the next run.")
+                    Text("Settings are saved immediately. Race input, haptic, and graphics changes apply at the start of the next run.")
                 }
             }
             .navigationTitle("Settings")
@@ -189,7 +211,7 @@ struct SettingsView: View {
     }
 
     private var focusOrder: [SettingsControl] {
-        [.haptics, .hapticIntensity]
+        [.haptics, .hapticIntensity, .renderQuality, .perfOverlay]
             + Self.remappableActions.map(SettingsControl.remap)
             + [.resetInput, .accessibility, .resetProfile, .done]
     }
@@ -230,6 +252,13 @@ struct SettingsView: View {
             let current = remappingBinding(for: action).wrappedValue
             let index = keys.firstIndex(of: current) ?? 0
             remappingBinding(for: action).wrappedValue = keys[(index + offset + keys.count) % keys.count]
+        case .renderQuality:
+            let preferences = RenderQualityPreference.allCases
+            let current = gameplaySettings.settings.renderQualityPreference
+            let index = preferences.firstIndex(of: current) ?? 0
+            gameplaySettings.update {
+                $0.renderQualityPreference = preferences[(index + offset + preferences.count) % preferences.count]
+            }
         default:
             break
         }
@@ -239,6 +268,8 @@ struct SettingsView: View {
         switch focusedControl {
         case .haptics:
             gameplaySettings.update { $0.haptics.isEnabled.toggle() }
+        case .perfOverlay:
+            gameplaySettings.update { $0.debugPerformanceOverlayEnabled.toggle() }
         case .resetInput:
             gameplaySettings.update { $0.inputRemapping = .standard }
             inputService.updateRemapping(.standard)

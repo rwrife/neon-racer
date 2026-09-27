@@ -28,6 +28,9 @@
 		D23000000000000000000002 /* PerformanceInstrumentation.swift in Sources */ = {isa = PBXBuildFile; fileRef = E23000000000000000000002 /* PerformanceInstrumentation.swift */; };
 		D23000000000000000000003 /* DebugPerformanceMetrics.swift in Sources */ = {isa = PBXBuildFile; fileRef = E23000000000000000000003 /* DebugPerformanceMetrics.swift */; };
 		D23000000000000000000004 /* CosmeticQualityTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E23000000000000000000004 /* CosmeticQualityTests.swift */; };
+		F23000000000000000000001 /* RenderQualityTier.swift in Sources */ = {isa = PBXBuildFile; fileRef = F23000000000000000000002 /* RenderQualityTier.swift */; };
+		F23000000000000000000003 /* DebugPerformanceOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = F23000000000000000000004 /* DebugPerformanceOverlay.swift */; };
+		F23000000000000000000005 /* RenderQualityTierTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F23000000000000000000006 /* RenderQualityTierTests.swift */; };
 		22C000000000000000000001 /* RunInterruptionCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 22C000000000000000000002 /* RunInterruptionCoordinator.swift */; };
 		200000000000000000000025 /* TutorialState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 300000000000000000000025 /* TutorialState.swift */; };
 		200000000000000000000026 /* TutorialPromptContent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 300000000000000000000026 /* TutorialPromptContent.swift */; };
@@ -135,6 +138,9 @@
 		E23000000000000000000002 /* PerformanceInstrumentation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PerformanceInstrumentation.swift; sourceTree = "<group>"; };
 		E23000000000000000000003 /* DebugPerformanceMetrics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebugPerformanceMetrics.swift; sourceTree = "<group>"; };
 		E23000000000000000000004 /* CosmeticQualityTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CosmeticQualityTests.swift; sourceTree = "<group>"; };
+		F23000000000000000000002 /* RenderQualityTier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RenderQualityTier.swift; sourceTree = "<group>"; };
+		F23000000000000000000004 /* DebugPerformanceOverlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebugPerformanceOverlay.swift; sourceTree = "<group>"; };
+		F23000000000000000000006 /* RenderQualityTierTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RenderQualityTierTests.swift; sourceTree = "<group>"; };
 		22C000000000000000000002 /* RunInterruptionCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RunInterruptionCoordinator.swift; sourceTree = "<group>"; };
 		300000000000000000000025 /* TutorialState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TutorialState.swift; sourceTree = "<group>"; };
 		300000000000000000000026 /* TutorialPromptContent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TutorialPromptContent.swift; sourceTree = "<group>"; };
@@ -282,6 +288,7 @@
 			isa = PBXGroup;
 			children = (
 				300000000000000000000004 /* RaceView.swift */,
+				F23000000000000000000004 /* DebugPerformanceOverlay.swift */,
 				E14100000000000000000013 /* RaceHUDView.swift */,
 				C0DE00000000000000002004 /* HUDArcadeComponents.swift */,
 				C0DE00000000000000002008 /* HUDCalloutView.swift */,
@@ -344,6 +351,7 @@
 				A24000000000000000000003 /* RaceReplay.swift */,
 				A24000000000000000000004 /* RaceDebugDiagnostics.swift */,
 				E23000000000000000000001 /* CosmeticQuality.swift */,
+				F23000000000000000000002 /* RenderQualityTier.swift */,
 				E23000000000000000000002 /* PerformanceInstrumentation.swift */,
 				22C000000000000000000002 /* RunInterruptionCoordinator.swift */,
 				C09000000000000000000002 /* RunProgression.swift */,
@@ -488,6 +496,7 @@
 				C0DE0000000000000000E006 /* NeonEffects3DTests.swift */,
 				C0DE0000000000000000F002 /* TrafficSystemTests.swift */,
 				C0DE0000000000000000F004 /* CollisionSystemTests.swift */,
+				F23000000000000000000006 /* RenderQualityTierTests.swift */,
 			);
 			path = NeonRacerTests;
 			sourceTree = "<group>";
@@ -671,6 +680,7 @@
 				200000000000000000000003 /* MainMenuView.swift in Sources */,
 				200000000000000000000004 /* RaceView.swift in Sources */,
 				E14100000000000000000003 /* RaceHUDView.swift in Sources */,
+				F23000000000000000000003 /* DebugPerformanceOverlay.swift in Sources */,
 				C0DE00000000000000002003 /* HUDArcadeComponents.swift in Sources */,
 				C0DE00000000000000002007 /* HUDCalloutView.swift in Sources */,
 				C0DE00000000000000002005 /* HUDRouteProgressView.swift in Sources */,
@@ -704,6 +714,7 @@
 				200000000000000000000027 /* TutorialViews.swift in Sources */,
 				F20000000000000000000001 /* InputService.swift in Sources */,
 				D23000000000000000000001 /* CosmeticQuality.swift in Sources */,
+				F23000000000000000000001 /* RenderQualityTier.swift in Sources */,
 				D23000000000000000000002 /* PerformanceInstrumentation.swift in Sources */,
 				D23000000000000000000003 /* DebugPerformanceMetrics.swift in Sources */,
 				E12000000000000000000001 /* EnvironmentRenderer.swift in Sources */,
@@ -752,6 +763,7 @@
 				C0DE0000000000000000E005 /* NeonEffects3DTests.swift in Sources */,
 				C0DE0000000000000000F001 /* TrafficSystemTests.swift in Sources */,
 				C0DE0000000000000000F003 /* CollisionSystemTests.swift in Sources */,
+				F23000000000000000000005 /* RenderQualityTierTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

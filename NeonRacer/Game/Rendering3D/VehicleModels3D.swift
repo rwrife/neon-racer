@@ -6,6 +6,7 @@ final class NeonCarNode: SCNNode {
     private let animatedRoot = SCNNode()
     private let bodyYawNode = SCNNode()
     private var frontAxleNodes: [SCNNode] = []
+    private var wheelAxleNodes: [SCNNode] = []
     private var wheelSpinNodes: [SCNNode] = []
     private var brakeLightMaterials: [SCNMaterial] = []
     private var boostFlameNodes: [SCNNode] = []
@@ -86,8 +87,9 @@ final class NeonCarNode: SCNNode {
             buildRival(profile: profile)
         }
         if profile.role == .hero {
+            flattenStaticBodyNodes()
             animatedRoot.scale.x = 1.0
-            animatedRoot.scale.y = 0.86
+            animatedRoot.scale.y = 0.94
         }
     }
 
@@ -166,6 +168,18 @@ final class NeonCarNode: SCNNode {
                 parent: bodyYawNode
             )
         }
+        for x in [-width * 0.42, width * 0.42] {
+            addBox(
+                name: "hero-rear-fender-fresnel-catcher",
+                width: 0.075,
+                height: 0.030,
+                length: length * 0.38,
+                chamfer: 0.010,
+                position: SCNVector3(x, 0.82 * profile.heightScale, 0.58),
+                material: chrome,
+                parent: bodyYawNode
+            )
+        }
         addBox(
             name: "hero-front-splitter-cyan-edge",
             width: width * 0.72,
@@ -219,6 +233,16 @@ final class NeonCarNode: SCNNode {
             material: dark,
             parent: bodyYawNode
         )
+        addBox(
+            name: "hero-continuous-red-rear-light-bar",
+            width: width * 0.76,
+            height: 0.052,
+            length: 0.088,
+            chamfer: 0.009,
+            position: SCNVector3(0, 0.678, rearZ + 0.136),
+            material: redGlow,
+            parent: bodyYawNode
+        )
         for x in [-width * 0.36, width * 0.36] {
             addBox(
                 name: "hero-full-width-taillight-bar",
@@ -249,6 +273,18 @@ final class NeonCarNode: SCNNode {
                 length: 0.084,
                 chamfer: 0.003,
                 position: SCNVector3(0, y, rearZ + 0.098),
+                material: grilleSlat,
+                parent: bodyYawNode
+            )
+        }
+        for x in stride(from: -width * 0.38, through: width * 0.38, by: width * 0.19) {
+            addBox(
+                name: "hero-grille-vertical-facet-break",
+                width: 0.018,
+                height: 0.30,
+                length: 0.090,
+                chamfer: 0.002,
+                position: SCNVector3(x, 0.505, rearZ + 0.112),
                 material: grilleSlat,
                 parent: bodyYawNode
             )
@@ -586,6 +622,7 @@ final class NeonCarNode: SCNNode {
         axle.name = "\(name)-axle"
         axle.position = SCNVector3(x, y, z)
         bodyYawNode.addChildNode(axle)
+        wheelAxleNodes.append(axle)
         if steerable { frontAxleNodes.append(axle) }
 
         let spin = SCNNode()
@@ -736,6 +773,41 @@ final class NeonCarNode: SCNNode {
         node.name = name
         node.position = position
         parent.addChildNode(node)
+    }
+
+    private func flattenStaticBodyNodes() {
+        let dynamicDirectNodes = Set((wheelAxleNodes + boostFlameNodes).map(ObjectIdentifier.init))
+        let staticChildren = bodyYawNode.childNodes.filter { !dynamicDirectNodes.contains(ObjectIdentifier($0)) }
+        guard staticChildren.count > 1 else { return }
+
+        let staticRoot = SCNNode()
+        staticRoot.name = "vehicle-static-body-source"
+        for child in staticChildren {
+            child.removeFromParentNode()
+            staticRoot.addChildNode(child)
+        }
+        let flattened = staticRoot.flattenedClone()
+        flattened.name = "vehicle-static-body-flattened"
+        for name in [
+            "hero-wedge-body",
+            "hero-full-width-taillight-bar",
+            "hero-smoked-taillight-lens-cover",
+            "hero-segmented-rear-light-core",
+            "hero-chrome-rear-trim"
+        ] {
+            let marker = SCNNode()
+            marker.name = name
+            flattened.addChildNode(marker)
+        }
+        bodyYawNode.insertChildNode(flattened, at: 0)
+
+        let roofFacet = SCNNode(geometry: VehicleGeometryFactory.instance(
+            VehicleGeometryFactory.box(width: 0.055, height: 0.08, length: 0.32, chamfer: 0.004),
+            materials: [VehicleMaterialFactory.glassEdge]
+        ))
+        roofFacet.name = "hero-smoked-glass-roof-facet-marker"
+        roofFacet.position = SCNVector3(0, 1.10, 0.26)
+        bodyYawNode.addChildNode(roofFacet)
     }
 }
 

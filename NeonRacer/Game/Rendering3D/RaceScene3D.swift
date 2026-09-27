@@ -20,7 +20,9 @@ final class RaceScene3D: NSObject {
     private let configuration: RaceConfiguration
     private let routeName: String
     private let garagePalette: GaragePaletteDefinition
-    private let quality: CosmeticQualityConfiguration
+    private var quality: CosmeticQualityConfiguration
+    private let renderQualityPreference: RenderQualityPreference
+    private var renderQuality: RenderQualityConfiguration
     private let mapper: TrackWorldMapper3D
     private let roadBuilder = RoadMeshBuilder3D()
     private let markerBuilder = TrackMarkers3D()
@@ -31,6 +33,7 @@ final class RaceScene3D: NSObject {
     private let carNode: NeonCarNode
     private var trafficNodes: [UInt64: NeonCarNode] = [:]
     private var obstacleNodes: [UInt64: SCNNode] = [:]
+    private weak var attachedView: SCNView?
     private var displayLink: CADisplayLink?
     private var previousUpdateTime: TimeInterval?
     private var previousPhase = RacePhase.loading
@@ -46,9 +49,12 @@ final class RaceScene3D: NSObject {
     private var lastEnvironmentID = ""
 #if DEBUG
     private let performanceMetrics = DebugPerformanceMetrics()
+    private(set) var debugPerformanceSnapshot: DebugPerformanceSnapshot?
 #endif
+    private var thermalObserver: NSObjectProtocol?
 
     convenience init(
+        renderQualityPreference: RenderQualityPreference = .automatic,
         configuration: RaceConfiguration = .standard,
         routeGraph: RouteGraph? = nil,
         routeName: String = "Neon Causeway",
@@ -56,6 +62,7 @@ final class RaceScene3D: NSObject {
     ) {
         self.init(
             quality: .environmentDefault,
+            renderQualityPreference: renderQualityPreference,
             configuration: configuration,
             routeGraph: routeGraph,
             routeName: routeName,
@@ -65,12 +72,21 @@ final class RaceScene3D: NSObject {
 
     init(
         quality: CosmeticQualityConfiguration,
+        renderQualityPreference: RenderQualityPreference = .automatic,
         configuration: RaceConfiguration = .standard,
         routeGraph: RouteGraph? = nil,
         routeName: String = "Neon Causeway",
         garagePalette: GaragePaletteDefinition = ProgressionCatalog.palettes[0]
     ) {
-        self.quality = quality
+        let selectedRenderQuality = if renderQualityPreference == .automatic,
+                                       ProcessInfo.processInfo.environment["NEON_RACER_QUALITY_TIER"] != nil {
+            RenderQualityConfiguration.preset(for: RenderQualityTier(cosmeticTier: quality.tier))
+        } else {
+            RenderQualityConfiguration.selected(preference: renderQualityPreference)
+        }
+        self.renderQualityPreference = renderQualityPreference
+        self.renderQuality = selectedRenderQuality
+        self.quality = CosmeticQualityConfiguration.preset(for: selectedRenderQuality.tier)
         self.configuration = configuration
         self.routeName = routeName
         self.garagePalette = garagePalette
@@ -83,19 +99,23 @@ final class RaceScene3D: NSObject {
     }
 
     func attach(to view: SCNView) {
+        attachedView = view
         view.scene = scene
         view.pointOfView = chaseCamera.cameraNode
         view.preferredFramesPerSecond = 60
-#if targetEnvironment(simulator)
-        view.antialiasingMode = .none
-#else
-        view.antialiasingMode = quality.expensiveEffectsEnabled ? .multisampling4X : .multisampling2X
-#endif
         view.isJitteringEnabled = false
         view.isPlaying = true
         view.rendersContinuously = true
         view.allowsCameraControl = false
         effects.install(on: view)
+        let selectedRenderQuality = if renderQualityPreference == .automatic,
+                                       ProcessInfo.processInfo.environment["NEON_RACER_QUALITY_TIER"] != nil {
+            renderQuality
+        } else {
+            RenderQualityConfiguration.selected(preference: renderQualityPreference)
+        }
+        applyRenderQuality(selectedRenderQuality, to: view)
+        observeThermalStateIfNeeded()
         step(frameDelta: 0, currentTime: CACurrentMediaTime())
         startDisplayLinkIfNeeded()
     }
@@ -113,6 +133,47 @@ final class RaceScene3D: NSObject {
         )
     }
 
+    private func observeThermalStateIfNeeded() {
+        guard thermalObserver == nil else { return }
+        thermalObserver = NotificationCenter.default.addObserver(
+            forName: ProcessInfo.thermalStateDidChangeNotification,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            Task { @MainActor in
+                self?.applyRenderQuality(
+                    RenderQualityConfiguration.selected(preference: self?.renderQualityPreference ?? .automatic)
+                )
+            }
+        }
+    }
+
+    private func applyRenderQuality(_ configuration: RenderQualityConfiguration, to view: SCNView? = nil) {
+        guard configuration != renderQuality || view != nil else { return }
+        renderQuality = configuration
+        quality = CosmeticQualityConfiguration.preset(for: configuration.tier)
+        let targetView = view ?? attachedView
+        if let targetView {
+            targetView.contentScaleFactor = targetView.traitCollection.displayScale * CGFloat(configuration.contentScale)
+        }
+#if targetEnvironment(simulator)
+        targetView?.antialiasingMode = .none
+#else
+        switch configuration.antialiasing {
+        case .none:
+            targetView?.antialiasingMode = .none
+        case .multisampling2X:
+            targetView?.antialiasingMode = .multisampling2X
+        case .multisampling4X:
+            targetView?.antialiasingMode = .multisampling4X
+        }
+#endif
+        environment.apply(renderQualityTier: configuration.tier)
+        effects.apply(quality: quality.tier)
+        effects.apply(renderQuality: configuration)
+        apply(settings: accessibilitySettings, systemReduceMotion: systemReduceMotion)
+    }
+
     func triggerCollisionEffects(intensity: Double = 1) {
         effects.trigger(.collision(intensity: intensity))
         chaseCamera.triggerShake(intensity: intensity)
@@ -122,6 +183,8 @@ final class RaceScene3D: NSObject {
         simulation.setPaused(true)
         previousUpdateTime = nil
         displayLink?.isPaused = true
+        attachedView?.isPlaying = false
+        attachedView?.rendersContinuously = false
         engineIntensityDidChange(0)
     }
 
@@ -129,12 +192,32 @@ final class RaceScene3D: NSObject {
         previousUpdateTime = nil
         simulation.setPaused(false)
         displayLink?.isPaused = false
+        attachedView?.isPlaying = true
+        attachedView?.rendersContinuously = true
+        attachedView?.setNeedsDisplay()
+    }
+
+    func releaseRecreatableResourcesForMemoryPressure() {
+        for node in trafficNodes.values {
+            node.removeFromParentNode()
+        }
+        trafficNodes.removeAll(keepingCapacity: true)
+        for node in obstacleNodes.values {
+            node.removeFromParentNode()
+        }
+        obstacleNodes.removeAll(keepingCapacity: true)
+        roadsideProps.releaseRecreatableResources()
     }
 
     func tearDown() {
         pauseForInterruption()
         displayLink?.invalidate()
         displayLink = nil
+        if let thermalObserver {
+            NotificationCenter.default.removeObserver(thermalObserver)
+            self.thermalObserver = nil
+        }
+        attachedView = nil
         commandProvider = { .idle }
         feedbackDidOccur = { _ in }
         engineIntensityDidChange = { _ in }
@@ -175,6 +258,8 @@ final class RaceScene3D: NSObject {
             effects.configure(camera: camera)
         }
         effects.apply(quality: quality.tier)
+        effects.apply(renderQuality: renderQuality)
+        environment.apply(renderQualityTier: renderQuality.tier)
         effects.attach(to: scene, carNode: carNode, cameraNode: chaseCamera.cameraNode)
         mapper.updateRoute(for: simulation.state)
         lastEnvironmentID = simulation.state.currentEnvironmentID
@@ -316,7 +401,8 @@ final class RaceScene3D: NSObject {
             playerDistance: distance,
             mapper: mapper,
             environment: environment,
-            environmentID: state.currentEnvironmentID
+            environmentID: state.currentEnvironmentID,
+            drawDistance: renderQuality.drawDistanceMeters
         )
         markerBuilder.update(state: state, mapper: mapper)
         updateTraffic(snapshot: snapshot, alpha: alpha)
@@ -350,12 +436,12 @@ final class RaceScene3D: NSObject {
         )
         PerformanceInstrumentation.end(.effects, effectsInterval)
 #if DEBUG
-        _ = performanceMetrics.record(
+        debugPerformanceSnapshot = performanceMetrics.record(
             frameDelta: frameDelta,
             activeVehicles: trafficNodes.count + 1,
             segmentCount: roadBuilder.activeChunkCount,
-            nodeCount: scene.rootNode.childNodes.count,
-            environmentDrawCount: 1,
+            nodeCount: scene.rootNode.nrRecursiveNodeCount,
+            environmentDrawCount: scene.rootNode.nrGeometryNodeCount,
             environmentNodeCount: environment.rootNode.childNodes.count,
             qualityTier: quality.tier,
             activeEffects: state.isBoostActive ? 1 : 0,
@@ -368,7 +454,7 @@ final class RaceScene3D: NSObject {
     private func updateTraffic(snapshot: RaceRenderSnapshot, alpha: Double) {
         let previous = Dictionary(uniqueKeysWithValues: snapshot.previous.traffic.map { ($0.id, $0) })
         var active: Set<UInt64> = []
-        for current in snapshot.current.traffic where current.distance > snapshot.current.distance - 60 && current.distance < snapshot.current.distance + 750 {
+        for current in snapshot.current.traffic where current.distance > snapshot.current.distance - 60 && current.distance < snapshot.current.distance + renderQuality.drawDistanceMeters {
             active.insert(current.id)
             let node = trafficNodes[current.id] ?? {
                 let made = VehicleModels3D.makeTrafficVehicle(kind: current.kind, seed: current.id)
@@ -394,7 +480,7 @@ final class RaceScene3D: NSObject {
     private func updateObstacles(snapshot: RaceRenderSnapshot, alpha: Double) {
         let previous = Dictionary(uniqueKeysWithValues: snapshot.previous.obstacles.map { ($0.id, $0) })
         var active: Set<UInt64> = []
-        for current in snapshot.current.obstacles where current.distance > snapshot.current.distance - 60 && current.distance < snapshot.current.distance + 750 {
+        for current in snapshot.current.obstacles where current.distance > snapshot.current.distance - 60 && current.distance < snapshot.current.distance + renderQuality.drawDistanceMeters {
             active.insert(current.id)
             let node = obstacleNodes[current.id] ?? {
                 let made = VehicleModels3D.makeObstacle(kind: current.kind)
@@ -569,7 +655,6 @@ private final class RoadsidePropStreamer3D {
     let rootNode = SCNNode()
     private var nodes: [String: SCNNode] = [:]
     private let behindDistance = 80.0
-    private let aheadDistance = 780.0
 
     var activeNodeCount: Int { nodes.count }
 
@@ -581,7 +666,8 @@ private final class RoadsidePropStreamer3D {
         playerDistance: Double,
         mapper: TrackWorldMapper3D,
         environment: NeonEnvironment3D,
-        environmentID: String
+        environmentID: String,
+        drawDistance: Double
     ) {
         let kinds = environment.roadsidePropKinds(for: environmentID)
         guard !kinds.isEmpty else {
@@ -591,7 +677,7 @@ private final class RoadsidePropStreamer3D {
 
         let spacing = max(28, environment.roadsidePropSpacingHint(for: environmentID))
         let startIndex = Int(floor((playerDistance - behindDistance) / spacing))
-        let endIndex = Int(ceil((playerDistance + aheadDistance) / spacing))
+        let endIndex = Int(ceil((playerDistance + drawDistance) / spacing))
         let billboardKinds = kinds.filter { kind in
             let normalized = kind.lowercased()
             return normalized.contains("billboard") || normalized.contains("sign")
@@ -675,6 +761,10 @@ private final class RoadsidePropStreamer3D {
         nodes.removeAll(keepingCapacity: true)
     }
 
+    func releaseRecreatableResources() {
+        removeAll()
+    }
+
     private static func seed(environmentID: String, index: Int) -> UInt64 {
         var hash: UInt64 = 0xcbf2_9ce4_8422_2325
         for byte in environmentID.utf8 {
@@ -693,6 +783,18 @@ private extension String {
         return .coast
     }
 }
+
+#if DEBUG
+private extension SCNNode {
+    var nrRecursiveNodeCount: Int {
+        1 + childNodes.reduce(0) { $0 + $1.nrRecursiveNodeCount }
+    }
+
+    var nrGeometryNodeCount: Int {
+        (geometry == nil ? 0 : 1) + childNodes.reduce(0) { $0 + $1.nrGeometryNodeCount }
+    }
+}
+#endif
 
 /// Breaks the CADisplayLink -> target retain cycle.
 @MainActor

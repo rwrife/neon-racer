@@ -5,7 +5,9 @@ import os
 
 struct RaceView: View {
     let inputMethod: DrivingInputMethod
+    let selectedVehicleID: String
     let routeID: String
+    let selectedPaletteID: String
     let audioService: AudioService
     @ObservedObject var gameplaySettings: GameplaySettingsStore
     let updateTutorialProgress: (TutorialProgress) -> Void
@@ -16,6 +18,9 @@ struct RaceView: View {
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.accessibilityReduceMotion) private var systemReduceMotion
     @EnvironmentObject private var accessibility: AccessibilitySettingsStore
+    private let routeName: String
+    private let raceDuration: TimeInterval
+    private let runRecoveryStore = RunRecoveryStore()
     // StateObject's autoclosure runs once per view identity; State(initialValue:) would rebuild
     // the whole SceneKit scene every time the parent re-renders.
     @StateObject private var sceneHolder: RaceSceneHolder
@@ -29,6 +34,7 @@ struct RaceView: View {
     @State private var hudFeedback: RaceHUDFeedback?
     @State private var hudFeedbackID = 0
     @State private var hudFeedbackTask: Task<Void, Never>?
+    @State private var lastRecoveryPersistTime: TimeInterval = -.infinity
     @State private var confirmation: Confirmation?
     @FocusState private var focusedPauseAction: PauseAction?
 
@@ -48,6 +54,7 @@ struct RaceView: View {
     init(
         tutorialProgress: TutorialProgress,
         inputMethod: DrivingInputMethod,
+        selectedVehicleID: String,
         configuration: RaceConfiguration,
         routeID: String,
         garagePalette: GaragePaletteDefinition,
@@ -59,7 +66,9 @@ struct RaceView: View {
         completed: @escaping (RaceResult) -> Void
     ) {
         self.inputMethod = inputMethod
+        self.selectedVehicleID = selectedVehicleID
         self.routeID = routeID
+        self.selectedPaletteID = garagePalette.id
         self.audioService = audioService
         self.gameplaySettings = gameplaySettings
         self.updateTutorialProgress = updateTutorialProgress
@@ -68,9 +77,12 @@ struct RaceView: View {
         self.completed = completed
         let routeName = ProgressionCatalog.routes.first { $0.id == routeID }?.displayName
             ?? ProgressionCatalog.routes[0].displayName
+        self.routeName = routeName
+        self.raceDuration = configuration.raceDuration
         _sceneHolder = StateObject(
             wrappedValue: RaceSceneHolder(
                 scene: RaceScene3D(
+                    renderQualityPreference: gameplaySettings.settings.renderQualityPreference,
                     configuration: configuration,
                     routeGraph: ProgressionCatalog.routeGraph(
                         id: routeID,
@@ -81,7 +93,9 @@ struct RaceView: View {
                 )
             )
         )
-        _tutorialSession = State(initialValue: TutorialSession(progress: tutorialProgress))
+        _tutorialSession = State(
+            initialValue: TutorialSession(progress: Self.debugTutorialProgress(tutorialProgress))
+        )
         _inputService = StateObject(
             wrappedValue: InputService(initialInputMethod: inputMethod)
         )
@@ -90,9 +104,13 @@ struct RaceView: View {
 #if DEBUG
     private static let debugHidesHUD = ProcessInfo.processInfo.arguments.contains("UITestHideHUD")
     private static let debugStartsRace = ProcessInfo.processInfo.arguments.contains("UITestStartRace")
+    private static let debugSkipsTutorial = ProcessInfo.processInfo.arguments.contains("UITestSkipTutorial")
+    private static let debugForcesTutorial = ProcessInfo.processInfo.arguments.contains("UITestForceTutorial")
 #else
     private static let debugHidesHUD = false
     private static let debugStartsRace = false
+    private static let debugSkipsTutorial = false
+    private static let debugForcesTutorial = false
 #endif
 
     var body: some View {
@@ -112,6 +130,8 @@ struct RaceView: View {
             )
             .opacity(Self.debugHidesHUD ? 0 : 1)
             .zIndex(10)
+
+            DebugPerformanceOverlay(scene: scene, settings: gameplaySettings.settings)
 
             Button {
                 apply(lifecycle.handle(.pauseRequested))
@@ -180,11 +200,13 @@ struct RaceView: View {
                 TutorialPromptView(
                     step: step,
                     inputMethod: inputService.inputMethod,
-                    advance: advanceTutorial,
                     skip: skipTutorial
                 )
-                .padding(24)
-                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomTrailing)
+                .padding(.top, 108)
+                .padding(.trailing, 22)
+                .padding(.bottom, 108)
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .trailing)
+                .zIndex(20_002)
             }
 
 #if DEBUG
@@ -219,12 +241,14 @@ struct RaceView: View {
             scene.hudDidUpdate = handleHUDUpdate
             scene.raceDidEnd = handleRaceCompleted
             inputService.actionHandler = handleInputAction
+            inputService.controllerDisconnectHandler = handleControllerDisconnected
             inputService.start()
             inputService.updateRemapping(gameplaySettings.settings.inputRemapping)
             hapticsService.configure(gameplaySettings.settings.haptics)
             configureSceneAccessibility()
             tutorialSession.startIfNeeded()
             updateTutorialProgress(tutorialSession.progress)
+            saveRunRecoverySnapshot(force: true)
             audioService.beginObserving(handleAudioEvent)
             audioService.setApplicationActive(scenePhase == .active)
             audioService.handle(.raceStarted)
@@ -238,6 +262,8 @@ struct RaceView: View {
             scene.audioFrameHandler = nil
             scene.audioEventHandler = nil
             scene.hudDidUpdate = { _ in }
+            inputService.actionHandler = { _ in }
+            inputService.controllerDisconnectHandler = {}
             hudFeedbackTask?.cancel()
             audioService.endObserving()
             audioService.stop()
@@ -245,6 +271,9 @@ struct RaceView: View {
         }
         .onChange(of: scenePhase, initial: true) { _, newPhase in
             handleScenePhase(newPhase)
+        }
+        .onReceive(NotificationCenter.default.publisher(for: UIApplication.didReceiveMemoryWarningNotification)) { _ in
+            handleMemoryWarning()
         }
         .alert("Feedback unavailable", isPresented: feedbackErrorIsPresented) {
             Button("OK", role: .cancel) {}
@@ -264,6 +293,7 @@ struct RaceView: View {
             } else {
                 Button("Return to Title", role: .destructive) {
                     audioService.handle(.raceExited)
+                    clearRunRecoverySnapshot()
                     exitRace()
                 }
             }
@@ -378,10 +408,14 @@ struct RaceView: View {
 
     private func handleScenePhase(_ phase: ScenePhase) {
 #if DEBUG
-        if Self.debugStartsRace, phase != .active {
+        // simctl/XCUITest launches can report a spurious .inactive phase at startup.
+        if Self.debugStartsRace, phase == .inactive {
             return
         }
 #endif
+        if phase != .active {
+            saveRunRecoverySnapshot(force: true)
+        }
         audioService.setApplicationActive(phase == .active)
         switch phase {
         case .active:
@@ -401,7 +435,21 @@ struct RaceView: View {
             apply(lifecycle.handle(.audioInterruptionBegan))
         case .interruptionEnded:
             apply(lifecycle.handle(.audioInterruptionEnded))
+        case .routeChanged:
+            apply(lifecycle.handle(.audioRouteChanged))
         }
+    }
+
+    private func handleControllerDisconnected() {
+        apply(lifecycle.handle(.controllerDisconnected))
+    }
+
+    private func handleMemoryWarning() {
+#if DEBUG
+        Logger.lifecycle.debug("Run lifecycle memory warning received")
+#endif
+        saveRunRecoverySnapshot(force: true)
+        apply(lifecycle.handle(.memoryWarningReceived))
     }
 
     private func handleInputAction(_ action: PlayerAction) {
@@ -441,6 +489,7 @@ struct RaceView: View {
         inputService.resetDrivingState()
         audioService.stop()
         hapticsService.stop()
+        clearRunRecoverySnapshot()
         let completion = completed
         Task { @MainActor in
             completion(result)
@@ -469,6 +518,8 @@ struct RaceView: View {
             case .resumeGameplay:
                 scene.resumeAfterInterruption()
                 audioService.handle(.raceResumed)
+            case .releaseRecreatableResources:
+                scene.releaseRecreatableResourcesForMemoryPressure()
             }
         }
     }
@@ -494,18 +545,24 @@ struct RaceView: View {
         )
     }
 
-    private func advanceTutorial() {
-        withAnimation {
-            tutorialSession.advance()
+    private func skipTutorial() {
+        updateTutorial {
+            tutorialSession.skip()
         }
         updateTutorialProgress(tutorialSession.progress)
     }
 
-    private func skipTutorial() {
-        withAnimation {
-            tutorialSession.skip()
+    private func updateTutorial(_ update: () -> Void) {
+        let reduceMotion = accessibility.settings.resolvedReduceMotion(
+            systemReduceMotion: systemReduceMotion
+        )
+        if reduceMotion {
+            update()
+        } else {
+            withAnimation {
+                update()
+            }
         }
-        updateTutorialProgress(tutorialSession.progress)
     }
 
     private func configureSceneAccessibility() {
@@ -515,8 +572,41 @@ struct RaceView: View {
         )
     }
 
+    private func saveRunRecoverySnapshot(force: Bool = false) {
+        guard hudSnapshot.phase != .finished, hudSnapshot.phase != .failed else {
+            return
+        }
+        let now = Date().timeIntervalSinceReferenceDate
+        guard force || now - lastRecoveryPersistTime >= 5 else {
+            return
+        }
+        lastRecoveryPersistTime = now
+        let snapshot = RunRecoverySnapshot(
+            routeID: routeID,
+            routeName: hudSnapshot.routeName ?? routeName,
+            selectedVehicleID: selectedVehicleID,
+            selectedPaletteID: selectedPaletteID,
+            preferredInputMethod: inputService.currentInputSource,
+            elapsedTime: max(0, raceDuration - Double(hudSnapshot.timerSeconds)),
+            routeProgress: hudSnapshot.routeProgressFraction,
+            score: hudSnapshot.score,
+            stageNumber: hudSnapshot.stageNumber
+        )
+        Task {
+            try? await runRecoveryStore.save(snapshot)
+        }
+    }
+
+    private func clearRunRecoverySnapshot() {
+        Task {
+            try? await runRecoveryStore.clear()
+        }
+    }
+
     private func handleHUDUpdate(_ update: RaceHUDUpdate) {
         hudSnapshot = update.snapshot
+        observeTutorial(snapshot: update.snapshot, feedback: update.feedback)
+        saveRunRecoverySnapshot()
         guard let feedback = update.feedback else {
             return
         }
@@ -550,6 +640,30 @@ struct RaceView: View {
         }
     }
 
+    private func observeTutorial(snapshot: RaceHUDSnapshot, feedback: RaceHUDFeedback?) {
+        let observation = TutorialDrivingObservation(
+            snapshot: snapshot,
+            command: inputService.currentCommand,
+            feedback: feedback
+        )
+        let didAdvance: Bool
+        let reduceMotion = accessibility.settings.resolvedReduceMotion(
+            systemReduceMotion: systemReduceMotion
+        )
+        if reduceMotion {
+            didAdvance = tutorialSession.observe(observation)
+        } else {
+            var changed = false
+            withAnimation {
+                changed = tutorialSession.observe(observation)
+            }
+            didAdvance = changed
+        }
+        if didAdvance {
+            updateTutorialProgress(tutorialSession.progress)
+        }
+    }
+
     private func movePauseFocus(_ offset: Int) {
         let actions: [PauseAction] = [.resume, .restart, .title]
         let current = focusedPauseAction.flatMap(actions.firstIndex) ?? 0
@@ -565,6 +679,18 @@ struct RaceView: View {
             get: { confirmation != nil },
             set: { if !$0 { confirmation = nil } }
         )
+    }
+
+    private static func debugTutorialProgress(_ progress: TutorialProgress) -> TutorialProgress {
+#if DEBUG
+        if debugSkipsTutorial || debugStartsRace {
+            return .completed
+        }
+        if debugForcesTutorial {
+            return .notStarted
+        }
+#endif
+        return progress
     }
 }
 
@@ -655,6 +781,7 @@ private extension Logger {
     RaceView(
         tutorialProgress: .notStarted,
         inputMethod: .touch,
+        selectedVehicleID: "prototype-zero",
         configuration: .standard,
         routeID: "neon-loop",
         garagePalette: ProgressionCatalog.palettes[0],

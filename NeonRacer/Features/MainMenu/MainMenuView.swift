@@ -19,7 +19,7 @@ struct MainMenuView: View {
     @FocusState private var focusedButton: MenuButton?
 
     private enum MenuButton: Hashable {
-        case start, garage, guide, settings, credits, legal
+        case start, garage, replayTutorial, guide, settings, credits, legal
     }
 
     var body: some View {
@@ -82,6 +82,17 @@ struct MainMenuView: View {
                 .focused($focusedButton, equals: .garage)
 
                 Button {
+                    replayTutorialOnNextRace()
+                } label: {
+                    Label("REPLAY TUTORIAL", systemImage: "arrow.counterclockwise.circle")
+                        .font(.subheadline.bold().monospaced())
+                }
+                .buttonStyle(.bordered)
+                .tint(palette.secondary.color)
+                .accessibilityHint("Restarts the driving tutorial the next time a race begins")
+                .focused($focusedButton, equals: .replayTutorial)
+
+                Button {
                     isShowingDrivingGuide = true
                 } label: {
                     Label("DRIVING GUIDE", systemImage: "book.pages")
@@ -131,12 +142,14 @@ struct MainMenuView: View {
                         saveProfile()
                     }
                 ),
+                progress: profile.tutorialProgress,
                 replay: {
-                    var session = TutorialSession(progress: profile.tutorialProgress)
-                    session.replay()
-                    profile.tutorialProgress = session.progress
-                    saveProfile()
+                    replayTutorialOnNextRace()
                     isShowingDrivingGuide = false
+                },
+                complete: {
+                    profile.tutorialProgress = .completed
+                    saveProfile()
                 },
                 reset: {
                     profile.tutorialProgress = .notStarted
@@ -210,7 +223,7 @@ struct MainMenuView: View {
     }
 
     private var menuFocusOrder: [MenuButton] {
-        [.start, .garage, .guide, .settings, .credits, .legal]
+        [.start, .garage, .replayTutorial, .guide, .settings, .credits, .legal]
     }
 
     private func configureMenuInputIfNeeded() {
@@ -260,6 +273,8 @@ struct MainMenuView: View {
             startRace()
         case .garage:
             isShowingGarage = true
+        case .replayTutorial:
+            replayTutorialOnNextRace()
         case .guide:
             isShowingDrivingGuide = true
         case .settings:
@@ -269,6 +284,13 @@ struct MainMenuView: View {
         case .legal:
             isShowingLegal = true
         }
+    }
+
+    private func replayTutorialOnNextRace() {
+        var session = TutorialSession(progress: profile.tutorialProgress)
+        session.replay()
+        profile.tutorialProgress = session.progress
+        saveProfile()
     }
 }
 

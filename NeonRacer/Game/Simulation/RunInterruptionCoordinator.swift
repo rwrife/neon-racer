@@ -16,6 +16,9 @@ enum RunLifecycleEvent: Equatable, Sendable {
     case sceneBecameActive
     case audioInterruptionBegan
     case audioInterruptionEnded
+    case audioRouteChanged
+    case controllerDisconnected
+    case memoryWarningReceived
     case pauseRequested
     case resumeRequested
 }
@@ -25,6 +28,7 @@ enum RunLifecycleAction: Equatable, Sendable {
     case stopFeedback
     case startFeedback
     case resumeGameplay
+    case releaseRecreatableResources
 }
 
 struct RunInterruptionCoordinator: Equatable, Sendable {
@@ -48,13 +52,12 @@ struct RunInterruptionCoordinator: Equatable, Sendable {
         case .audioInterruptionEnded:
             interruptions.remove(.audioInterruption)
             return updateAfterRecovery()
+        case .audioRouteChanged, .controllerDisconnected:
+            return requireExplicitRecovery()
+        case .memoryWarningReceived:
+            return requireExplicitRecovery() + [.releaseRecreatableResources]
         case .pauseRequested:
-            guard !recoveryRequired else {
-                return []
-            }
-            recoveryRequired = true
-            state = .pausedForRecovery
-            return [.pauseGameplay, .stopFeedback]
+            return requireExplicitRecovery()
         case .resumeRequested:
             guard interruptions.isEmpty, recoveryRequired else {
                 return []
@@ -71,6 +74,16 @@ struct RunInterruptionCoordinator: Equatable, Sendable {
         recoveryRequired = true
         state = .suspended(interruptions)
         return wasRunning ? [.pauseGameplay, .stopFeedback] : []
+    }
+
+    private mutating func requireExplicitRecovery() -> [RunLifecycleAction] {
+        guard !recoveryRequired else {
+            state = interruptions.isEmpty ? .pausedForRecovery : .suspended(interruptions)
+            return []
+        }
+        recoveryRequired = true
+        state = interruptions.isEmpty ? .pausedForRecovery : .suspended(interruptions)
+        return [.pauseGameplay, .stopFeedback]
     }
 
     private mutating func updateAfterRecovery() -> [RunLifecycleAction] {

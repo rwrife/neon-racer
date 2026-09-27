@@ -39,7 +39,7 @@ enum TutorialPromptLibrary {
             )
         case .brakingAndRecovery:
             TutorialPromptContent(
-                title: "Recover cleanly",
+                title: "Control your speed",
                 instruction: brakingInstruction(for: inputMethod),
                 glyph: brakingGlyph(for: inputMethod)
             )
@@ -51,8 +51,8 @@ enum TutorialPromptLibrary {
             )
         case .trafficRisk:
             TutorialPromptContent(
-                title: "Read the traffic",
-                instruction: "Lift early and pass through open space. A clean line is faster than a collision.",
+                title: "Style under pressure",
+                instruction: "Thread a safe near miss or hold a controlled drift. Skill moves build boost without relying on color cues.",
                 glyph: TutorialGlyph(symbolName: "car.2.fill", accessibilityLabel: "Traffic")
             )
         case .checkpointTimer:
@@ -80,9 +80,9 @@ enum TutorialPromptLibrary {
 
     private static func brakingInstruction(for inputMethod: DrivingInputMethod) -> String {
         switch inputMethod {
-        case .touch: "Hold the brake control, then steer back toward the road."
-        case .controller: "Hold the left trigger, then steer back toward the road."
-        case .keyboard: "Hold S or the down arrow, then steer back toward the road."
+        case .touch: "Hold GO to build speed. Hold BRAKE when you run wide, then steer back toward the road."
+        case .controller: "Hold the right trigger to accelerate. Use the left trigger when you run wide, then steer back."
+        case .keyboard: "Hold W or up arrow to accelerate. Hold S or down arrow when you run wide, then steer back."
         }
     }
 
@@ -108,11 +108,11 @@ enum TutorialPromptLibrary {
     private static func brakingGlyph(for inputMethod: DrivingInputMethod) -> TutorialGlyph {
         switch inputMethod {
         case .touch:
-            TutorialGlyph(symbolName: "hand.tap.fill", accessibilityLabel: "Brake control")
+            TutorialGlyph(symbolName: "hand.tap.fill", accessibilityLabel: "Go and brake controls")
         case .controller:
-            TutorialGlyph(symbolName: "l.rectangle.roundedbottom.fill", accessibilityLabel: "Left trigger")
+            TutorialGlyph(symbolName: "gamecontroller.fill", accessibilityLabel: "Right and left triggers")
         case .keyboard:
-            TutorialGlyph(symbolName: "arrow.down.square.fill", accessibilityLabel: "Down key")
+            TutorialGlyph(symbolName: "keyboard.fill", accessibilityLabel: "Up and down keys")
         }
     }
 
@@ -127,4 +127,3 @@ enum TutorialPromptLibrary {
         }
     }
 }
-

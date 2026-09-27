@@ -8,6 +8,7 @@ final class AudioService: NSObject, ObservableObject {
     enum Event {
         case interruptionBegan
         case interruptionEnded
+        case routeChanged
     }
 
     @Published private(set) var preferences: AudioPreferences
@@ -497,10 +498,11 @@ final class AudioService: NSObject, ObservableObject {
             eventHandler?(.interruptionBegan)
         case .ended:
             mixState.setInterrupted(false)
-            eventHandler?(.interruptionEnded)
+            let lifecycleObserver = eventHandler
+            lifecycleObserver?(.interruptionEnded)
             let rawOptions = notification.userInfo?[AVAudioSessionInterruptionOptionKey] as? UInt ?? 0
             let options = AVAudioSession.InterruptionOptions(rawValue: rawOptions)
-            if options.contains(.shouldResume) {
+            if lifecycleObserver == nil, options.contains(.shouldResume) {
                 resumeAfterSuspension()
             } else {
                 applyMix()
@@ -517,7 +519,10 @@ final class AudioService: NSObject, ObservableObject {
             return
         }
         Logger.audio.info("Audio route changed: \(String(describing: reason), privacy: .public)")
-        if reason == .oldDeviceUnavailable || reason == .newDeviceAvailable || reason == .categoryChange {
+        if reason == .oldDeviceUnavailable {
+            suspend()
+            eventHandler?(.routeChanged)
+        } else if reason == .newDeviceAvailable || reason == .categoryChange {
             resumeAfterSuspension()
         }
     }

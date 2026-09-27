@@ -11,11 +11,35 @@ struct HapticSettings: Codable, Equatable, Sendable {
 struct GameplaySettings: Codable, Equatable, Sendable {
     var haptics: HapticSettings
     var inputRemapping: InputRemapping
+    var renderQualityPreference: RenderQualityPreference
+    var debugPerformanceOverlayEnabled: Bool
 
     static let standard = GameplaySettings(
         haptics: .standard,
-        inputRemapping: .standard
+        inputRemapping: .standard,
+        renderQualityPreference: .automatic,
+        debugPerformanceOverlayEnabled: false
     )
+
+    init(
+        haptics: HapticSettings,
+        inputRemapping: InputRemapping,
+        renderQualityPreference: RenderQualityPreference = .automatic,
+        debugPerformanceOverlayEnabled: Bool = false
+    ) {
+        self.haptics = haptics
+        self.inputRemapping = inputRemapping
+        self.renderQualityPreference = renderQualityPreference
+        self.debugPerformanceOverlayEnabled = debugPerformanceOverlayEnabled
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        haptics = try container.decodeIfPresent(HapticSettings.self, forKey: .haptics) ?? .standard
+        inputRemapping = try container.decodeIfPresent(InputRemapping.self, forKey: .inputRemapping) ?? .standard
+        renderQualityPreference = try container.decodeIfPresent(RenderQualityPreference.self, forKey: .renderQualityPreference) ?? .automatic
+        debugPerformanceOverlayEnabled = try container.decodeIfPresent(Bool.self, forKey: .debugPerformanceOverlayEnabled) ?? false
+    }
 }
 
 @MainActor
@@ -86,6 +110,95 @@ final class AudioSettingsStore: ObservableObject {
         if let data = try? JSONEncoder().encode(preferences) {
             defaults.set(data, forKey: key)
         }
+    }
+}
+
+struct RunRecoverySnapshot: Codable, Equatable, Sendable {
+    static let currentSchemaVersion = 1
+
+    var schemaVersion: Int
+    var routeID: String
+    var routeName: String?
+    var selectedVehicleID: String
+    var selectedPaletteID: String
+    var preferredInputMethod: DrivingInputMethod
+    var capturedAt: Date
+    var elapsedTime: TimeInterval
+    var routeProgress: Double
+    var score: Int
+    var stageNumber: Int
+
+    init(
+        routeID: String,
+        routeName: String?,
+        selectedVehicleID: String,
+        selectedPaletteID: String,
+        preferredInputMethod: DrivingInputMethod,
+        capturedAt: Date = Date(),
+        elapsedTime: TimeInterval,
+        routeProgress: Double,
+        score: Int,
+        stageNumber: Int
+    ) {
+        schemaVersion = Self.currentSchemaVersion
+        self.routeID = routeID
+        self.routeName = routeName
+        self.selectedVehicleID = selectedVehicleID
+        self.selectedPaletteID = selectedPaletteID
+        self.preferredInputMethod = preferredInputMethod
+        self.capturedAt = capturedAt
+        self.elapsedTime = max(0, elapsedTime)
+        self.routeProgress = min(max(routeProgress, 0), 1)
+        self.score = max(0, score)
+        self.stageNumber = max(1, stageNumber)
+    }
+}
+
+actor RunRecoveryStore {
+    private let fileURL: URL
+    private let fileManager: FileManager
+
+    init(fileManager: FileManager = .default) {
+        let directory = fileManager.urls(
+            for: .applicationSupportDirectory,
+            in: .userDomainMask
+        )[0]
+        fileURL = directory.appendingPathComponent("run-recovery.json")
+        self.fileManager = fileManager
+    }
+
+    init(fileURL: URL, fileManager: FileManager = .default) {
+        self.fileURL = fileURL
+        self.fileManager = fileManager
+    }
+
+    func load() throws -> RunRecoverySnapshot? {
+        guard fileManager.fileExists(atPath: fileURL.path) else { return nil }
+        let data = try Data(contentsOf: fileURL)
+        let snapshot = try JSONDecoder().decode(RunRecoverySnapshot.self, from: data)
+        guard snapshot.schemaVersion == RunRecoverySnapshot.currentSchemaVersion else {
+            try clear()
+            return nil
+        }
+        return snapshot
+    }
+
+    func save(_ snapshot: RunRecoverySnapshot) throws {
+        let directory = fileURL.deletingLastPathComponent()
+        try fileManager.createDirectory(
+            at: directory,
+            withIntermediateDirectories: true
+        )
+        var snapshot = snapshot
+        snapshot.schemaVersion = RunRecoverySnapshot.currentSchemaVersion
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
+        try encoder.encode(snapshot).write(to: fileURL, options: .atomic)
+    }
+
+    func clear() throws {
+        guard fileManager.fileExists(atPath: fileURL.path) else { return }
+        try fileManager.removeItem(at: fileURL)
     }
 }
 

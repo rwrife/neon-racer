@@ -4,7 +4,10 @@ final class NeonRacerUITests: XCTestCase {
     @MainActor
     func testLaunchesRaceFromMainMenu() {
         let app = XCUIApplication()
+        app.launchArguments.append("UITestSkipTutorial")
+        app.launchArguments.append("UITestDisableRunRecovery")
         app.launch()
+        dismissRunRecoveryIfPresent(app)
 
         XCTAssertTrue(app.staticTexts["NEON RACER"].waitForExistence(timeout: 5))
         app.buttons["START ENGINE"].tap()
@@ -19,7 +22,10 @@ final class NeonRacerUITests: XCTestCase {
     @MainActor
     func testSettingsAndResetRequireConfirmation() {
         let app = XCUIApplication()
+        app.launchArguments.append("UITestSkipTutorial")
+        app.launchArguments.append("UITestDisableRunRecovery")
         app.launch()
+        dismissRunRecoveryIfPresent(app)
 
         app.buttons["SETTINGS"].tap()
         XCTAssertTrue(app.navigationBars["Settings"].waitForExistence(timeout: 3))
@@ -38,8 +44,11 @@ final class NeonRacerUITests: XCTestCase {
     @MainActor
     func testFinishResultsAndRetry() {
         let app = XCUIApplication()
+        app.launchArguments.append("UITestSkipTutorial")
+        app.launchArguments.append("UITestDisableRunRecovery")
         app.launchArguments.append("UITestFinishRace")
         app.launch()
+        dismissRunRecoveryIfPresent(app)
 
         app.buttons["START ENGINE"].tap()
         XCTAssertTrue(app.buttons["COMPLETE TEST RACE"].waitForExistence(timeout: 5))
@@ -52,8 +61,11 @@ final class NeonRacerUITests: XCTestCase {
     @MainActor
     func testLandscapeRaceShowsCriticalHUDValues() {
         let app = XCUIApplication()
+        app.launchArguments.append("UITestSkipTutorial")
+        app.launchArguments.append("UITestDisableRunRecovery")
         XCUIDevice.shared.orientation = .landscapeLeft
         app.launch()
+        dismissRunRecoveryIfPresent(app)
 
         XCTAssertTrue(app.buttons["START ENGINE"].waitForExistence(timeout: 5))
         app.buttons["START ENGINE"].tap()
@@ -62,5 +74,47 @@ final class NeonRacerUITests: XCTestCase {
         XCTAssertTrue(app.staticTexts["SCORE"].exists)
         XCTAssertTrue(app.staticTexts["TIME"].exists)
         XCTAssertTrue(app.staticTexts["BOOST"].exists)
+    }
+
+    @MainActor
+    func testBackgroundingRaceReturnsToPausedOverlay() {
+        let app = XCUIApplication()
+        app.launchArguments.append("UITestStartRace")
+        app.launchArguments.append("UITestAutoDrive")
+        app.launch()
+
+        XCTAssertTrue(app.buttons["Pause race"].waitForExistence(timeout: 5))
+        XCUIDevice.shared.press(.home)
+        app.activate()
+
+        XCTAssertTrue(app.staticTexts["RACE PAUSED"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.buttons["RESUME"].exists)
+        app.buttons["RETURN TO TITLE"].tap()
+        app.buttons["Return to Title"].tap()
+    }
+
+    @MainActor
+    func testFirstRunTutorialAppearsAndCanBeSkipped() {
+        let app = XCUIApplication()
+        app.launchArguments.append("UITestForceTutorial")
+        app.launchArguments.append("UITestDisableRunRecovery")
+        app.launch()
+        dismissRunRecoveryIfPresent(app)
+
+        XCTAssertTrue(app.staticTexts["NEON RACER"].waitForExistence(timeout: 5))
+        app.buttons["START ENGINE"].tap()
+        XCTAssertTrue(app.staticTexts["DRIVING TIP"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts["FIND YOUR LINE"].exists)
+        app.buttons["SKIP"].tap()
+        XCTAssertFalse(app.staticTexts["DRIVING TIP"].waitForExistence(timeout: 2))
+        XCTAssertTrue(app.buttons["Pause race"].exists)
+    }
+
+    @MainActor
+    private func dismissRunRecoveryIfPresent(_ app: XCUIApplication) {
+        let discardRun = app.buttons["DISCARD RUN"]
+        if discardRun.waitForExistence(timeout: 1) {
+            discardRun.tap()
+        }
     }
 }
