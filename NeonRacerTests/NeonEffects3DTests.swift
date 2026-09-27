@@ -48,6 +48,106 @@ struct NeonEffects3DTests {
     }
 
     @Test @MainActor
+    func roadsidePropsStreamAcrossThemeChanges() {
+        let graph = RouteGraph(
+            startStageID: "coast",
+            stages: [
+                RouteStage(
+                    id: "coast", displayName: "Coast", environmentID: "sunset-coast",
+                    distance: 300, checkpointTimeAward: 10,
+                    branches: [RouteBranch(id: "city", direction: .straight, destinationStageID: "city", previewName: "City")]
+                ),
+                RouteStage(
+                    id: "city", displayName: "City", environmentID: "neon-city",
+                    distance: 300, checkpointTimeAward: 0, branches: []
+                )
+            ],
+            forkDecisionDistance: 0,
+            minimumForkDecisionTime: 0
+        )
+        let mapper = TrackWorldMapper3D(layout: TrackLayout(routeGraph: graph))
+        mapper.updateRoute(for: RaceState())
+        let environment = NeonEnvironment3D(quality: .balanced)
+        let sceneryScene = SCNScene()
+        environment.attach(to: sceneryScene)
+        let coastSky = sceneryScene.background.contents as? UIImage
+        environment.setEnvironment("coast-causeway", animated: true)
+        #expect((sceneryScene.background.contents as? UIImage) === coastSky)
+        environment.setEnvironment("neon-city", animated: false)
+        environment.setEnvironment("sunset-coast", animated: false)
+        #expect((sceneryScene.background.contents as? UIImage) === coastSky)
+        let props = RoadsidePropStreamer3D()
+
+        func update(_ distance: Double) {
+            props.update(
+                playerDistance: distance,
+                mapper: mapper,
+                environment: environment,
+                drawDistance: 220
+            )
+        }
+
+        update(200)
+        #expect(props.activeNodeCount <= 2)
+        for _ in 0..<16 { update(200) }
+        #expect(props.debugActivePropKeys.contains { $0.hasPrefix("neon-city-") })
+        let beforeCrossing = Set(props.rootNode.childNodes.map(ObjectIdentifier.init))
+
+        update(310)
+        let afterSwitch = Set(props.rootNode.childNodes.map(ObjectIdentifier.init))
+        #expect(afterSwitch.subtracting(beforeCrossing).count <= 2)
+        #expect(beforeCrossing.subtracting(afterSwitch).count <= 4)
+    }
+
+    @Test @MainActor
+    func raceSceneKeepsAdvancingAcrossCheckpoint() throws {
+        let graph = RouteGraph(
+            startStageID: "coast",
+            stages: [
+                RouteStage(
+                    id: "coast", displayName: "Coast", environmentID: "sunset-coast",
+                    distance: 80, checkpointTimeAward: 10,
+                    branches: [RouteBranch(id: "to-city", direction: .straight, destinationStageID: "city", previewName: "City")]
+                ),
+                RouteStage(
+                    id: "city", displayName: "City", environmentID: "neon-city",
+                    distance: 800, checkpointTimeAward: 0, branches: []
+                )
+            ],
+            forkDecisionDistance: 0,
+            minimumForkDecisionTime: 0
+        )
+        let scene = RaceScene3D(
+            quality: .balanced,
+            renderQualityPreference: .medium,
+            configuration: .standard,
+            routeGraph: graph
+        )
+        scene.commandProvider = {
+            PlayerCommand(steering: 0, throttle: 1, brake: 0, isBoosting: false)
+        }
+
+        var checkpointFrameDuration: TimeInterval?
+        for frame in 0..<900 {
+            let previousStage = scene.debugRaceState.currentStageID
+            let started = ProcessInfo.processInfo.systemUptime
+            scene.advanceForTesting(frameDelta: 1.0 / 60.0, currentTime: 100 + Double(frame) / 60)
+            if previousStage == "coast", scene.debugRaceState.currentStageID == "city" {
+                checkpointFrameDuration = ProcessInfo.processInfo.systemUptime - started
+                break
+            }
+        }
+
+        let crossingDuration = try #require(checkpointFrameDuration)
+        #expect(crossingDuration < 0.25)
+        let distance = scene.debugRaceState.distance
+        scene.advanceForTesting(frameDelta: 1.0 / 60.0, currentTime: 116)
+        #expect(scene.debugRaceState.distance > distance)
+        #expect(scene.debugRaceState.phase == .racing)
+        scene.tearDown()
+    }
+
+    @Test @MainActor
     func crashEffectsExposeReadableCameraHintsAndWeatherNoOps() {
         let effects = NeonEffects3D()
         effects.setWeather("rain")

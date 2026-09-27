@@ -6,6 +6,25 @@ import UIKit
 final class NeonEnvironment3D {
     let rootNode = SCNNode()
 
+    private struct ThemeAssets {
+        let sky: UIImage
+        let horizonGlow: UIImage
+        let mountain: UIImage
+        let sunDisc: SCNMaterial
+        let sunHalo: SCNMaterial
+    }
+
+    private struct BillboardTextureKey: Hashable {
+        let title: String
+        let subtitle: String
+        let style: HoloBillboardStyle3D
+        let borderColor: UIColor
+    }
+
+    private static let groundGradient = groundGradientImage()
+    private var themeAssets: [String: ThemeAssets] = [:]
+    private var billboardTextures: [BillboardTextureKey: UIImage] = [:]
+
     private let quality: CosmeticQualityTier
     private var renderSceneryScale: Double
     private weak var scene: SCNScene?
@@ -76,6 +95,9 @@ final class NeonEnvironment3D {
         horizonNodes.name = "neon-environment-horizon-layers"
         rootNode.addChildNode(horizonNodes)
         build()
+        for theme in [EnvironmentTheme3D.sunsetCoast, .neonCity, .midnightPeaks] {
+            _ = assets(for: theme)
+        }
         horizonNodes.enumerateHierarchy { child, _ in child.renderingOrder -= 3_000 }
         applyTheme(.sunsetCoast, animated: false)
     }
@@ -91,9 +113,14 @@ final class NeonEnvironment3D {
 
     func setEnvironment(_ environmentID: String, animated: Bool) {
         let theme = EnvironmentTheme3D.theme(for: environmentID)
+        guard theme.id != currentTheme.id else { return }
         let shouldAnimate = animated && !reduceMotion
         currentTheme = theme
         applyTheme(theme, animated: shouldAnimate)
+    }
+
+    func themeID(for environmentID: String) -> String {
+        EnvironmentTheme3D.theme(for: environmentID).id
     }
 
     /// Road surface height near the player; the ground grid stays just below it so it never covers the road.
@@ -189,7 +216,7 @@ final class NeonEnvironment3D {
     }
 
     private func configureScene(_ scene: SCNScene, theme: EnvironmentTheme3D) {
-        scene.background.contents = Self.skyGradientImage(theme: theme, highContrast: highContrast)
+        scene.background.contents = assets(for: theme).sky
         scene.fogStartDistance = highContrast ? 420 : max(320, theme.fogStart)
         scene.fogEndDistance = highContrast ? 1_150 : max(980, theme.fogEnd)
         scene.fogDensityExponent = 2
@@ -583,6 +610,7 @@ final class NeonEnvironment3D {
     }
 
     private func applyMaterials(_ theme: EnvironmentTheme3D) {
+        let visuals = assets(for: theme)
         let contrastBoost: CGFloat = highContrast ? 1.28 : 1
         let fogAlpha: CGFloat = highContrast ? 0.06 : 0.10
         let cyan = theme.gridCyan.brightened(amount: contrastBoost)
@@ -601,15 +629,13 @@ final class NeonEnvironment3D {
             material.emission.contents = star
         }
         for material in groundMaterials {
-            let image = Self.groundGradientImage()
-            material.diffuse.contents = image
+            material.diffuse.contents = Self.groundGradient
             material.emission.contents = UIColor(red: 0.012, green: 0.004, blue: 0.030, alpha: 1)
         }
         for material in warmHorizonGlowMaterials {
-            let image = Self.horizonBandGlowImage(color: theme.horizonGlow)
-            material.diffuse.contents = image
-            material.emission.contents = image
-            material.transparent.contents = image
+            material.diffuse.contents = visuals.horizonGlow
+            material.emission.contents = visuals.horizonGlow
+            material.transparent.contents = visuals.horizonGlow
         }
         for material in centralSkylineFillMaterials {
             material.diffuse.contents = UIColor(red: 0.078, green: 0.039, blue: 0.165, alpha: 1)
@@ -621,8 +647,7 @@ final class NeonEnvironment3D {
             material.emission.contents = rim
         }
         for material in facetedMountainFillMaterials {
-            let image = Self.mountainGradientImage(theme: theme, highContrast: highContrast)
-            material.diffuse.contents = image
+            material.diffuse.contents = visuals.mountain
             material.emission.contents = UIColor(red: 0.016, green: 0.004, blue: 0.040, alpha: 1)
         }
         for material in facetedMountainEdgeMaterials {
@@ -650,8 +675,22 @@ final class NeonEnvironment3D {
             material.diffuse.contents = theme.fogColor.withAlphaComponent(fogAlpha)
             material.emission.contents = theme.fogColor.withAlphaComponent(fogAlpha)
         }
-        sunDiscNode.geometry?.materials = [Self.sunDiscMaterial(theme: theme, highContrast: highContrast)]
-        sunHaloNode.geometry?.materials = [Self.sunHaloMaterial(theme: theme, highContrast: highContrast)]
+        sunDiscNode.geometry?.materials = [visuals.sunDisc]
+        sunHaloNode.geometry?.materials = [visuals.sunHalo]
+    }
+
+    private func assets(for theme: EnvironmentTheme3D) -> ThemeAssets {
+        let key = "\(theme.id)-\(highContrast)"
+        if let cached = themeAssets[key] { return cached }
+        let made = ThemeAssets(
+            sky: Self.skyGradientImage(theme: theme, highContrast: highContrast),
+            horizonGlow: Self.horizonBandGlowImage(color: theme.horizonGlow),
+            mountain: Self.mountainGradientImage(theme: theme, highContrast: highContrast),
+            sunDisc: Self.sunDiscMaterial(theme: theme, highContrast: highContrast),
+            sunHalo: Self.sunHaloMaterial(theme: theme, highContrast: highContrast)
+        )
+        themeAssets[key] = made
+        return made
     }
 
     private func updateGrid(cameraPosition: SCNVector3, speedRatio: Double) {
@@ -1174,7 +1213,15 @@ final class NeonEnvironment3D {
     private func makeBillboardPanel(title: String, subtitle: String, style: HoloBillboardStyle3D, borderColor: UIColor, width: CGFloat, height: CGFloat) -> SCNNode {
         let node = SCNNode()
         node.name = "framed-neon-holo-ad-panel"
-        let faceImage = Self.billboardTexture(title: title, subtitle: subtitle, style: style, borderColor: borderColor)
+        let key = BillboardTextureKey(title: title, subtitle: subtitle, style: style, borderColor: borderColor)
+        let faceImage: UIImage
+        if let cached = billboardTextures[key] {
+            faceImage = cached
+        } else {
+            let made = Self.billboardTexture(title: title, subtitle: subtitle, style: style, borderColor: borderColor)
+            billboardTextures[key] = made
+            faceImage = made
+        }
         let faceMaterial = Self.constantMaterial(UIColor(red: 0.012, green: 0.010, blue: 0.050, alpha: 1), emission: faceImage, transparency: 1)
         faceMaterial.diffuse.contents = faceImage
         faceMaterial.transparent.contents = faceImage
@@ -1658,7 +1705,7 @@ final class NeonEnvironment3D {
     }
 }
 
-private enum HoloBillboardStyle3D {
+private enum HoloBillboardStyle3D: Hashable {
     case medical
     case warning
     case authority

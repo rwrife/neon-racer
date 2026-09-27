@@ -54,6 +54,11 @@ final class RaceScene3D: NSObject {
 #if DEBUG
     private let performanceMetrics = DebugPerformanceMetrics()
     private(set) var debugPerformanceSnapshot: DebugPerformanceSnapshot?
+    var debugRaceState: RaceState { simulation.state }
+
+    func advanceForTesting(frameDelta: TimeInterval, currentTime: TimeInterval) {
+        step(frameDelta: frameDelta, currentTime: currentTime)
+    }
 #endif
     private var thermalObserver: NSObjectProtocol?
 
@@ -412,7 +417,6 @@ final class RaceScene3D: NSObject {
             playerDistance: distance,
             mapper: mapper,
             environment: environment,
-            environmentID: state.currentEnvironmentID,
             drawDistance: renderQuality.drawDistanceMeters
         )
         markerBuilder.update(state: state, mapper: mapper)
@@ -739,12 +743,17 @@ final class RaceScene3D: NSObject {
 }
 
 @MainActor
-private final class RoadsidePropStreamer3D {
+final class RoadsidePropStreamer3D {
     let rootNode = SCNNode()
     private var nodes: [String: SCNNode] = [:]
     private let behindDistance = 80.0
+    private let maximumNewPropsPerFrame = 2
+    private let maximumRetiredPropsPerFrame = 4
 
     var activeNodeCount: Int { nodes.count }
+#if DEBUG
+    var debugActivePropKeys: Set<String> { Set(nodes.keys) }
+#endif
 
     init() {
         rootNode.name = "roadside-prop-stream-root"
@@ -754,63 +763,69 @@ private final class RoadsidePropStreamer3D {
         playerDistance: Double,
         mapper: TrackWorldMapper3D,
         environment: NeonEnvironment3D,
-        environmentID: String,
         drawDistance: Double
     ) {
-        let kinds = environment.roadsidePropKinds(for: environmentID)
-        guard !kinds.isEmpty else {
-            removeAll()
-            return
-        }
-
-        let spacing = max(28, environment.roadsidePropSpacingHint(for: environmentID))
-        let startIndex = Int(floor((playerDistance - behindDistance) / spacing))
-        let endIndex = Int(ceil((playerDistance + drawDistance) / spacing))
-        let billboardKinds = kinds.filter { kind in
-            let normalized = kind.lowercased()
-            return normalized.contains("billboard") || normalized.contains("sign")
-        }
         var activeKeys: Set<String> = []
+        var newPropsRemaining = maximumNewPropsPerFrame
 
-        for index in startIndex...endIndex {
-            let seed = Self.seed(environmentID: environmentID, index: index)
-            let wantsBillboard = abs(index) <= 6 || index.isMultiple(of: 4)
-            let selectableKinds = wantsBillboard && !billboardKinds.isEmpty ? billboardKinds : kinds
-            let kind = selectableKinds[Int(seed % UInt64(selectableKinds.count))]
-            let stationDistance = Double(index) * spacing + Double(seed % 17) * 0.73
+        for placement in mapper.placements {
+            let visibleStart = max(placement.startRunDistance, playerDistance - behindDistance)
+            let visibleEnd = min(placement.endRunDistance, playerDistance + drawDistance)
+            guard visibleStart < visibleEnd else { continue }
+            let themeID = environment.themeID(for: placement.stage.environmentID)
+            let kinds = environment.roadsidePropKinds(for: themeID)
+            guard !kinds.isEmpty else { continue }
+            let spacing = max(28, environment.roadsidePropSpacingHint(for: themeID))
+            let startIndex = Int(floor(visibleStart / spacing))
+            let endIndex = Int(ceil(visibleEnd / spacing))
+            let billboardKinds = kinds.filter { kind in
+                let normalized = kind.lowercased()
+                return normalized.contains("billboard") || normalized.contains("sign")
+            }
 
-            if kind.localizedCaseInsensitiveContains("tunnel")
-                || kind.localizedCaseInsensitiveContains("arch") {
-                updateProp(
-                    key: "\(environmentID)-\(index)-center-\(kind)",
-                    kind: kind,
-                    seed: seed,
-                    distance: stationDistance,
-                    lateral: 0,
-                    yawOffset: 0,
-                    mapper: mapper,
-                    environment: environment,
-                    activeKeys: &activeKeys
-                )
-            } else {
-                for side in [-1.0, 1.0] {
-                    let sideSeed = seed &+ (side < 0 ? 0x9E37_79B9 : 0x85EB_CA6B)
+            for index in startIndex...endIndex {
+                let seed = Self.seed(environmentID: themeID, index: index)
+                let stationDistance = Double(index) * spacing + Double(seed % 17) * 0.73
+                guard stationDistance >= visibleStart, stationDistance < visibleEnd else { continue }
+                let wantsBillboard = abs(index) <= 6 || index.isMultiple(of: 4)
+                let selectableKinds = wantsBillboard && !billboardKinds.isEmpty ? billboardKinds : kinds
+                let kind = selectableKinds[Int(seed % UInt64(selectableKinds.count))]
+
+                if kind.localizedCaseInsensitiveContains("tunnel")
+                    || kind.localizedCaseInsensitiveContains("arch") {
                     updateProp(
-                        key: "\(environmentID)-\(index)-\(side)-\(kind)",
+                        key: "\(themeID)-\(index)-center-\(kind)",
                         kind: kind,
-                        seed: sideSeed,
-                        distance: stationDistance + (side < 0 ? spacing * 0.18 : spacing * 0.52),
-                        lateral: side * (1.34 + Double(sideSeed % 9) * 0.025),
-                        yawOffset: side < 0 ? .pi / 2 : -.pi / 2,
+                        seed: seed,
+                        distance: stationDistance,
+                        lateral: 0,
+                        yawOffset: 0,
                         mapper: mapper,
                         environment: environment,
-                        activeKeys: &activeKeys
+                        activeKeys: &activeKeys,
+                        newPropsRemaining: &newPropsRemaining
                     )
+                } else {
+                    for side in [-1.0, 1.0] {
+                        let sideSeed = seed &+ (side < 0 ? 0x9E37_79B9 : 0x85EB_CA6B)
+                        updateProp(
+                            key: "\(themeID)-\(index)-\(side)-\(kind)",
+                            kind: kind,
+                            seed: sideSeed,
+                            distance: stationDistance + (side < 0 ? spacing * 0.18 : spacing * 0.52),
+                            lateral: side * (1.34 + Double(sideSeed % 9) * 0.025),
+                            yawOffset: side < 0 ? .pi / 2 : -.pi / 2,
+                            mapper: mapper,
+                            environment: environment,
+                            activeKeys: &activeKeys,
+                            newPropsRemaining: &newPropsRemaining
+                        )
+                    }
                 }
             }
         }
 
-        for (key, node) in nodes where !activeKeys.contains(key) {
+        for (key, node) in nodes.filter({ !activeKeys.contains($0.key) }).prefix(maximumRetiredPropsPerFrame) {
             node.removeFromParentNode()
             nodes[key] = nil
         }
@@ -825,21 +840,26 @@ private final class RoadsidePropStreamer3D {
         yawOffset: Float,
         mapper: TrackWorldMapper3D,
         environment: NeonEnvironment3D,
-        activeKeys: inout Set<String>
+        activeKeys: inout Set<String>,
+        newPropsRemaining: inout Int
     ) {
-        activeKeys.insert(key)
-        let node = nodes[key] ?? {
+        let node: SCNNode
+        if let existing = nodes[key] {
+            node = existing
+        } else {
+            guard newPropsRemaining > 0 else { return }
+            newPropsRemaining -= 1
             let made = environment.makeRoadsideProp(kind: kind, seed: seed)
             made.name = made.name ?? "roadside-prop-\(kind)"
             nodes[key] = made
             rootNode.addChildNode(made)
-            return made
-        }()
+            node = made
+        }
+        activeKeys.insert(key)
         let frame = mapper.frame(atRunDistance: distance, lateralPosition: lateral)
         node.position = frame.position
         node.eulerAngles = SCNVector3(frame.pitch, frame.yaw + yawOffset, 0)
-        let distanceFade = max(0.25, min(1, Float((distance - mapper.frame(atRunDistance: distance).runDistance + 780) / 160)))
-        node.opacity = CGFloat(distanceFade)
+        node.opacity = 1
     }
 
     private func removeAll() {
