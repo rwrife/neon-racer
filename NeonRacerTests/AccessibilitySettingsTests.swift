@@ -86,22 +86,11 @@ struct AccessibilitySettingsTests {
         let boundMethodSetterPattern = try Regex(#"set:\s*audio\.set[A-Za-z]+"#)
         let matches = source.matches(of: boundMethodSetterPattern)
 
-        #expect(
-            matches.isEmpty,
-            "Found \(matches.count) SwiftUI Binding `set:` argument(s) that pass a bound "
-                + "@MainActor AudioService method reference directly. This exact shape crashed "
-                + "the Xcode 26.6 Swift 6.3.3 compiler during IRGen "
-                + "(SIL function $sSbScA_pSgIeAghyg_SbIeAghn_TR). Use an explicit "
-                + "`{ audio.setXxx($0) }` closure instead."
-        )
+        #expect(matches.isEmpty)
 
         for setterName in ["setMusicLevel", "setMusicMuted", "setEffectsLevel", "setEffectsMuted"] {
             let explicitClosurePattern = "{ audio.\(setterName)($0) }"
-            #expect(
-                source.contains(explicitClosurePattern),
-                "Expected an explicit closure `\(explicitClosurePattern)` wiring \(setterName) "
-                    + "into its Binding setter."
-            )
+            #expect(source.contains(explicitClosurePattern))
         }
     }
 }
