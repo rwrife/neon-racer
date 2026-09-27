@@ -11,3 +11,9 @@ xcuserdata/
 # macOS
 .DS_Store
 
+
+# Local capture artifacts
+.screenshots/
+PreviewOutput/
+.derivedData/
+.hud-artifacts/

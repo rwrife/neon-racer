@@ -154,6 +154,8 @@ struct RaceState: Codable, Equatable, Sendable {
     var elapsedTime: TimeInterval = 0
     var vehicle = VehicleState()
     var timerRemaining: TimeInterval = 90
+    var lastTimePenalty: TimeInterval = 0
+    var lastTimePenaltyTime: TimeInterval?
     var scoreInputs = ScoreInputs()
     var boostCharge: TimeInterval = 0
     var isBoostActive = false
@@ -231,6 +233,9 @@ struct RaceSimulation: Sendable {
     private var previousState: RaceState
     private var accumulatedTime: TimeInterval = 0
     private var randomNumberGenerator: SeededRandomNumberGenerator
+    private var trafficSystem: TrafficSystem
+    private var collisionSystem = CollisionSystem()
+    private var drivingRuntime = DrivingModel.RuntimeState()
     private var wasBoosting = false
     var processedActionIDs: [ScoreSource: Set<UInt64>] = [:]
     var processedPassIDs: Set<UInt64> = []
@@ -284,6 +289,7 @@ struct RaceSimulation: Sendable {
         )
         previousState = state
         randomNumberGenerator = SeededRandomNumberGenerator(seed: seed)
+        trafficSystem = TrafficSystem(seed: seed)
     }
 
     var currentRank: RaceRank {
@@ -406,6 +412,9 @@ struct RaceSimulation: Sendable {
         runEvents = []
         diagnostics = SimulationDiagnostics()
         randomNumberGenerator = SeededRandomNumberGenerator(seed: seed)
+        trafficSystem.reset(seed: seed)
+        collisionSystem = CollisionSystem()
+        drivingRuntime = DrivingModel.RuntimeState()
         wasBoosting = false
         processedActionIDs = [:]
         processedPassIDs = []
@@ -479,27 +488,33 @@ struct RaceSimulation: Sendable {
         }
         wasBoosting = isBoostActive
 
-        let boostAcceleration = isBoostActive ? configuration.boost.accelerationBonus : 0
-        let forwardForce = throttle * configuration.acceleration + boostAcceleration
-        let brakingForce = brake * configuration.braking
-        let dragForce = state.speed > 0 ? configuration.drag : 0
-        let speedLimit = configuration.maximumSpeed
-            * (isBoostActive ? configuration.boost.maximumSpeedMultiplier : 1)
+        let currentStageDistanceBeforeMove = max(0, state.distance - stageStartDistance)
+        let trackSample = trackLayout.sample(
+            stageID: state.currentStageID,
+            distanceInStage: currentStageDistanceBeforeMove
+        )
+        let drivingUpdate = DrivingModel.update(
+            vehicle: state.vehicle,
+            command: PlayerCommand(
+                steering: steering,
+                throttle: throttle,
+                brake: brake,
+                isBoosting: command.isBoosting
+            ),
+            trackSample: trackSample,
+            configuration: configuration,
+            isBoostActive: isBoostActive,
+            deltaTime: deltaTime,
+            runtime: &drivingRuntime
+        )
+        state.vehicle = drivingUpdate.vehicle
 
-        state.speed += (forwardForce - brakingForce - dragForce) * deltaTime
-        state.speed = state.speed.clamped(to: 0...speedLimit)
-
-        let steeringAuthority = state.speed / configuration.maximumSpeed
-        state.lateralPosition += steering
-            * configuration.steeringRate
-            * steeringAuthority
-            * deltaTime
-        state.lateralPosition = state.lateralPosition.clamped(to: -1...1)
-        state.vehicle.roadPosition.heading = steering * steeringAuthority
-
-        let distanceDelta = state.speed * deltaTime
+        let distanceDelta = drivingUpdate.distanceDelta
         state.distance += distanceDelta
         state.elapsedTime += deltaTime
+        if let drift = drivingUpdate.completedDrift {
+            ingest(.drift(id: drift.id, duration: drift.duration, intensity: drift.intensity))
+        }
         state.timerRemaining = max(0, state.timerRemaining - deltaTime)
         award(
             source: .distance,
@@ -543,6 +558,7 @@ struct RaceSimulation: Sendable {
             progress: state.stageProgress,
             randomUnitValue: randomNumberGenerator.nextUnitDouble()
         )
+        stepTraffic(deltaTime: deltaTime, currentStage: currentStage)
 
         let distanceRemaining = max(0, currentStage.distance - state.currentStageDistance)
         if currentStage.branches.count > 1,
@@ -566,6 +582,52 @@ struct RaceSimulation: Sendable {
         } else if state.stageProgress >= 1 {
             complete(currentStage)
         }
+    }
+
+    private mutating func stepTraffic(deltaTime: TimeInterval, currentStage: RouteStage) {
+        trafficSystem.update(
+            state: &state,
+            configuration: configuration,
+            trackLayout: trackLayout,
+            currentStage: currentStage,
+            stageStartDistance: stageStartDistance,
+            deltaTime: deltaTime
+        )
+        let collisionResult = collisionSystem.update(
+            state: &state,
+            configuration: configuration,
+            trackLayout: trackLayout,
+            deltaTime: deltaTime
+        )
+        for signal in collisionResult.scoringSignals {
+            let scoreEventCount = scoreEvents.count
+            ingest(signal.event)
+            if signal.timePenalty > 0 {
+                recordTimePenalty(signal.timePenalty)
+            } else {
+                guard scoreEvents.count > scoreEventCount else { continue }
+            }
+            for cue in signal.cues {
+                feedbackEvents.append(.init(
+                    time: state.elapsedTime,
+                    cue: cue,
+                    channels: [.hud, .audio, .particle, .haptic]
+                ))
+            }
+        }
+    }
+
+    private mutating func recordTimePenalty(_ seconds: TimeInterval) {
+        guard seconds.isFinite, seconds > 0 else { return }
+        let applied = seconds
+        state.lastTimePenalty = applied
+        state.lastTimePenaltyTime = state.elapsedTime
+        runEvents.append(.timePenalty(time: state.elapsedTime, seconds: applied))
+        feedbackEvents.append(.init(
+            time: state.elapsedTime,
+            cue: .timePenalty,
+            channels: [.hud, .audio, .particle, .haptic]
+        ))
     }
 
     mutating func acceptUnique(

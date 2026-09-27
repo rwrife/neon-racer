@@ -19,6 +19,7 @@ let package = Package(
                 "App",
                 "Features",
                 "Game/Rendering",
+                "Game/Rendering3D",
                 "Resources",
                 "Services/Audio",
                 "Services/Haptics",

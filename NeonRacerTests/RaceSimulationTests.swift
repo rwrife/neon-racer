@@ -129,9 +129,10 @@ struct RaceSimulationTests {
     func renderRatesThirtySixtyAndOneTwentyRemainEquivalent() {
         let commands = scriptedCommands(totalDuration: 20)
 
-        var atThirty = RaceSimulation(seed: 42)
-        var atSixty = RaceSimulation(seed: 42)
-        var atOneTwenty = RaceSimulation(seed: 42)
+        let configuration = RaceConfiguration.standard.withTrafficSpawningEnabled(false)
+        var atThirty = RaceSimulation(configuration: configuration, seed: 42)
+        var atSixty = RaceSimulation(configuration: configuration, seed: 42)
+        var atOneTwenty = RaceSimulation(configuration: configuration, seed: 42)
 
         runSimulation(&atThirty, commands: commands, frameRate: 30)
         runSimulation(&atSixty, commands: commands, frameRate: 60)
@@ -470,7 +471,7 @@ struct RaceSimulationTests {
 
         #expect(simulation.state.speed >= 0)
         #expect(simulation.state.speed <= RaceConfiguration.standard.maximumSpeed)
-        #expect(simulation.state.lateralPosition == 1)
+        #expect(abs(simulation.state.lateralPosition) <= RaceConfiguration.standard.driving.lateralLimit)
         #expect(simulation.state.stageProgress >= 0)
         #expect(simulation.state.stageProgress <= 1)
         #expect(simulation.state.timerRemaining >= 0)
@@ -492,13 +493,13 @@ struct RaceSimulationTests {
         frameRate: Int
     ) {
         let frameDelta = 1.0 / Double(frameRate)
-        var elapsed = 0.0
         let totalDuration = commands.map(\ .duration).reduce(0, +)
+        let frameCount = Int((totalDuration * Double(frameRate)).rounded())
 
-        while elapsed < totalDuration {
+        for frame in 0..<frameCount {
+            let elapsed = Double(frame) * frameDelta
             let command = command(at: elapsed, segments: commands)
             simulation.advance(frameDelta: frameDelta, command: command)
-            elapsed += frameDelta
         }
     }
 
@@ -610,6 +611,27 @@ private struct CommandSegment {
 }
 
 private extension RaceConfiguration {
+    func withTrafficSpawningEnabled(_ enabled: Bool) -> RaceConfiguration {
+        RaceConfiguration(
+            fixedTimeStep: fixedTimeStep,
+            maximumFrameDelta: maximumFrameDelta,
+            maximumSimulationStepsPerFrame: maximumSimulationStepsPerFrame,
+            acceleration: acceleration,
+            braking: braking,
+            drag: drag,
+            maximumSpeed: maximumSpeed,
+            steeringRate: steeringRate,
+            driving: driving,
+            crashPenalties: crashPenalties,
+            stageLength: stageLength,
+            raceDuration: raceDuration,
+            profile: profile,
+            traffic: traffic.withSpawningEnabled(enabled),
+            boost: boost,
+            scoring: scoring
+        )
+    }
+
     static func testConfiguration(
         stageLength: Double,
         raceDuration: TimeInterval
@@ -639,6 +661,8 @@ private extension RaceConfiguration {
             drag: standard.drag,
             maximumSpeed: standard.maximumSpeed,
             steeringRate: standard.steeringRate,
+            driving: standard.driving,
+            crashPenalties: standard.crashPenalties,
             stageLength: stageLength,
             raceDuration: raceDuration,
             profile: standard.profile,

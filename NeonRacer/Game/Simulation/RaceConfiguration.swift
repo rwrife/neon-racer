@@ -9,6 +9,8 @@ struct RaceConfiguration: Equatable, Sendable {
     let drag: Double
     let maximumSpeed: Double
     let steeringRate: Double
+    let driving: DrivingBalance
+    let crashPenalties: CrashPenaltyBalance
     let stageLength: Double
     let raceDuration: TimeInterval
     let profile: DifficultyProfile
@@ -26,6 +28,8 @@ struct RaceConfiguration: Equatable, Sendable {
         drag: 10,
         maximumSpeed: 120,
         steeringRate: 1.8,
+        driving: .standard,
+        crashPenalties: .standard,
         stageLength: 5_000,
         raceDuration: 90,
         profile: .standard,

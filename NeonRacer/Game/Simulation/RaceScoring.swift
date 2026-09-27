@@ -92,6 +92,11 @@ enum RaceFeedbackCue: String, Equatable, Codable, Sendable {
     case boostEnding
     case boostUnavailable
     case collisionPenalty
+    case nearMiss
+    case overtake
+    case crash
+    case obstacleHit
+    case timePenalty
     case rankChanged
 }
 

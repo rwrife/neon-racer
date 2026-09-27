@@ -1,3 +1,4 @@
+import SceneKit
 import SpriteKit
 import SwiftUI
 import os
@@ -15,7 +16,10 @@ struct RaceView: View {
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.accessibilityReduceMotion) private var systemReduceMotion
     @EnvironmentObject private var accessibility: AccessibilitySettingsStore
-    @State private var scene = RaceScene()
+    // StateObject's autoclosure runs once per view identity; State(initialValue:) would rebuild
+    // the whole SceneKit scene every time the parent re-renders.
+    @StateObject private var sceneHolder: RaceSceneHolder
+    private var scene: RaceScene3D { sceneHolder.scene }
     @StateObject private var inputService: InputService
     @State private var tutorialSession: TutorialSession
     @State private var lifecycle = RunInterruptionCoordinator()
@@ -64,15 +68,17 @@ struct RaceView: View {
         self.completed = completed
         let routeName = ProgressionCatalog.routes.first { $0.id == routeID }?.displayName
             ?? ProgressionCatalog.routes[0].displayName
-        _scene = State(
-            initialValue: RaceScene(
-                configuration: configuration,
-                routeGraph: ProgressionCatalog.routeGraph(
-                    id: routeID,
-                    configuration: configuration
-                ),
-                routeName: routeName,
-                garagePalette: garagePalette
+        _sceneHolder = StateObject(
+            wrappedValue: RaceSceneHolder(
+                scene: RaceScene3D(
+                    configuration: configuration,
+                    routeGraph: ProgressionCatalog.routeGraph(
+                        id: routeID,
+                        configuration: configuration
+                    ),
+                    routeName: routeName,
+                    garagePalette: garagePalette
+                )
             )
         )
         _tutorialSession = State(initialValue: TutorialSession(progress: tutorialProgress))
@@ -81,9 +87,18 @@ struct RaceView: View {
         )
     }
 
+#if DEBUG
+    private static let debugHidesHUD = ProcessInfo.processInfo.arguments.contains("UITestHideHUD")
+    private static let debugStartsRace = ProcessInfo.processInfo.arguments.contains("UITestStartRace")
+#else
+    private static let debugHidesHUD = false
+    private static let debugStartsRace = false
+#endif
+
     var body: some View {
         ZStack(alignment: .topLeading) {
-            SpriteView(scene: scene, options: [.ignoresSiblingOrder])
+            RaceScene3DView(scene: scene)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .ignoresSafeArea()
                 .accessibilityElement(children: .ignore)
                 .accessibilityLabel("Race in progress")
@@ -95,19 +110,30 @@ struct RaceView: View {
                 feedback: hudFeedback,
                 settings: accessibility.settings
             )
+            .opacity(Self.debugHidesHUD ? 0 : 1)
+            .zIndex(10)
 
             Button {
                 apply(lifecycle.handle(.pauseRequested))
             } label: {
-                Label("Pause race", systemImage: "pause.fill")
-                    .font(.headline.bold())
-                    .padding(.horizontal, 16)
-                    .frame(minHeight: 52)
+                Image(systemName: "pause.fill")
+                    .font(.system(size: 17, weight: .black))
+                    .foregroundStyle(.white)
+                    .frame(width: 44, height: 44)
+                    .background(.black.opacity(accessibility.settings.highContrast ? 0.92 : 0.42), in: Circle())
+                    .overlay {
+                        Circle()
+                            .stroke(.cyan.opacity(accessibility.settings.highContrast ? 1 : 0.78), lineWidth: accessibility.settings.highContrast ? 2 : 1.1)
+                    }
             }
-            .buttonStyle(.borderedProminent)
-            .tint(.black.opacity(accessibility.settings.highContrast ? 0.95 : 0.65))
-            .padding()
+            .buttonStyle(.plain)
+            .accessibilityLabel("Pause race")
             .accessibilityHint("Opens pause controls")
+            .padding(.top, 12)
+            .padding(.trailing, 14)
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
+            .opacity(Self.debugHidesHUD ? 0 : 1)
+            .zIndex(20_001)
 
 #if DEBUG
             HStack {
@@ -116,24 +142,32 @@ struct RaceView: View {
                         forcedUITestResult = scene.completeForUITesting(succeeded: true)
                     }
                 }
-                Button("VEHICLE SHEET") {
-                    showsVehicleArtPreview = true
+                if !Self.debugStartsRace {
+                    Button("VEHICLE SHEET") {
+                        showsVehicleArtPreview = true
+                    }
                 }
             }
             .buttonStyle(.bordered)
             .tint(.white)
             .padding()
+            .padding(.top, 52)
             .frame(maxWidth: .infinity, alignment: .trailing)
             .zIndex(20_000)
 #endif
 
-            inputSourcePrompt
+            if !Self.debugStartsRace {
+                inputSourcePrompt
+            }
 
 #if targetEnvironment(simulator)
-            simulatorKeyboardLegend
+            if !Self.debugStartsRace {
+                simulatorKeyboardLegend
+            }
 #endif
 
-            if lifecycle.state == .running {
+            if lifecycle.state == .running
+                && !Self.debugStartsRace {
                 touchControls
             }
 
@@ -167,7 +201,6 @@ struct RaceView: View {
 #endif
         }
         .onAppear {
-            scene.scaleMode = .aspectFill
             scene.audioFrameHandler = { input, deltaTime in
                 audioService.updateEngine(input, deltaTime: deltaTime)
             }
@@ -316,24 +349,11 @@ struct RaceView: View {
 #endif
 
     private var touchControls: some View {
-        HStack(alignment: .bottom) {
-            steeringPad
-            Spacer()
-            HStack(alignment: .bottom, spacing: 14) {
-                HoldButton(title: "BRAKE", systemImage: "stop.fill") { pressed in
-                    inputService.setTouchAction(.brake, isPressed: pressed)
-                }
-                HoldButton(title: "BOOST", systemImage: "bolt.fill") { pressed in
-                    inputService.setTouchAction(.boost, isPressed: pressed)
-                }
-                HoldButton(title: "GO", systemImage: "arrow.up") { pressed in
-                    inputService.setTouchAction(.throttle, isPressed: pressed)
-                }
-            }
-        }
-        .padding(28)
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
-        .opacity(inputService.inputMethod == .controller ? 0.35 : 1)
+        TouchDrivingControls(
+            inputMethod: inputService.inputMethod,
+            setSteering: inputService.setTouchSteering,
+            setAction: inputService.setTouchAction
+        )
     }
 
     private var steeringPad: some View {
@@ -357,6 +377,11 @@ struct RaceView: View {
     }
 
     private func handleScenePhase(_ phase: ScenePhase) {
+#if DEBUG
+        if Self.debugStartsRace, phase != .active {
+            return
+        }
+#endif
         audioService.setApplicationActive(phase == .active)
         switch phase {
         case .active:
@@ -540,6 +565,29 @@ struct RaceView: View {
             get: { confirmation != nil },
             set: { if !$0 { confirmation = nil } }
         )
+    }
+}
+
+@MainActor
+private final class RaceSceneHolder: ObservableObject {
+    let scene: RaceScene3D
+    init(scene: RaceScene3D) { self.scene = scene }
+}
+
+private struct RaceScene3DView: UIViewRepresentable {
+    let scene: RaceScene3D
+
+    func makeUIView(context: Context) -> SCNView {
+        let view = SCNView(frame: .zero, options: nil)
+        view.isJitteringEnabled = true
+        scene.attach(to: view)
+        return view
+    }
+
+    func updateUIView(_ uiView: SCNView, context: Context) {
+        if uiView.scene !== scene.scene {
+            scene.attach(to: uiView)
+        }
     }
 }
 

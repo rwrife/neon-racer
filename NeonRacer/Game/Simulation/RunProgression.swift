@@ -27,6 +27,7 @@ enum RunEvent: Codable, Equatable, Sendable {
     case stageChanged(time: TimeInterval, stageID: String, environmentID: String)
     case paused(time: TimeInterval)
     case resumed(time: TimeInterval)
+    case timePenalty(time: TimeInterval, seconds: TimeInterval)
     case restartRequested(time: TimeInterval)
     case finished(time: TimeInterval, route: [String])
     case failed(time: TimeInterval, stageID: String)

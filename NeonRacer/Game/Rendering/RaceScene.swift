@@ -169,7 +169,8 @@ final class RaceScene: SKScene {
             scoreEvents: simulation.scoreEvents,
             feedbackEvents: simulation.feedbackEvents,
             runEvents: simulation.runEvents,
-            configuration: configuration
+            configuration: configuration,
+            trackLayout: simulation.trackLayout
         )
         if hudUpdate.feedback != nil || currentTime - lastHUDPublishTime >= 1.0 / 20.0 {
             hudDidUpdate(hudUpdate)

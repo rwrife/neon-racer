@@ -1,0 +1,713 @@
+import Foundation
+import QuartzCore
+import SceneKit
+import UIKit
+
+@MainActor
+final class RaceScene3D: NSObject {
+    let scene = SCNScene()
+
+    var audioFrameHandler: ((EngineAudioInput, TimeInterval) -> Void)?
+    var audioEventHandler: ((AudioEvent) -> Void)?
+    var commandProvider: @MainActor () -> PlayerCommand = { .idle }
+    var engineIntensityDidChange: @MainActor (Double) -> Void = { _ in }
+    var feedbackDidOccur: @MainActor (HapticEvent) -> Void = { _ in }
+    var raceDidEnd: @MainActor (RaceResult) -> Void = { _ in }
+    var hudDidUpdate: @MainActor (RaceHUDUpdate) -> Void = { _ in }
+
+    private var simulation: RaceSimulation
+    private var hudTracker = RaceHUDTracker()
+    private let configuration: RaceConfiguration
+    private let routeName: String
+    private let garagePalette: GaragePaletteDefinition
+    private let quality: CosmeticQualityConfiguration
+    private let mapper: TrackWorldMapper3D
+    private let roadBuilder = RoadMeshBuilder3D()
+    private let markerBuilder = TrackMarkers3D()
+    private let chaseCamera = ChaseCamera3D()
+    private let environment: NeonEnvironment3D
+    private let effects = NeonEffects3D()
+    private let roadsideProps = RoadsidePropStreamer3D()
+    private let carNode: NeonCarNode
+    private var trafficNodes: [UInt64: NeonCarNode] = [:]
+    private var obstacleNodes: [UInt64: SCNNode] = [:]
+    private var displayLink: CADisplayLink?
+    private var previousUpdateTime: TimeInterval?
+    private var previousPhase = RacePhase.loading
+    private var wasBoostActive = false
+    private var didReportResult = false
+    private var accessibilitySettings = AccessibilitySettings.defaults
+    private var systemReduceMotion = false
+    private var lastHUDPublishTime: TimeInterval = -.infinity
+    private var observedRaceEventCount = 0
+    private var observedScoreEventCount = 0
+    private var observedFeedbackEventCount = 0
+    private var observedRunEventCount = 0
+    private var lastEnvironmentID = ""
+#if DEBUG
+    private let performanceMetrics = DebugPerformanceMetrics()
+#endif
+
+    convenience init(
+        configuration: RaceConfiguration = .standard,
+        routeGraph: RouteGraph? = nil,
+        routeName: String = "Neon Causeway",
+        garagePalette: GaragePaletteDefinition = ProgressionCatalog.palettes[0]
+    ) {
+        self.init(
+            quality: .environmentDefault,
+            configuration: configuration,
+            routeGraph: routeGraph,
+            routeName: routeName,
+            garagePalette: garagePalette
+        )
+    }
+
+    init(
+        quality: CosmeticQualityConfiguration,
+        configuration: RaceConfiguration = .standard,
+        routeGraph: RouteGraph? = nil,
+        routeName: String = "Neon Causeway",
+        garagePalette: GaragePaletteDefinition = ProgressionCatalog.palettes[0]
+    ) {
+        self.quality = quality
+        self.configuration = configuration
+        self.routeName = routeName
+        self.garagePalette = garagePalette
+        self.simulation = RaceSimulation(configuration: configuration, routeGraph: routeGraph)
+        self.mapper = TrackWorldMapper3D(layout: simulation.trackLayout)
+        self.environment = NeonEnvironment3D(quality: quality.tier)
+        self.carNode = VehicleModels3D.makeHeroCar(vehicleID: "hero", paletteID: garagePalette.id)
+        super.init()
+        buildScene()
+    }
+
+    func attach(to view: SCNView) {
+        view.scene = scene
+        view.pointOfView = chaseCamera.cameraNode
+        view.preferredFramesPerSecond = 60
+#if targetEnvironment(simulator)
+        view.antialiasingMode = .none
+#else
+        view.antialiasingMode = quality.expensiveEffectsEnabled ? .multisampling4X : .multisampling2X
+#endif
+        view.isJitteringEnabled = false
+        view.isPlaying = true
+        view.rendersContinuously = true
+        view.allowsCameraControl = false
+        effects.install(on: view)
+        step(frameDelta: 0, currentTime: CACurrentMediaTime())
+        startDisplayLinkIfNeeded()
+    }
+
+    func apply(settings: AccessibilitySettings, systemReduceMotion: Bool) {
+        accessibilitySettings = settings
+        self.systemReduceMotion = systemReduceMotion
+        let reduceMotion = settings.resolvedReduceMotion(systemReduceMotion: systemReduceMotion)
+        chaseCamera.apply(reduceMotion: reduceMotion)
+        environment.apply(reduceMotion: reduceMotion, highContrast: settings.highContrast)
+        effects.apply(
+            reduceMotion: reduceMotion,
+            reduceFlashing: settings.reduceFlashes,
+            intensity: quality.expensiveEffectsEnabled ? 1 : 0.45
+        )
+    }
+
+    func triggerCollisionEffects(intensity: Double = 1) {
+        effects.trigger(.collision(intensity: intensity))
+        chaseCamera.triggerShake(intensity: intensity)
+    }
+
+    func pauseForInterruption() {
+        simulation.setPaused(true)
+        previousUpdateTime = nil
+        displayLink?.isPaused = true
+        engineIntensityDidChange(0)
+    }
+
+    func resumeAfterInterruption() {
+        previousUpdateTime = nil
+        simulation.setPaused(false)
+        displayLink?.isPaused = false
+    }
+
+    func tearDown() {
+        pauseForInterruption()
+        displayLink?.invalidate()
+        displayLink = nil
+        commandProvider = { .idle }
+        feedbackDidOccur = { _ in }
+        engineIntensityDidChange = { _ in }
+        raceDidEnd = { _ in }
+        hudDidUpdate = { _ in }
+        audioFrameHandler = nil
+        audioEventHandler = nil
+    }
+
+#if DEBUG
+    func completeForUITesting(succeeded: Bool) -> RaceResult {
+        if succeeded {
+            simulation.finish()
+        } else {
+            simulation.fail()
+        }
+        didReportResult = true
+        return makeResult()
+    }
+#endif
+
+    private func buildScene() {
+        scene.rootNode.name = "race-3d-root"
+        scene.rootNode.addChildNode(roadBuilder.rootNode)
+        scene.rootNode.addChildNode(markerBuilder.rootNode)
+        scene.rootNode.addChildNode(roadsideProps.rootNode)
+        normalizeHeroCarScaleIfNeeded()
+        let heroBounds = heroCarBounds()
+        chaseCamera.configureSubject(
+            length: heroBounds.dimensions.z,
+            height: heroBounds.dimensions.y,
+            rearOverhang: heroBounds.maximum.z
+        )
+        scene.rootNode.addChildNode(carNode)
+        scene.rootNode.addChildNode(chaseCamera.cameraNode)
+        environment.attach(to: scene)
+        if let camera = chaseCamera.cameraNode.camera {
+            effects.configure(camera: camera)
+        }
+        effects.apply(quality: quality.tier)
+        effects.attach(to: scene, carNode: carNode, cameraNode: chaseCamera.cameraNode)
+        mapper.updateRoute(for: simulation.state)
+        lastEnvironmentID = simulation.state.currentEnvironmentID
+        environment.setEnvironment(lastEnvironmentID, animated: false)
+    }
+
+    private func normalizeHeroCarScaleIfNeeded() {
+        let dimensions = heroCarBounds().dimensions
+        guard dimensions.z > 0.01 else { return }
+        let targetLength: Float = 4.45
+        let scaleFactor = targetLength / dimensions.z
+        if scaleFactor < 0.55 || scaleFactor > 1.55 {
+            carNode.scale = SCNVector3(
+                carNode.scale.x * scaleFactor,
+                carNode.scale.y * scaleFactor,
+                carNode.scale.z * scaleFactor
+            )
+        }
+    }
+
+    private func heroCarBounds() -> (minimum: SCNVector3, maximum: SCNVector3, dimensions: SCNVector3) {
+        var minimum = SCNVector3Zero
+        var maximum = SCNVector3Zero
+        carNode.getBoundingBoxMin(&minimum, max: &maximum)
+        let scale = carNode.scale
+        let scaledMinimum = SCNVector3(minimum.x * scale.x, minimum.y * scale.y, minimum.z * scale.z)
+        let scaledMaximum = SCNVector3(maximum.x * scale.x, maximum.y * scale.y, maximum.z * scale.z)
+        return (
+            scaledMinimum,
+            scaledMaximum,
+            SCNVector3(
+                abs(scaledMaximum.x - scaledMinimum.x),
+                abs(scaledMaximum.y - scaledMinimum.y),
+                abs(scaledMaximum.z - scaledMinimum.z)
+            )
+        )
+    }
+
+    private func startDisplayLinkIfNeeded() {
+        guard displayLink == nil else { return }
+        let link = CADisplayLink(target: DisplayLinkProxy(owner: self), selector: #selector(DisplayLinkProxy.tick(_:)))
+        link.preferredFrameRateRange = CAFrameRateRange(minimum: 30, maximum: 120, preferred: 60)
+        link.add(to: .main, forMode: .common)
+        displayLink = link
+    }
+
+    fileprivate func displayLinkDidTick(_ link: CADisplayLink) {
+        let currentTime = link.timestamp
+        let frameDelta = previousUpdateTime.map { min(currentTime - $0, 0.1) } ?? 0
+        previousUpdateTime = currentTime
+        step(frameDelta: frameDelta, currentTime: currentTime)
+    }
+
+    private func step(frameDelta: TimeInterval, currentTime: TimeInterval) {
+        let frameInterval = PerformanceInstrumentation.begin(.frame)
+        defer { PerformanceInstrumentation.end(.frame, frameInterval) }
+
+        var command = commandProvider()
+#if DEBUG
+        if Self.debugAutoDrive {
+            command = debugAutoDriveCommand()
+        }
+#endif
+        simulation.advance(frameDelta: frameDelta, command: command)
+        mapper.updateRoute(for: simulation.state)
+        driveFeedbackFromSimulation()
+        publishHUDIfNeeded(currentTime: currentTime)
+        render(snapshot: simulation.renderSnapshot, command: command, frameDelta: frameDelta, currentTime: currentTime)
+        updateAudio(command: command, deltaTime: frameDelta)
+        engineIntensityDidChange(simulation.state.speed / configuration.maximumSpeed)
+        handlePhaseAudio()
+        reportResultIfNeeded()
+    }
+
+#if DEBUG
+    private static let debugAutoDrive = ProcessInfo.processInfo.arguments.contains("UITestAutoDrive")
+
+    /// Debug-only autopilot for visual capture: full throttle, dodges the nearest thing ahead.
+    private func debugAutoDriveCommand() -> PlayerCommand {
+        let state = simulation.state
+        var target = 0.0
+        let threats = state.traffic.map { ($0.distance, $0.lateralPosition) }
+            + state.obstacles.filter { !$0.isHit && abs($0.lateralPosition) < 1 }.map { ($0.distance, $0.lateralPosition) }
+        if let threat = threats
+            .filter({ $0.0 > state.distance && $0.0 < state.distance + 70 })
+            .min(by: { $0.0 < $1.0 }) {
+            target = threat.1 > 0 ? -0.5 : 0.5
+        }
+        let steering = min(max((target - state.lateralPosition) * 2.2, -1), 1)
+        return PlayerCommand(steering: steering, throttle: 1, brake: 0, isBoosting: state.boostCharge > 1.5)
+    }
+#endif
+
+    private func publishHUDIfNeeded(currentTime: TimeInterval) {
+        let update = hudTracker.update(
+            state: simulation.state,
+            events: simulation.events,
+            scoreEvents: simulation.scoreEvents,
+            feedbackEvents: simulation.feedbackEvents,
+            runEvents: simulation.runEvents,
+            configuration: configuration,
+            trackLayout: simulation.trackLayout
+        )
+        if update.feedback != nil || currentTime - lastHUDPublishTime >= 1.0 / 20.0 {
+            hudDidUpdate(update)
+            lastHUDPublishTime = currentTime
+        }
+    }
+
+    private func render(
+        snapshot: RaceRenderSnapshot,
+        command: PlayerCommand,
+        frameDelta: TimeInterval,
+        currentTime: TimeInterval
+    ) {
+        let roadInterval = PerformanceInstrumentation.begin(.roadProjection)
+        let alpha = snapshot.interpolationAlpha
+        let distance = interpolate(snapshot.previous.distance, snapshot.current.distance, alpha)
+        let lateral = interpolate(snapshot.previous.lateralPosition, snapshot.current.lateralPosition, alpha)
+        let speed = interpolate(snapshot.previous.speed, snapshot.current.speed, alpha)
+        let state = snapshot.current
+        let carFrame = mapper.frame(atRunDistance: distance, lateralPosition: lateral)
+        carNode.position = carFrame.position
+        carNode.eulerAngles = SCNVector3(
+            carFrame.pitch,
+            carFrame.yaw - Float(state.vehicle.roadPosition.heading * 0.35),
+            0
+        )
+        carNode.update(
+            steering: command.steering,
+            speed: speed,
+            isBoosting: state.isBoostActive,
+            isBraking: command.brake > 0.2,
+            slipAngle: state.vehicle.slipAngle,
+            time: currentTime
+        )
+        roadBuilder.update(playerDistance: distance, mapper: mapper)
+        roadsideProps.update(
+            playerDistance: distance,
+            mapper: mapper,
+            environment: environment,
+            environmentID: state.currentEnvironmentID
+        )
+        markerBuilder.update(state: state, mapper: mapper)
+        updateTraffic(snapshot: snapshot, alpha: alpha)
+        updateObstacles(snapshot: snapshot, alpha: alpha)
+        PerformanceInstrumentation.end(.roadProjection, roadInterval)
+
+        let effectsInterval = PerformanceInstrumentation.begin(.effects)
+        let speedRatio = speed / configuration.maximumSpeed
+        chaseCamera.update(
+            carFrame: carFrame,
+            speedRatio: speedRatio,
+            isBoosting: state.isBoostActive,
+            steering: command.steering,
+            deltaTime: frameDelta,
+            time: currentTime
+        )
+        environment.groundLevel = carFrame.position.y
+        environment.update(
+            cameraPosition: chaseCamera.currentPosition,
+            cameraForward: chaseCamera.currentForward,
+            time: currentTime,
+            speedRatio: speedRatio
+        )
+        effects.setPose(carPosition: carFrame.position, cameraForward: chaseCamera.currentForward)
+        effects.update(
+            speedRatio: speedRatio,
+            isBoosting: state.isBoostActive,
+            isDrifting: state.vehicle.isDrifting,
+            isOffRoad: state.vehicle.isOffRoad,
+            time: currentTime
+        )
+        PerformanceInstrumentation.end(.effects, effectsInterval)
+#if DEBUG
+        _ = performanceMetrics.record(
+            frameDelta: frameDelta,
+            activeVehicles: trafficNodes.count + 1,
+            segmentCount: roadBuilder.activeChunkCount,
+            nodeCount: scene.rootNode.childNodes.count,
+            environmentDrawCount: 1,
+            environmentNodeCount: environment.rootNode.childNodes.count,
+            qualityTier: quality.tier,
+            activeEffects: state.isBoostActive ? 1 : 0,
+            activePooledNodes: trafficNodes.count + obstacleNodes.count + roadsideProps.activeNodeCount,
+            pooledNodeCapacity: trafficNodes.count + obstacleNodes.count + roadsideProps.activeNodeCount
+        )
+#endif
+    }
+
+    private func updateTraffic(snapshot: RaceRenderSnapshot, alpha: Double) {
+        let previous = Dictionary(uniqueKeysWithValues: snapshot.previous.traffic.map { ($0.id, $0) })
+        var active: Set<UInt64> = []
+        for current in snapshot.current.traffic where current.distance > snapshot.current.distance - 60 && current.distance < snapshot.current.distance + 750 {
+            active.insert(current.id)
+            let node = trafficNodes[current.id] ?? {
+                let made = VehicleModels3D.makeTrafficVehicle(kind: current.kind, seed: current.id)
+                trafficNodes[current.id] = made
+                scene.rootNode.addChildNode(made)
+                return made
+            }()
+            let old = previous[current.id] ?? current
+            let distance = interpolate(old.distance, current.distance, alpha)
+            let lateral = interpolate(old.lateralPosition, current.lateralPosition, alpha)
+            let frame = mapper.frame(atRunDistance: distance, lateralPosition: lateral)
+            node.position = frame.position
+            node.eulerAngles = SCNVector3(frame.pitch, frame.yaw - Float(current.steering) * 0.08, 0)
+            node.update(steering: current.steering, speed: current.speed, isBoosting: false, isBraking: current.isBraking, slipAngle: 0, time: CACurrentMediaTime())
+            node.opacity = current.hasBeenPassed ? 0.75 : 1
+        }
+        for (id, node) in trafficNodes where !active.contains(id) {
+            node.removeFromParentNode()
+            trafficNodes[id] = nil
+        }
+    }
+
+    private func updateObstacles(snapshot: RaceRenderSnapshot, alpha: Double) {
+        let previous = Dictionary(uniqueKeysWithValues: snapshot.previous.obstacles.map { ($0.id, $0) })
+        var active: Set<UInt64> = []
+        for current in snapshot.current.obstacles where current.distance > snapshot.current.distance - 60 && current.distance < snapshot.current.distance + 750 {
+            active.insert(current.id)
+            let node = obstacleNodes[current.id] ?? {
+                let made = VehicleModels3D.makeObstacle(kind: current.kind)
+                obstacleNodes[current.id] = made
+                scene.rootNode.addChildNode(made)
+                return made
+            }()
+            let old = previous[current.id] ?? current
+            let distance = interpolate(old.distance, current.distance, alpha)
+            let lateral = interpolate(old.lateralPosition, current.lateralPosition, alpha)
+            let frame = mapper.frame(atRunDistance: distance, lateralPosition: lateral)
+            node.position = frame.position
+            node.eulerAngles = SCNVector3(frame.pitch, frame.yaw, 0)
+            node.opacity = current.isHit ? 0.22 : 1
+        }
+        for (id, node) in obstacleNodes where !active.contains(id) {
+            node.removeFromParentNode()
+            obstacleNodes[id] = nil
+        }
+    }
+
+    private func driveFeedbackFromSimulation() {
+        if observedRaceEventCount > simulation.events.count { observedRaceEventCount = 0 }
+        if observedScoreEventCount > simulation.scoreEvents.count { observedScoreEventCount = 0 }
+        if observedFeedbackEventCount > simulation.feedbackEvents.count { observedFeedbackEventCount = 0 }
+        if observedRunEventCount > simulation.runEvents.count { observedRunEventCount = 0 }
+
+        for event in simulation.events.dropFirst(observedRaceEventCount) {
+            switch event {
+            case .boostStarted:
+                feedbackDidOccur(.boost)
+                audioEventHandler?(.boost)
+                effects.trigger(.boostStart)
+            case .boostEnded:
+                effects.trigger(.boostEnd)
+            case .finished:
+                // Finish/failure audio comes from handlePhaseAudio().
+                effects.trigger(.finish)
+            case .failed:
+                effects.trigger(.crash)
+            case .started:
+                break
+            }
+        }
+        observedRaceEventCount = simulation.events.count
+
+        // One physical moment is reported on several streams; merge so it fires feedback once per frame.
+        var collisionIntensity: Double?
+        var checkpointCrossed = false
+        func noteCollision(_ intensity: Double) {
+            collisionIntensity = max(collisionIntensity ?? 0, intensity)
+        }
+
+        for event in simulation.scoreEvents.dropFirst(observedScoreEventCount) {
+            switch event.source {
+            case .overtake:
+                audioEventHandler?(.pass)
+                effects.trigger(.overtake)
+            case .nearMiss:
+                feedbackDidOccur(.nearMiss)
+                audioEventHandler?(.nearMiss)
+                effects.trigger(.nearMiss)
+            case .checkpoint:
+                checkpointCrossed = true
+            case .collision:
+                noteCollision(1)
+            default:
+                break
+            }
+        }
+        observedScoreEventCount = simulation.scoreEvents.count
+
+        for event in simulation.feedbackEvents.dropFirst(observedFeedbackEventCount) {
+            switch event.cue {
+            case .collisionPenalty, .crash, .obstacleHit, .timePenalty:
+                noteCollision(event.cue == .timePenalty ? 0.75 : 1)
+            default:
+                break
+            }
+        }
+        observedFeedbackEventCount = simulation.feedbackEvents.count
+
+        for event in simulation.runEvents.dropFirst(observedRunEventCount) {
+            switch event {
+            case .stageChanged(_, _, let environmentID):
+                if environmentID != lastEnvironmentID {
+                    lastEnvironmentID = environmentID
+                    environment.setEnvironment(environmentID, animated: !accessibilitySettings.reduceFlashes)
+                    audioEventHandler?(.environmentChanged(environmentID.audioEnvironment))
+                }
+            case .checkpointCrossed:
+                checkpointCrossed = true
+            case .timePenalty(_, let seconds):
+                noteCollision(min(max(seconds / 5, 0.45), 1))
+            default:
+                break
+            }
+        }
+        observedRunEventCount = simulation.runEvents.count
+
+        if checkpointCrossed {
+            feedbackDidOccur(.checkpoint)
+            audioEventHandler?(.checkpoint)
+            effects.trigger(.checkpoint)
+        }
+        if let collisionIntensity {
+            feedbackDidOccur(.collision)
+            audioEventHandler?(.crash(severity: collisionIntensity))
+            effects.trigger(.crash)
+            triggerCollisionEffects(intensity: collisionIntensity)
+        }
+    }
+
+    private func handlePhaseAudio() {
+        let state = simulation.state
+        guard state.phase != previousPhase else { return }
+        switch state.phase {
+        case .racing where previousPhase == .paused:
+            audioEventHandler?(.raceResumed)
+        case .paused:
+            audioEventHandler?(.racePaused)
+        case .finished:
+            audioEventHandler?(.finish)
+        case .failed:
+            audioEventHandler?(.failure)
+        case .loading, .countdown, .racing, .checkpoint, .fork, .restarting:
+            break
+        }
+        previousPhase = state.phase
+    }
+
+    private func reportResultIfNeeded() {
+        let state = simulation.state
+        guard !didReportResult, state.phase == .finished || state.phase == .failed else { return }
+        didReportResult = true
+        raceDidEnd(makeResult())
+    }
+
+    private func makeResult() -> RaceResult {
+        RaceResult(
+            state: simulation.state,
+            rank: simulation.currentRank,
+            routeName: routeName,
+            scoreBreakdown: simulation.scoreResult.breakdown
+        )
+    }
+
+    private func updateAudio(command: PlayerCommand, deltaTime: TimeInterval) {
+        let state = simulation.state
+        let normalizedSpeed = state.speed / configuration.maximumSpeed
+        audioFrameHandler?(
+            EngineAudioInput(
+                normalizedRPM: normalizedSpeed,
+                normalizedSpeed: normalizedSpeed,
+                throttle: command.throttle,
+                drift: abs(command.steering) * normalizedSpeed,
+                boost: state.isBoostActive ? 1 : 0,
+                offRoad: max(0, abs(state.lateralPosition) - 0.82) / 0.18,
+                collisionRecovery: state.vehicle.crashRecoveryRemaining
+            ),
+            deltaTime
+        )
+    }
+
+    private func interpolate(_ previous: Double, _ current: Double, _ alpha: Double) -> Double {
+        previous * (1 - alpha) + current * alpha
+    }
+}
+
+@MainActor
+private final class RoadsidePropStreamer3D {
+    let rootNode = SCNNode()
+    private var nodes: [String: SCNNode] = [:]
+    private let behindDistance = 80.0
+    private let aheadDistance = 780.0
+
+    var activeNodeCount: Int { nodes.count }
+
+    init() {
+        rootNode.name = "roadside-prop-stream-root"
+    }
+
+    func update(
+        playerDistance: Double,
+        mapper: TrackWorldMapper3D,
+        environment: NeonEnvironment3D,
+        environmentID: String
+    ) {
+        let kinds = environment.roadsidePropKinds(for: environmentID)
+        guard !kinds.isEmpty else {
+            removeAll()
+            return
+        }
+
+        let spacing = max(28, environment.roadsidePropSpacingHint(for: environmentID))
+        let startIndex = Int(floor((playerDistance - behindDistance) / spacing))
+        let endIndex = Int(ceil((playerDistance + aheadDistance) / spacing))
+        let billboardKinds = kinds.filter { kind in
+            let normalized = kind.lowercased()
+            return normalized.contains("billboard") || normalized.contains("sign")
+        }
+        var activeKeys: Set<String> = []
+
+        for index in startIndex...endIndex {
+            let seed = Self.seed(environmentID: environmentID, index: index)
+            let wantsBillboard = abs(index) <= 6 || index.isMultiple(of: 4)
+            let selectableKinds = wantsBillboard && !billboardKinds.isEmpty ? billboardKinds : kinds
+            let kind = selectableKinds[Int(seed % UInt64(selectableKinds.count))]
+            let stationDistance = Double(index) * spacing + Double(seed % 17) * 0.73
+
+            if kind.localizedCaseInsensitiveContains("tunnel")
+                || kind.localizedCaseInsensitiveContains("arch") {
+                updateProp(
+                    key: "\(environmentID)-\(index)-center-\(kind)",
+                    kind: kind,
+                    seed: seed,
+                    distance: stationDistance,
+                    lateral: 0,
+                    yawOffset: 0,
+                    mapper: mapper,
+                    environment: environment,
+                    activeKeys: &activeKeys
+                )
+            } else {
+                for side in [-1.0, 1.0] {
+                    let sideSeed = seed &+ (side < 0 ? 0x9E37_79B9 : 0x85EB_CA6B)
+                    updateProp(
+                        key: "\(environmentID)-\(index)-\(side)-\(kind)",
+                        kind: kind,
+                        seed: sideSeed,
+                        distance: stationDistance + (side < 0 ? spacing * 0.18 : spacing * 0.52),
+                        lateral: side * (1.34 + Double(sideSeed % 9) * 0.025),
+                        yawOffset: side < 0 ? .pi / 2 : -.pi / 2,
+                        mapper: mapper,
+                        environment: environment,
+                        activeKeys: &activeKeys
+                    )
+                }
+            }
+        }
+
+        for (key, node) in nodes where !activeKeys.contains(key) {
+            node.removeFromParentNode()
+            nodes[key] = nil
+        }
+    }
+
+    private func updateProp(
+        key: String,
+        kind: String,
+        seed: UInt64,
+        distance: Double,
+        lateral: Double,
+        yawOffset: Float,
+        mapper: TrackWorldMapper3D,
+        environment: NeonEnvironment3D,
+        activeKeys: inout Set<String>
+    ) {
+        activeKeys.insert(key)
+        let node = nodes[key] ?? {
+            let made = environment.makeRoadsideProp(kind: kind, seed: seed)
+            made.name = made.name ?? "roadside-prop-\(kind)"
+            nodes[key] = made
+            rootNode.addChildNode(made)
+            return made
+        }()
+        let frame = mapper.frame(atRunDistance: distance, lateralPosition: lateral)
+        node.position = frame.position
+        node.eulerAngles = SCNVector3(frame.pitch, frame.yaw + yawOffset, 0)
+        let distanceFade = max(0.25, min(1, Float((distance - mapper.frame(atRunDistance: distance).runDistance + 780) / 160)))
+        node.opacity = CGFloat(distanceFade)
+    }
+
+    private func removeAll() {
+        for node in nodes.values {
+            node.removeFromParentNode()
+        }
+        nodes.removeAll(keepingCapacity: true)
+    }
+
+    private static func seed(environmentID: String, index: Int) -> UInt64 {
+        var hash: UInt64 = 0xcbf2_9ce4_8422_2325
+        for byte in environmentID.utf8 {
+            hash = (hash ^ UInt64(byte)) &* 0x0000_0100_0000_01B3
+        }
+        hash ^= UInt64(bitPattern: Int64(index)) &* 0x9E37_79B9_7F4A_7C15
+        return hash
+    }
+}
+
+private extension String {
+    var audioEnvironment: AudioEnvironment {
+        if contains("city") { return .city }
+        if contains("peak") || contains("mount") { return .tunnel }
+        if contains("desert") { return .desert }
+        return .coast
+    }
+}
+
+/// Breaks the CADisplayLink -> target retain cycle.
+@MainActor
+private final class DisplayLinkProxy: NSObject {
+    weak var owner: RaceScene3D?
+
+    init(owner: RaceScene3D) {
+        self.owner = owner
+    }
+
+    @objc func tick(_ link: CADisplayLink) {
+        guard let owner else {
+            link.invalidate()
+            return
+        }
+        owner.displayLinkDidTick(link)
+    }
+}

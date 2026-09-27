@@ -67,6 +67,29 @@
 		D11000000000000000000003 /* StageContentTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D11000000000000000000007 /* StageContentTests.swift */; };
 		D11000000000000000000004 /* neon-harbor.json in Resources */ = {isa = PBXBuildFile; fileRef = D11000000000000000000008 /* neon-harbor.json */; };
 		D1100000000000000000000B /* solar-to-summit.json in Resources */ = {isa = PBXBuildFile; fileRef = D1100000000000000000000A /* solar-to-summit.json */; };
+		C0DE0000000000000000B001 /* RaceScene3D.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0DE0000000000000000B002 /* RaceScene3D.swift */; };
+		C0DE0000000000000000B003 /* TrackWorldMapper3D.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0DE0000000000000000B004 /* TrackWorldMapper3D.swift */; };
+		C0DE0000000000000000B005 /* RoadMeshBuilder3D.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0DE0000000000000000B006 /* RoadMeshBuilder3D.swift */; };
+		C0DE0000000000000000B007 /* ChaseCamera3D.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0DE0000000000000000B008 /* ChaseCamera3D.swift */; };
+		C0DE0000000000000000B009 /* TrackMarkers3D.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0DE0000000000000000B00A /* TrackMarkers3D.swift */; };
+		C0DE0000000000000000B00B /* NeonEnvironment3D.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0DE0000000000000000B00C /* NeonEnvironment3D.swift */; };
+		C0DE0000000000000000B00D /* VehicleModels3D.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0DE0000000000000000B00E /* VehicleModels3D.swift */; };
+		C0DE0000000000000000B00F /* NeonEffects3D.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0DE0000000000000000B010 /* NeonEffects3D.swift */; };
+		C0DE0000000000000000B01A /* NeonPostProcess.metal in Sources */ = {isa = PBXBuildFile; fileRef = C0DE0000000000000000E004 /* NeonPostProcess.metal */; };
+		C0DE0000000000000000D001 /* VehicleModels3DTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0DE0000000000000000D002 /* VehicleModels3DTests.swift */; };
+		C0DE0000000000000000B014 /* DrivingModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0DE0000000000000000B015 /* DrivingModel.swift */; };
+		C0DE00000000000000001001 /* TouchDrivingControls.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0DE00000000000000001002 /* TouchDrivingControls.swift */; };
+		C0DE00000000000000001003 /* DrivingModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0DE00000000000000001004 /* DrivingModelTests.swift */; };
+		C0DE0000000000000000B016 /* TrafficSystem.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0DE0000000000000000B017 /* TrafficSystem.swift */; };
+		C0DE0000000000000000B018 /* CollisionSystem.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0DE0000000000000000B019 /* CollisionSystem.swift */; };
+		C0DE0000000000000000E005 /* NeonEffects3DTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0DE0000000000000000E006 /* NeonEffects3DTests.swift */; };
+		C0DE0000000000000000F001 /* TrafficSystemTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0DE0000000000000000F002 /* TrafficSystemTests.swift */; };
+		C0DE0000000000000000F003 /* CollisionSystemTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0DE0000000000000000F004 /* CollisionSystemTests.swift */; };
+		C0DE00000000000000002001 /* HUDCalloutMapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0DE00000000000000002002 /* HUDCalloutMapper.swift */; };
+		C0DE00000000000000002003 /* HUDArcadeComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0DE00000000000000002004 /* HUDArcadeComponents.swift */; };
+		C0DE00000000000000002005 /* HUDRouteProgressView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0DE00000000000000002006 /* HUDRouteProgressView.swift */; };
+		C0DE00000000000000002007 /* HUDCalloutView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0DE00000000000000002008 /* HUDCalloutView.swift */; };
+		C0DE00000000000000002009 /* HUDTacticalPanels.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0DE0000000000000000200A /* HUDTacticalPanels.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -150,6 +173,29 @@
 		V13000000000000000000004 /* VehicleArt.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VehicleArt.swift; sourceTree = "<group>"; };
 		V13000000000000000000005 /* VehicleArtPreviewScene.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VehicleArtPreviewScene.swift; sourceTree = "<group>"; };
 		V13000000000000000000006 /* VehicleArtTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VehicleArtTests.swift; sourceTree = "<group>"; };
+		C0DE0000000000000000D002 /* VehicleModels3DTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VehicleModels3DTests.swift; sourceTree = "<group>"; };
+		C0DE0000000000000000B002 /* RaceScene3D.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RaceScene3D.swift; sourceTree = "<group>"; };
+		C0DE0000000000000000B004 /* TrackWorldMapper3D.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrackWorldMapper3D.swift; sourceTree = "<group>"; };
+		C0DE0000000000000000B006 /* RoadMeshBuilder3D.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RoadMeshBuilder3D.swift; sourceTree = "<group>"; };
+		C0DE0000000000000000B008 /* ChaseCamera3D.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChaseCamera3D.swift; sourceTree = "<group>"; };
+		C0DE0000000000000000B00A /* TrackMarkers3D.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrackMarkers3D.swift; sourceTree = "<group>"; };
+		C0DE0000000000000000B00C /* NeonEnvironment3D.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NeonEnvironment3D.swift; sourceTree = "<group>"; };
+		C0DE0000000000000000B00E /* VehicleModels3D.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VehicleModels3D.swift; sourceTree = "<group>"; };
+		C0DE0000000000000000B010 /* NeonEffects3D.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NeonEffects3D.swift; sourceTree = "<group>"; };
+		C0DE0000000000000000B015 /* DrivingModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DrivingModel.swift; sourceTree = "<group>"; };
+		C0DE00000000000000001002 /* TouchDrivingControls.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TouchDrivingControls.swift; sourceTree = "<group>"; };
+		C0DE00000000000000001004 /* DrivingModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DrivingModelTests.swift; sourceTree = "<group>"; };
+		C0DE0000000000000000B017 /* TrafficSystem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrafficSystem.swift; sourceTree = "<group>"; };
+		C0DE0000000000000000B019 /* CollisionSystem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CollisionSystem.swift; sourceTree = "<group>"; };
+		C0DE0000000000000000E004 /* NeonPostProcess.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = NeonPostProcess.metal; sourceTree = "<group>"; };
+		C0DE0000000000000000E006 /* NeonEffects3DTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NeonEffects3DTests.swift; sourceTree = "<group>"; };
+		C0DE0000000000000000F002 /* TrafficSystemTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrafficSystemTests.swift; sourceTree = "<group>"; };
+		C0DE0000000000000000F004 /* CollisionSystemTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CollisionSystemTests.swift; sourceTree = "<group>"; };
+		C0DE00000000000000002002 /* HUDCalloutMapper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HUDCalloutMapper.swift; sourceTree = "<group>"; };
+		C0DE00000000000000002004 /* HUDArcadeComponents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HUDArcadeComponents.swift; sourceTree = "<group>"; };
+		C0DE00000000000000002006 /* HUDRouteProgressView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HUDRouteProgressView.swift; sourceTree = "<group>"; };
+		C0DE00000000000000002008 /* HUDCalloutView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HUDCalloutView.swift; sourceTree = "<group>"; };
+		C0DE0000000000000000200A /* HUDTacticalPanels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HUDTacticalPanels.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -235,6 +281,11 @@
 			children = (
 				300000000000000000000004 /* RaceView.swift */,
 				E14100000000000000000013 /* RaceHUDView.swift */,
+				C0DE00000000000000002004 /* HUDArcadeComponents.swift */,
+				C0DE00000000000000002008 /* HUDCalloutView.swift */,
+				C0DE00000000000000002006 /* HUDRouteProgressView.swift */,
+				C0DE0000000000000000200A /* HUDTacticalPanels.swift */,
+				C0DE00000000000000001002 /* TouchDrivingControls.swift */,
 			);
 			path = Race;
 			sourceTree = "<group>";
@@ -268,6 +319,7 @@
 			children = (
 				700000000000000000000008 /* Simulation */,
 				700000000000000000000009 /* Rendering */,
+				C0DE0000000000000000B011 /* Rendering3D */,
 			);
 			path = Game;
 			sourceTree = "<group>";
@@ -277,11 +329,15 @@
 			children = (
 				300000000000000000000005 /* PlayerCommand.swift */,
 				300000000000000000000006 /* RaceConfiguration.swift */,
+				C0DE0000000000000000B015 /* DrivingModel.swift */,
+				C0DE0000000000000000B019 /* CollisionSystem.swift */,
+				C0DE0000000000000000B017 /* TrafficSystem.swift */,
 				B28000000000000000000003 /* RaceBalanceConfiguration.swift */,
 				300000000000000000000007 /* RaceSimulation.swift */,
 				E14100000000000000000011 /* RaceScoring.swift */,
 				C0DE0000000000000000A002 /* TrackGeometry.swift */,
 				E14100000000000000000012 /* RaceHUDSnapshot.swift */,
+				C0DE00000000000000002002 /* HUDCalloutMapper.swift */,
 				F19000000000000000000003 /* AudioMixState.swift */,
 				A24000000000000000000003 /* RaceReplay.swift */,
 				A24000000000000000000004 /* RaceDebugDiagnostics.swift */,
@@ -419,11 +475,16 @@
 				A21000000000000000000015 /* AccessibilitySettingsTests.swift */,
 				F19000000000000000000004 /* AudioMixStateTests.swift */,
 				V13000000000000000000006 /* VehicleArtTests.swift */,
+				C0DE0000000000000000D002 /* VehicleModels3DTests.swift */,
 				C18000000000000000000013 /* ProfileStoreTests.swift */,
 				C15000000000000000000004 /* InitialRouteContentTests.swift */,
 				D11000000000000000000007 /* StageContentTests.swift */,
 				E14100000000000000000014 /* RaceScoringTests.swift */,
 				E14100000000000000000015 /* RaceHUDSnapshotTests.swift */,
+				C0DE00000000000000001004 /* DrivingModelTests.swift */,
+				C0DE0000000000000000E006 /* NeonEffects3DTests.swift */,
+				C0DE0000000000000000F002 /* TrafficSystemTests.swift */,
+				C0DE0000000000000000F004 /* CollisionSystemTests.swift */,
 			);
 			path = NeonRacerTests;
 			sourceTree = "<group>";
@@ -444,6 +505,22 @@
 				300000000000000000000013 /* NeonRacerUITests.xctest */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		C0DE0000000000000000B011 /* Rendering3D */ = {
+			isa = PBXGroup;
+			children = (
+				C0DE0000000000000000B002 /* RaceScene3D.swift */,
+				C0DE0000000000000000B004 /* TrackWorldMapper3D.swift */,
+				C0DE0000000000000000B006 /* RoadMeshBuilder3D.swift */,
+				C0DE0000000000000000B008 /* ChaseCamera3D.swift */,
+				C0DE0000000000000000B00A /* TrackMarkers3D.swift */,
+				C0DE0000000000000000B00C /* NeonEnvironment3D.swift */,
+				C0DE0000000000000000B00E /* VehicleModels3D.swift */,
+				C0DE0000000000000000B010 /* NeonEffects3D.swift */,
+				C0DE0000000000000000E004 /* NeonPostProcess.metal */,
+			);
+			path = Rendering3D;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -591,13 +668,21 @@
 				200000000000000000000003 /* MainMenuView.swift in Sources */,
 				200000000000000000000004 /* RaceView.swift in Sources */,
 				E14100000000000000000003 /* RaceHUDView.swift in Sources */,
+				C0DE00000000000000002003 /* HUDArcadeComponents.swift in Sources */,
+				C0DE00000000000000002007 /* HUDCalloutView.swift in Sources */,
+				C0DE00000000000000002005 /* HUDRouteProgressView.swift in Sources */,
+				C0DE00000000000000002009 /* HUDTacticalPanels.swift in Sources */,
 				200000000000000000000005 /* PlayerCommand.swift in Sources */,
 				200000000000000000000006 /* RaceConfiguration.swift in Sources */,
+				C0DE0000000000000000B014 /* DrivingModel.swift in Sources */,
+				C0DE0000000000000000B018 /* CollisionSystem.swift in Sources */,
+				C0DE0000000000000000B016 /* TrafficSystem.swift in Sources */,
 				B28000000000000000000001 /* RaceBalanceConfiguration.swift in Sources */,
 				200000000000000000000007 /* RaceSimulation.swift in Sources */,
 				E14100000000000000000001 /* RaceScoring.swift in Sources */,
 				C0DE0000000000000000A001 /* TrackGeometry.swift in Sources */,
 				E14100000000000000000002 /* RaceHUDSnapshot.swift in Sources */,
+				C0DE00000000000000002001 /* HUDCalloutMapper.swift in Sources */,
 				A24000000000000000000001 /* RaceReplay.swift in Sources */,
 				A24000000000000000000002 /* RaceDebugDiagnostics.swift in Sources */,
 				22C000000000000000000001 /* RunInterruptionCoordinator.swift in Sources */,
@@ -629,6 +714,16 @@
 				F19000000000000000000001 /* AudioMixState.swift in Sources */,
 				C18000000000000000000001 /* Progression.swift in Sources */,
 				C18000000000000000000002 /* GarageView.swift in Sources */,
+				C0DE0000000000000000B001 /* RaceScene3D.swift in Sources */,
+				C0DE0000000000000000B003 /* TrackWorldMapper3D.swift in Sources */,
+				C0DE0000000000000000B005 /* RoadMeshBuilder3D.swift in Sources */,
+				C0DE0000000000000000B007 /* ChaseCamera3D.swift in Sources */,
+				C0DE0000000000000000B009 /* TrackMarkers3D.swift in Sources */,
+				C0DE0000000000000000B00B /* NeonEnvironment3D.swift in Sources */,
+				C0DE0000000000000000B00D /* VehicleModels3D.swift in Sources */,
+				C0DE0000000000000000B00F /* NeonEffects3D.swift in Sources */,
+				C0DE0000000000000000B01A /* NeonPostProcess.metal in Sources */,
+				C0DE00000000000000001001 /* TouchDrivingControls.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -644,10 +739,15 @@
 				F19000000000000000000002 /* AudioMixStateTests.swift in Sources */,
 				C18000000000000000000003 /* ProfileStoreTests.swift in Sources */,
 				V13000000000000000000003 /* VehicleArtTests.swift in Sources */,
+				C0DE0000000000000000D001 /* VehicleModels3DTests.swift in Sources */,
 				C15000000000000000000002 /* InitialRouteContentTests.swift in Sources */,
 				D11000000000000000000003 /* StageContentTests.swift in Sources */,
 				E14100000000000000000004 /* RaceScoringTests.swift in Sources */,
 				E14100000000000000000005 /* RaceHUDSnapshotTests.swift in Sources */,
+				C0DE00000000000000001003 /* DrivingModelTests.swift in Sources */,
+				C0DE0000000000000000E005 /* NeonEffects3DTests.swift in Sources */,
+				C0DE0000000000000000F001 /* TrafficSystemTests.swift in Sources */,
+				C0DE0000000000000000F003 /* CollisionSystemTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

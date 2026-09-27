@@ -20,6 +20,16 @@ struct RootView: View {
     @EnvironmentObject private var accessibility: AccessibilitySettingsStore
     private let profileStore = ProfileStore()
 
+    init() {
+#if DEBUG
+        if Self.shouldAutostartRace {
+            _destination = State(initialValue: .race(UUID()))
+            _profile = State(initialValue: .newPlayer)
+            _isProfileLoaded = State(initialValue: true)
+        }
+#endif
+    }
+
     var body: some View {
         Group {
             if let profileRecovery {
@@ -40,7 +50,7 @@ struct RootView: View {
                     )
                 case .race(let runID):
                     RaceView(
-                        tutorialProgress: profile.tutorialProgress,
+                        tutorialProgress: Self.raceTutorialProgress(profile.tutorialProgress),
                         inputMethod: profile.preferredInputMethod,
                         configuration: ProgressionCatalog.vehicle(
                             id: profile.selectedVehicleID
@@ -77,6 +87,12 @@ struct RootView: View {
         .preferredColorScheme(.dark)
         .persistentSystemOverlays(.hidden)
         .task {
+#if DEBUG
+            if Self.shouldAutostartRace {
+                audio.handle(.showMenu)
+                return
+            }
+#endif
             switch await profileStore.load() {
             case .newProfile(let newProfile):
                 profile = newProfile
@@ -165,6 +181,22 @@ struct RootView: View {
                 destination = newDestination
             }
         }
+    }
+
+#if DEBUG
+    private static var shouldAutostartRace: Bool {
+        ProcessInfo.processInfo.arguments.contains("UITestStartRace")
+            || ProcessInfo.processInfo.environment["NEON_RACER_AUTOSTART_RACE"] == "1"
+    }
+#endif
+
+    private static func raceTutorialProgress(_ progress: TutorialProgress) -> TutorialProgress {
+#if DEBUG
+        if ProcessInfo.processInfo.arguments.contains("UITestStartRace") {
+            return .completed
+        }
+#endif
+        return progress
     }
 
     private func profileRecoveryView(_ recovery: ProfileRecovery) -> some View {

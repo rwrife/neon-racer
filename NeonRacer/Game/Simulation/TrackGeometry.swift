@@ -274,6 +274,14 @@ enum TrackObstacleKind: String, Codable, Equatable, Sendable, CaseIterable {
     case pylon
     /// Hovering holographic gate the player must avoid.
     case laserGate
+    /// Off-road sign support that punishes shortcutting through the shoulder.
+    case roadsideBillboardPost
+    /// Off-road synth-palm trunk close to the road edge.
+    case neonPalmTrunk
+    /// Off-road hologram support pylon.
+    case holoSignPylon
+    /// Loose off-road debris cluster.
+    case debris
 }
 
 struct TrackObstacleState: Codable, Equatable, Sendable, Identifiable {
