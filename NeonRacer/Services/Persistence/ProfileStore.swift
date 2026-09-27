@@ -48,6 +48,47 @@ final class GameplaySettingsStore: ObservableObject {
     }
 }
 
+@MainActor
+final class AudioSettingsStore: ObservableObject {
+    private let defaults: UserDefaults
+    private let key: String
+
+    @Published private(set) var preferences: AudioPreferences {
+        didSet {
+            persist()
+        }
+    }
+
+    init(defaults: UserDefaults = .standard, key: String = "audio.preferences.v1") {
+        self.defaults = defaults
+        self.key = key
+        preferences = defaults.data(forKey: key)
+            .flatMap { try? JSONDecoder().decode(AudioPreferences.self, from: $0) }
+            ?? .standard
+    }
+
+    func update(_ update: (inout AudioPreferences) -> Void) {
+        var next = preferences
+        update(&next)
+        preferences = AudioPreferences(
+            musicLevel: next.musicLevel,
+            effectsLevel: next.effectsLevel,
+            isMusicMuted: next.isMusicMuted,
+            areEffectsMuted: next.areEffectsMuted
+        )
+    }
+
+    func reset() {
+        preferences = .standard
+    }
+
+    private func persist() {
+        if let data = try? JSONEncoder().encode(preferences) {
+            defaults.set(data, forKey: key)
+        }
+    }
+}
+
 struct PlayerProfile: Codable, Equatable, Sendable {
     static let currentSchemaVersion = 2
 

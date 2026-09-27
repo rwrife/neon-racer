@@ -133,8 +133,8 @@ struct CollisionSystemTests {
         )
         let events = first.scoringSignals.map(\.event)
 
-        #expect(events.contains { if case .nearMiss = $0 { true } else { false } })
-        #expect(events.contains { if case .overtake(id: 9) = $0 { true } else { false } })
+        #expect(events.contains { if case .nearMiss(id: 9, _) = $0 { true } else { false } })
+        #expect(!events.contains { if case .overtake(id: 9) = $0 { true } else { false } })
         #expect(state.traffic.first?.hasBeenPassed == true)
         #expect(second.scoringSignals.isEmpty)
     }

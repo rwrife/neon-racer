@@ -10,8 +10,8 @@ Neon Racer is an original native iOS arcade racing game with a retro-futurist ne
 
 The app is iPhone-only and runs in landscape orientation.
 
-CI pins Xcode 26.0.1 (`17A400`) and the iOS 26.0 SDK on GitHub's
-`macos-15` runner rather than following the runner's changing default Xcode.
+CI pins Xcode 26.6 (`17F113`) and the iOS 26.5 simulator SDK on GitHub's
+`macos-26` runner rather than following the runner's changing default Xcode.
 
 ## Architecture
 
@@ -82,15 +82,15 @@ renderer integration gaps are documented in
 
 ## Release readiness
 
-- [Release/archive and signing runbook](Documentation/Release.md)
-- [Privacy manifest review and App Store privacy answers](Documentation/Privacy.md)
-- [Asset provenance and IP checklist](Documentation/AssetProvenance.md)
-- [TestFlight smoke and rollback checklist](Documentation/TestFlight.md)
-- [App Store metadata and screenshot draft](Documentation/AppStoreMetadata.md)
+- [Release/archive and signing runbook](docs/release.md)
+- [Privacy manifest review and App Store privacy answers](docs/privacy.md)
+- [Asset provenance and IP checklist](docs/provenance.md)
+- [TestFlight smoke and rollback checklist](docs/testflight.md)
+- [App Store metadata and screenshot draft](docs/app-store/metadata.md)
 
-The project intentionally contains no signing secrets or team identifier. The final app
-icon, public support/privacy URLs, legal-owner metadata, device testing, and owner-approved
-signing remain release gates.
+The project intentionally contains no signing secrets or team identifier. Owner approval
+of the icon, public support/privacy URLs, legal-owner metadata, device testing, and
+owner-approved signing remain release gates.
 
 ## Adding content
 

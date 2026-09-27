@@ -19,6 +19,9 @@ struct RaceConfiguration: Equatable, Sendable {
     let scoring: ScoringBalance
     let arcadeScoring: ArcadeScoringBalance = .standard
 
+    /// Standard targets the shipped arcade feel: an assisted full-throttle run can
+    /// finish in roughly 72 seconds and reach gold, while traffic/boost mastery
+    /// separates cleaner runs without hiding any dynamic difficulty.
     static let standard = RaceConfiguration(
         fixedTimeStep: 1.0 / 120.0,
         maximumFrameDelta: 0.25,

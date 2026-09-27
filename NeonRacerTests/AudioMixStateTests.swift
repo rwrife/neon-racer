@@ -32,6 +32,32 @@ struct AudioMixStateTests {
     }
 
     @Test
+    @MainActor
+    func audioSettingsStorePersistsIndependentPreferences() {
+        let suiteName = "AudioMixStateTests.\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: suiteName)!
+        defer {
+            defaults.removePersistentDomain(forName: suiteName)
+        }
+
+        let store = AudioSettingsStore(defaults: defaults, key: "audio-test")
+        store.update {
+            $0.musicLevel = 0.22
+            $0.effectsLevel = 0.91
+            $0.isMusicMuted = true
+            $0.areEffectsMuted = false
+        }
+
+        let reloaded = AudioSettingsStore(defaults: defaults, key: "audio-test")
+        #expect(reloaded.preferences.musicLevel == 0.22)
+        #expect(reloaded.preferences.effectsLevel == 0.91)
+        #expect(reloaded.preferences.isMusicMuted)
+        #expect(!reloaded.preferences.areEffectsMuted)
+        #expect(reloaded.preferences.gain(for: .music) == 0)
+        #expect(reloaded.preferences.gain(for: .engine) == 0.91)
+    }
+
+    @Test
     func engineParametersAreBoundedAndSmoothed() {
         var state = AudioMixState()
         state.handle(.raceStarted)
@@ -88,6 +114,9 @@ struct AudioMixStateTests {
         state.handle(.checkpoint)
         #expect(state.musicSection == .intense)
         #expect(state.isRaceActive)
+
+        state.handle(.environmentChanged(.tunnel))
+        #expect(state.environment == .tunnel)
 
         state.handle(.finish)
         #expect(state.musicSection == .finish)

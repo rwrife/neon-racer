@@ -150,6 +150,46 @@ struct RaceBalanceTests {
         }
     }
 
+    @Test
+    func noviceFullThrottleCommonlyReachesOpeningFork() {
+        let configuration = RaceConfiguration.novice.withTrafficSpawningEnabled(false)
+        var simulation = RaceSimulation(configuration: configuration, seed: 1, countdownDuration: 0)
+        var didReachFork = false
+
+        for _ in 0..<(45 * 120) where simulation.state.phase != .failed {
+            simulation.advance(
+                frameDelta: 1.0 / 120.0,
+                command: PlayerCommand(
+                    steering: followRoadSteering(
+                        state: simulation.state,
+                        layout: simulation.trackLayout,
+                        configuration: configuration
+                    ),
+                    throttle: 1,
+                    brake: 0,
+                    isBoosting: false
+                )
+            )
+            didReachFork = didReachFork || simulation.state.phase == .fork
+        }
+
+        #expect(didReachFork)
+        #expect(simulation.state.phase != .failed)
+    }
+
+    @Test
+    func forkBranchesStayViableWithDistinctRiskReward() {
+        let left = completedBranchRun(direction: .left)
+        let right = completedBranchRun(direction: .right)
+
+        #expect(left.phase == .finished)
+        #expect(right.phase == .finished)
+        #expect(left.committedBranchIDs == ["harbor-left"])
+        #expect(right.committedBranchIDs == ["skyway-right"])
+        #expect(abs(left.elapsedTime - right.elapsedTime) < 8)
+        #expect(abs(left.timerRemaining - right.timerRemaining) >= 3)
+    }
+
     private func advance(
         _ simulation: inout RaceSimulation,
         seconds: TimeInterval,
@@ -179,6 +219,39 @@ struct RaceBalanceTests {
                     throttle: 1,
                     brake: 0,
                     isBoosting: shouldBoost(frame)
+                )
+            )
+            frame += 1
+        }
+        return simulation.state
+    }
+
+    private func completedBranchRun(direction: RouteDirection) -> RaceState {
+        let configuration = RaceConfiguration.standard.withTrafficSpawningEnabled(false)
+        var simulation = RaceSimulation(configuration: configuration, seed: 12, countdownDuration: 0)
+        var frame = 0
+        while simulation.state.phase != .finished && simulation.state.phase != .failed && frame < 20_000 {
+            let forkBias: Double
+            if simulation.state.currentStageID == "neon-causeway",
+               simulation.state.stageProgress > 0.68 {
+                forkBias = direction == .left ? -0.7 : 0.7
+            } else {
+                forkBias = 0
+            }
+            let steering = (
+                followRoadSteering(
+                    state: simulation.state,
+                    layout: simulation.trackLayout,
+                    configuration: configuration
+                ) + forkBias
+            ).clamped(to: -1...1)
+            simulation.advance(
+                frameDelta: 1.0 / 120.0,
+                command: PlayerCommand(
+                    steering: steering,
+                    throttle: 1,
+                    brake: 0,
+                    isBoosting: frame % (9 * 120) < 3 * 120
                 )
             )
             frame += 1
@@ -255,4 +328,10 @@ private extension RaceConfiguration {
         )
     }
 
+}
+
+private extension Comparable {
+    func clamped(to limits: ClosedRange<Self>) -> Self {
+        min(max(self, limits.lowerBound), limits.upperBound)
+    }
 }

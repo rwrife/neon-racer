@@ -2,14 +2,24 @@ import SwiftUI
 
 struct GarageView: View {
     @Binding var profile: PlayerProfile
+    @ObservedObject var inputService: InputService
     let saveProfile: () -> Void
 
     @Environment(\.dismiss) private var dismiss
+    @FocusState private var focusedItem: GarageFocus?
+
+    private enum GarageFocus: Hashable {
+        case vehicle(String)
+        case palette(String)
+        case route(String)
+        case done
+    }
 
     var body: some View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 24) {
+                    MenuInputPrompt(inputMethod: inputService.currentInputSource)
                     selectedVehiclePreview
                     vehicleSection
                     paletteSection
@@ -23,10 +33,15 @@ struct GarageView: View {
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Done") { dismiss() }
+                        .focused($focusedItem, equals: .done)
                 }
             }
         }
         .preferredColorScheme(.dark)
+        .onAppear {
+            focusedItem = .vehicle(profile.selectedVehicleID)
+            inputService.actionHandler = handleInputAction
+        }
     }
 
     private var selectedVehiclePreview: some View {
@@ -61,6 +76,7 @@ struct GarageView: View {
                     profile.selectedVehicleID = vehicle.id
                     saveProfile()
                 }
+                .focused($focusedItem, equals: .vehicle(vehicle.id))
             }
         }
     }
@@ -78,6 +94,7 @@ struct GarageView: View {
                     profile.selectedPaletteID = palette.id
                     saveProfile()
                 }
+                .focused($focusedItem, equals: .palette(palette.id))
             }
         }
     }
@@ -95,6 +112,7 @@ struct GarageView: View {
                     profile.selectedRouteID = route.id
                     saveProfile()
                 }
+                .focused($focusedItem, equals: .route(route.id))
             }
         }
     }
@@ -166,6 +184,59 @@ struct GarageView: View {
         guard let record else { return "No finish yet" }
         let time = record.bestTime.map { String(format: "%.2fs", $0) } ?? "—"
         return "\(record.bestScore.formatted()) pts • \(time)"
+    }
+
+    private var focusOrder: [GarageFocus] {
+        ProgressionCatalog.vehicles
+            .filter { profile.unlockedVehicleIDs.contains($0.id) }
+            .map { GarageFocus.vehicle($0.id) }
+            + ProgressionCatalog.palettes
+            .filter { profile.unlockedPaletteIDs.contains($0.id) }
+            .map { GarageFocus.palette($0.id) }
+            + ProgressionCatalog.routes
+            .filter { profile.unlockedRouteIDs.contains($0.id) }
+            .map { GarageFocus.route($0.id) }
+            + [.done]
+    }
+
+    private func handleInputAction(_ action: PlayerAction) {
+        switch action {
+        case .menuUp:
+            moveFocus(-1)
+        case .menuDown:
+            moveFocus(1)
+        case .confirm:
+            confirmFocusedItem()
+        case .cancel, .pause:
+            dismiss()
+        default:
+            break
+        }
+    }
+
+    private func moveFocus(_ offset: Int) {
+        let order = focusOrder
+        let current = focusedItem.flatMap(order.firstIndex) ?? 0
+        focusedItem = order[(current + offset + order.count) % order.count]
+    }
+
+    private func confirmFocusedItem() {
+        guard let focusedItem else {
+            return
+        }
+        switch focusedItem {
+        case .vehicle(let id):
+            profile.selectedVehicleID = id
+            saveProfile()
+        case .palette(let id):
+            profile.selectedPaletteID = id
+            saveProfile()
+        case .route(let id):
+            profile.selectedRouteID = id
+            saveProfile()
+        case .done:
+            dismiss()
+        }
     }
 }
 

@@ -154,6 +154,74 @@ struct TrafficSystemTests {
         #expect(first.feedbackEvents == second.feedbackEvents)
     }
 
+    @Test
+    func spawnsSkipBlindCrestSightlineWindow() throws {
+        let stage = RouteStage(
+            id: "crest-stage",
+            displayName: "Crest Stage",
+            environmentID: "test",
+            distance: 1_200,
+            checkpointTimeAward: 0,
+            branches: []
+        )
+        let route = RouteGraph(
+            startStageID: stage.id,
+            stages: [stage],
+            forkDecisionDistance: 0,
+            minimumForkDecisionTime: 0
+        )
+        let section = RoadSectionDefinition(
+            id: stage.id,
+            length: stage.distance,
+            curve: CurveDefinition(entry: 0, apex: 0, exit: 0),
+            elevation: ElevationDefinition(startMeters: 0, endMeters: -12, crestMeters: 90),
+            lanes: LaneDefinition(count: 3, width: 4, shoulderWidth: 1.2),
+            laneChanges: [],
+            links: []
+        )
+        let layout = TrackLayout(routeGraph: route, sections: [section])
+        var system = TrafficSystem(seed: 41)
+        var state = RaceState(
+            elapsedTime: 12,
+            vehicle: VehicleState(),
+            timerRemaining: 90,
+            boostCharge: 0,
+            stageProgress: 0.25,
+            trafficDensity: 0.9,
+            phase: .racing,
+            countdownRemaining: 0,
+            currentStageID: stage.id,
+            currentStageDistance: 260,
+            currentEnvironmentID: stage.environmentID
+        )
+        state.distance = 260
+        state.speed = 90
+        var trafficSpawnDistances: [UInt64: Double] = [:]
+        var obstacleSpawnDistances: [UInt64: Double] = [:]
+
+        for _ in 0..<80 {
+            system.update(
+                state: &state,
+                configuration: .standard,
+                trackLayout: layout,
+                currentStage: stage,
+                stageStartDistance: 0,
+                deltaTime: 1.0 / 30.0
+            )
+            for vehicle in state.traffic where trafficSpawnDistances[vehicle.id] == nil {
+                trafficSpawnDistances[vehicle.id] = vehicle.distance
+            }
+            for obstacle in state.obstacles where obstacleSpawnDistances[obstacle.id] == nil {
+                obstacleSpawnDistances[obstacle.id] = obstacle.distance
+            }
+        }
+
+        let blindWindow = 600.0...750.0
+        #expect(!state.traffic.isEmpty || !state.obstacles.isEmpty)
+        #expect(trafficSpawnDistances.values.allSatisfy { !blindWindow.contains($0) })
+        #expect(obstacleSpawnDistances.values.allSatisfy { !blindWindow.contains($0) })
+    }
+
     private func sampledTraffic(seed: UInt64) throws -> RaceState {
         let route = InitialRouteContent.routeGraph()
         let layout = TrackLayout.initialContent()

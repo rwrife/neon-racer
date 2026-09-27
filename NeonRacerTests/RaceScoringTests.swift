@@ -40,14 +40,18 @@ struct RaceScoringTests {
         ))
         #expect(first.scoreEvents.enumerated().allSatisfy { $0.offset == $0.element.sequence })
         #expect(first.scoreEvents.last?.totalAfter == first.state.score)
+        let tracedSources = Set(first.scoreEvents.map(\.source))
+        let breakdownSources = Set(first.scoreResult.breakdown.map(\.source))
+        #expect(breakdownSources == tracedSources)
+        #expect(abs(first.scoreResult.breakdown.reduce(0) { $0 + $1.awardedPoints } - first.state.score) < 0.001)
     }
 
     @Test
-    func replayReproducesExternalGameplayEventScoring() throws {
+    func replayReproducesExternalGameplayEventScoringAndBoostState() throws {
         let run = try RaceCommandRun(
             frameDelta: 1.0 / 120.0,
-            repeatCount: 400,
-            command: PlayerCommand(steering: 0, throttle: 1, brake: 0, isBoosting: false)
+            repeatCount: 700,
+            command: PlayerCommand(steering: 0, throttle: 1, brake: 0, isBoosting: true)
         )
         let recorded = [
             try RecordedGameplayScoreEvent(frameIndex: 370, event: .overtake(id: 10)),
@@ -68,6 +72,9 @@ struct RaceScoringTests {
         #expect(first == second)
         #expect(first.scoreEvents.contains { $0.source == .overtake })
         #expect(first.scoreEvents.contains { $0.source == .nearMiss })
+        #expect(first.scoreEvents.contains { $0.source == .boost })
+        #expect(first.finalState.boostState == second.finalState.boostState)
+        #expect(first.finalState.boostCharge == second.finalState.boostCharge)
     }
 
     @Test
@@ -105,6 +112,13 @@ struct RaceScoringTests {
         #expect(simulation.state.scoreInputs.overtakePoints == afterFirst)
         #expect(simulation.scoreEvents.filter { $0.source == .overtake }.count == 1)
         #expect(simulation.state.scoreInputs.nearMissPoints == 0)
+
+        var nearMissFirst = runningSimulation()
+        nearMissFirst.ingest(.nearMiss(id: 200, proximity: 0))
+        nearMissFirst.ingest(.overtake(id: 200))
+        #expect(nearMissFirst.scoreEvents.filter { $0.source == .nearMiss }.count == 1)
+        #expect(nearMissFirst.scoreEvents.filter { $0.source == .overtake }.isEmpty)
+        #expect(nearMissFirst.state.combo.chainCount == 1)
     }
 
     @Test

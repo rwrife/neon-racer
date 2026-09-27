@@ -46,7 +46,9 @@ struct RaceResult: Codable, Equatable, Sendable {
         elapsedTime = state.elapsedTime
         distance = state.distance
         self.routeName = routeName
-        self.scoreBreakdown = scoreBreakdown
+        self.scoreBreakdown = scoreBreakdown.isEmpty
+            ? state.scoreInputs.scoreBreakdownEntries()
+            : scoreBreakdown
     }
 }
 
@@ -252,6 +254,9 @@ struct RaceSimulation: Sendable {
     private var stageStartDistance: Double = 0
     private var phaseBeforePause: RacePhase?
     private var hasPresentedCurrentFork = false
+#if DEBUG
+    private var developmentInstrumentation = RaceDevelopmentRunInstrumentation()
+#endif
 
     init(
         configuration: RaceConfiguration = .standard,
@@ -303,6 +308,12 @@ struct RaceSimulation: Sendable {
             interpolationAlpha: min(max(accumulatedTime / configuration.fixedTimeStep, 0), 1)
         )
     }
+
+#if DEBUG
+    var developmentRunSummary: RaceDevelopmentRunSummary {
+        developmentInstrumentation.summary(runEvents: runEvents, scoreEvents: scoreEvents)
+    }
+#endif
 
     mutating func advance(frameDelta: TimeInterval, command: PlayerCommand) {
         let interval = PerformanceInstrumentation.begin(.simulation)
@@ -426,6 +437,9 @@ struct RaceSimulation: Sendable {
         stageStartDistance = 0
         phaseBeforePause = nil
         hasPresentedCurrentFork = false
+#if DEBUG
+        developmentInstrumentation = RaceDevelopmentRunInstrumentation()
+#endif
     }
 
     mutating func reset() {
@@ -559,6 +573,9 @@ struct RaceSimulation: Sendable {
             randomUnitValue: randomNumberGenerator.nextUnitDouble()
         )
         stepTraffic(deltaTime: deltaTime, currentStage: currentStage)
+#if DEBUG
+        developmentInstrumentation.recordFrame(state: state, deltaTime: deltaTime)
+#endif
 
         let distanceRemaining = max(0, currentStage.distance - state.currentStageDistance)
         if currentStage.branches.count > 1,
@@ -601,6 +618,11 @@ struct RaceSimulation: Sendable {
         )
         for signal in collisionResult.scoringSignals {
             let scoreEventCount = scoreEvents.count
+#if DEBUG
+            if case .collision = signal.event {
+                developmentInstrumentation.recordCollision(cues: signal.cues)
+            }
+#endif
             ingest(signal.event)
             if signal.timePenalty > 0 {
                 recordTimePenalty(signal.timePenalty)
@@ -784,6 +806,11 @@ struct RaceSimulation: Sendable {
             case .active: cue = .boostActive
             case .ending: cue = .boostEnding
             }
+#if DEBUG
+            if newState == .starting {
+                developmentInstrumentation.recordBoostActivation()
+            }
+#endif
             feedbackEvents.append(.init(
                 time: state.elapsedTime,
                 cue: cue,
@@ -816,6 +843,11 @@ struct RaceSimulation: Sendable {
             branch = stage.branches[0]
         } else {
             let direction: RouteDirection = state.lateralPosition < 0 ? .left : .right
+#if DEBUG
+            if abs(state.lateralPosition) < 0.15 {
+                developmentInstrumentation.recordMissedFork()
+            }
+#endif
             branch = stage.branches.first { $0.direction == direction } ?? stage.branches[0]
             state.committedBranchIDs.append(branch.id)
             runEvents.append(
@@ -830,6 +862,9 @@ struct RaceSimulation: Sendable {
         }
         state.completedStageIDs.append(stage.id)
         if stage.checkpointTimeAward > 0 {
+#if DEBUG
+            developmentInstrumentation.recordCheckpointMargin(state.timerRemaining)
+#endif
             ingest(
                 .checkpoint(
                     id: stableScoreEventID(stage.id),

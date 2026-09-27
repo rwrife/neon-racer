@@ -3,14 +3,46 @@ import SwiftUI
 struct SettingsView: View {
     @ObservedObject var audio: AudioService
     @ObservedObject var gameplaySettings: GameplaySettingsStore
+    @ObservedObject var inputService: InputService
     let resetProfile: () -> Void
 
     @Environment(\.dismiss) private var dismiss
     @State private var isShowingResetConfirmation = false
+    @State private var isShowingAccessibility = false
+    @FocusState private var focusedControl: SettingsControl?
+
+    private enum SettingsControl: Hashable {
+        case haptics
+        case hapticIntensity
+        case remap(PlayerAction)
+        case resetInput
+        case accessibility
+        case resetProfile
+        case done
+    }
+
+    private static let remappableActions: [PlayerAction] = [
+        .steerLeft,
+        .steerRight,
+        .throttle,
+        .brake,
+        .boost,
+        .pause,
+        .confirm,
+        .cancel,
+        .menuUp,
+        .menuDown,
+        .menuLeft,
+        .menuRight
+    ]
 
     var body: some View {
         NavigationStack {
             Form {
+                Section {
+                    MenuInputPrompt(inputMethod: inputService.currentInputSource)
+                }
+
                 Section("Audio") {
                     audioSlider(
                         "Music",
@@ -47,6 +79,7 @@ struct SettingsView: View {
                         "Haptics",
                         isOn: gameplayBinding(\.haptics.isEnabled)
                     )
+                    .focused($focusedControl, equals: .haptics)
                     Slider(
                         value: gameplayBinding(\.haptics.intensity),
                         in: 0...1
@@ -54,18 +87,38 @@ struct SettingsView: View {
                         Text("Haptic Intensity")
                     }
                     .disabled(!gameplaySettings.settings.haptics.isEnabled)
+                    .focused($focusedControl, equals: .hapticIntensity)
+                }
+
+                Section("Input Remapping") {
+                    ForEach(Self.remappableActions, id: \.self) { action in
+                        Picker(action.settingsTitle, selection: remappingBinding(for: action)) {
+                            ForEach(KeyboardKey.allCases, id: \.self) { key in
+                                Text(key.settingsTitle).tag(key)
+                            }
+                        }
+                        .focused($focusedControl, equals: .remap(action))
+                    }
+
+                    Button("Reset Input Mapping") {
+                        gameplaySettings.update { $0.inputRemapping = .standard }
+                        inputService.updateRemapping(.standard)
+                    }
+                    .focused($focusedControl, equals: .resetInput)
                 }
 
                 Section {
                     NavigationLink("Accessibility") {
                         AccessibilitySettingsView(showsDoneButton: false)
                     }
+                    .focused($focusedControl, equals: .accessibility)
                 }
 
                 Section {
                     Button("Reset Player Data", role: .destructive) {
                         isShowingResetConfirmation = true
                     }
+                    .focused($focusedControl, equals: .resetProfile)
                 } footer: {
                     Text("Settings are saved immediately. Race input and haptic changes apply at the start of the next run.")
                 }
@@ -79,7 +132,11 @@ struct SettingsView: View {
                 }
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Done") { dismiss() }
+                        .focused($focusedControl, equals: .done)
                 }
+            }
+            .navigationDestination(isPresented: $isShowingAccessibility) {
+                AccessibilitySettingsView(showsDoneButton: false)
             }
             .alert("Reset all player data?", isPresented: $isShowingResetConfirmation) {
                 Button("Reset Player Data", role: .destructive) {
@@ -89,6 +146,13 @@ struct SettingsView: View {
             } message: {
                 Text("This clears the best score, tutorial progress, controls, and haptic settings. Audio and accessibility preferences are preserved.")
             }
+        }
+        .onAppear {
+            focusedControl = .haptics
+            inputService.actionHandler = handleInputAction
+        }
+        .onChange(of: gameplaySettings.settings.inputRemapping) { _, newValue in
+            inputService.updateRemapping(newValue)
         }
     }
 
@@ -109,6 +173,84 @@ struct SettingsView: View {
                 gameplaySettings.update { $0[keyPath: keyPath] = value }
             }
         )
+    }
+
+    private func remappingBinding(for action: PlayerAction) -> Binding<KeyboardKey> {
+        Binding(
+            get: {
+                gameplaySettings.settings.inputRemapping.keyboard[action]
+                    ?? InputRemapping.standard.keyboard[action]
+                    ?? .returnKey
+            },
+            set: { key in
+                gameplaySettings.update { $0.inputRemapping.keyboard[action] = key }
+            }
+        )
+    }
+
+    private var focusOrder: [SettingsControl] {
+        [.haptics, .hapticIntensity]
+            + Self.remappableActions.map(SettingsControl.remap)
+            + [.resetInput, .accessibility, .resetProfile, .done]
+    }
+
+    private func handleInputAction(_ action: PlayerAction) {
+        switch action {
+        case .menuUp:
+            moveFocus(-1)
+        case .menuDown:
+            moveFocus(1)
+        case .menuLeft:
+            adjustFocusedControl(-1)
+        case .menuRight:
+            adjustFocusedControl(1)
+        case .confirm:
+            confirmFocusedControl()
+        case .cancel, .pause:
+            dismiss()
+        default:
+            break
+        }
+    }
+
+    private func moveFocus(_ offset: Int) {
+        let order = focusOrder
+        let current = focusedControl.flatMap(order.firstIndex) ?? 0
+        focusedControl = order[(current + offset + order.count) % order.count]
+    }
+
+    private func adjustFocusedControl(_ offset: Int) {
+        switch focusedControl {
+        case .hapticIntensity:
+            gameplaySettings.update {
+                $0.haptics.intensity = min(max($0.haptics.intensity + Double(offset) * 0.05, 0), 1)
+            }
+        case .remap(let action):
+            let keys = KeyboardKey.allCases
+            let current = remappingBinding(for: action).wrappedValue
+            let index = keys.firstIndex(of: current) ?? 0
+            remappingBinding(for: action).wrappedValue = keys[(index + offset + keys.count) % keys.count]
+        default:
+            break
+        }
+    }
+
+    private func confirmFocusedControl() {
+        switch focusedControl {
+        case .haptics:
+            gameplaySettings.update { $0.haptics.isEnabled.toggle() }
+        case .resetInput:
+            gameplaySettings.update { $0.inputRemapping = .standard }
+            inputService.updateRemapping(.standard)
+        case .accessibility:
+            isShowingAccessibility = true
+        case .resetProfile:
+            isShowingResetConfirmation = true
+        case .done:
+            dismiss()
+        default:
+            break
+        }
     }
 }
 
@@ -169,4 +311,69 @@ struct AccessibilitySettingsView: View {
 #Preview {
     AccessibilitySettingsView()
         .environmentObject(AccessibilitySettingsStore())
+}
+
+struct MenuInputPrompt: View {
+    let inputMethod: DrivingInputMethod
+
+    var body: some View {
+        let glyphs = inputMethod.menuPromptGlyphs
+        HStack(spacing: 12) {
+            Label(inputMethod.displayName, systemImage: glyphs.sourceSystemImage)
+            Divider()
+                .frame(height: 16)
+            Text("\(glyphs.navigate) Navigate")
+            Text("\(glyphs.confirm) Confirm")
+            Text("\(glyphs.cancel) Back")
+        }
+        .font(.caption.bold().monospaced())
+        .foregroundStyle(.secondary)
+        .padding(.horizontal, 12)
+        .padding(.vertical, 8)
+        .background(.white.opacity(0.06), in: Capsule())
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(
+            "\(inputMethod.displayName) controls. "
+                + "\(glyphs.navigate) to navigate. "
+                + "\(glyphs.confirm) to confirm. "
+                + "\(glyphs.cancel) to go back."
+        )
+    }
+}
+
+private extension PlayerAction {
+    var settingsTitle: String {
+        switch self {
+        case .steerLeft: "Steer Left"
+        case .steerRight: "Steer Right"
+        case .throttle: "Throttle"
+        case .brake: "Brake"
+        case .boost: "Boost"
+        case .pause: "Pause"
+        case .confirm: "Confirm"
+        case .cancel: "Cancel"
+        case .menuUp: "Menu Up"
+        case .menuDown: "Menu Down"
+        case .menuLeft: "Menu Left"
+        case .menuRight: "Menu Right"
+        }
+    }
+}
+
+private extension KeyboardKey {
+    var settingsTitle: String {
+        switch self {
+        case .leftArrow: "Left Arrow"
+        case .rightArrow: "Right Arrow"
+        case .upArrow: "Up Arrow"
+        case .downArrow: "Down Arrow"
+        case .space: "Space"
+        case .escape: "Escape"
+        case .returnKey: "Return"
+        case .a: "A"
+        case .d: "D"
+        case .w: "W"
+        case .s: "S"
+        }
+    }
 }

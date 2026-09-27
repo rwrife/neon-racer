@@ -25,6 +25,7 @@ struct RaceSimulationTests {
         #expect(result.boostPoints == 250)
         #expect(result.speedPoints == 0)
         #expect(result.rank == .gold)
+        #expect(Set(result.scoreBreakdown.map(\.source)) == [.distance, .boost])
     }
 
     @Test
@@ -404,6 +405,26 @@ struct RaceSimulationTests {
         #expect(!json.contains("frameDelta"))
         #expect(data.count < 600)
     }
+
+#if DEBUG
+    @Test
+    func debugRunSummaryRecordsLocalBalanceSignals() {
+        var simulation = RaceSimulation(seed: 77, countdownDuration: 0)
+        let command = PlayerCommand(steering: 0, throttle: 1, brake: 0, isBoosting: true)
+
+        for _ in 0..<360 {
+            simulation.advance(frameDelta: 1.0 / 120.0, command: command)
+        }
+        simulation.ingest(.collision(id: 0xC011, severity: 0.5))
+
+        let summary = simulation.developmentRunSummary
+        #expect(summary.speedDistribution.maximum > summary.speedDistribution.minimum)
+        #expect(summary.boostActivationCount == 1)
+        #expect(summary.boostActiveTime > 0)
+        #expect(summary.scoreBySource[.distance, default: 0] > 0)
+        #expect(summary.scoreBySource[.collision, default: 0] < 0)
+    }
+#endif
 
     @Test
     func replayDetectsEventSequenceMismatch() throws {

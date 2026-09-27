@@ -29,7 +29,6 @@ struct CollisionSystem: Equatable, Sendable {
         static let nearMissGapMeters = 0.82
         static let nearMissMinimumSpeedRatio = 0.58
         static let nearMissMinimumRelativeSpeed = 4.0
-        static let nearMissIDMask: UInt64 = 0x4E4D_0000_0000_0000
         static let obstacleCollisionIDMask: UInt64 = 0x0B57_0000_0000_0000
     }
 
@@ -192,23 +191,24 @@ struct CollisionSystem: Equatable, Sendable {
                 - vehicle.halfWidth
             let gapMeters = lateralGap * roadHalfWidth
             let relativeSpeed = state.speed - vehicle.speed
-            if gapMeters > 0,
-               gapMeters <= Tuning.nearMissGapMeters,
-               state.speed >= configuration.maximumSpeed * Tuning.nearMissMinimumSpeedRatio,
-               relativeSpeed >= Tuning.nearMissMinimumRelativeSpeed {
+            let isNearMiss = gapMeters > 0
+                && gapMeters <= Tuning.nearMissGapMeters
+                && state.speed >= configuration.maximumSpeed * Tuning.nearMissMinimumSpeedRatio
+                && relativeSpeed >= Tuning.nearMissMinimumRelativeSpeed
+            if isNearMiss {
                 result.scoringSignals.append(ScoringSignal(
                     event: .nearMiss(
-                        id: vehicle.id ^ Tuning.nearMissIDMask,
+                        id: vehicle.id,
                         proximity: (gapMeters / Tuning.nearMissGapMeters).clamped(to: 0...1)
                     ),
                     cues: [.nearMiss]
                 ))
+            } else {
+                result.scoringSignals.append(ScoringSignal(
+                    event: .overtake(id: vehicle.id),
+                    cues: [.overtake]
+                ))
             }
-
-            result.scoringSignals.append(ScoringSignal(
-                event: .overtake(id: vehicle.id),
-                cues: [.overtake]
-            ))
             if vehicle.kind == .rival {
                 result.scoringSignals.append(ScoringSignal(
                     event: .position(place: 1),

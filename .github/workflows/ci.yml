@@ -12,30 +12,18 @@ concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
 
+env:
+  PINNED_XCODE_VERSION: "26.6"
+  PINNED_XCODE_BUILD: "17F113"
+  PINNED_IOS_SIMULATOR_SDK: "26.5"
+  DEVELOPER_DIR: /Applications/Xcode_26.6.app/Contents/Developer
+  TARGET_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+
 jobs:
   core-tests:
-    name: Core simulation (Linux Swift 6.2)
-    runs-on: ubuntu-latest
-    container:
-      image: swift:6.2-noble
-    steps:
-      - name: Check out exact triggering commit
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
-        with:
-          ref: ${{ github.event.pull_request.head.sha || github.sha }}
-          persist-credentials: false
-      - name: Swift version
-        run: swift --version
-      - name: Run deterministic simulation tests
-        run: swift test
-
-  ios-build:
-    name: iOS build, tests, and analysis (Xcode 26.0.1)
-    runs-on: macos-15
-    timeout-minutes: 45
-    env:
-      DEVELOPER_DIR: /Applications/Xcode_26.0.1.app/Contents/Developer
-      TARGET_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+    name: Swift package tests (Xcode 26.6)
+    runs-on: macos-26
+    timeout-minutes: 20
     steps:
       - name: Check out exact triggering commit
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
@@ -44,14 +32,44 @@ jobs:
           fetch-depth: 1
           persist-credentials: false
 
-      - name: Verify pinned Xcode and iOS simulator SDK
+      - name: Select pinned Xcode
         run: |
           set -euo pipefail
           test -d "$DEVELOPER_DIR"
+          sudo xcode-select -s "$DEVELOPER_DIR"
           test "$(git rev-parse HEAD)" = "$TARGET_SHA"
-          test "$(xcodebuild -version | sed -n '1s/^Xcode //p')" = "26.0.1"
-          test "$(xcodebuild -version | sed -n '2s/^Build version //p')" = "17A400"
-          xcodebuild -showsdks | grep -F 'iphonesimulator26.0'
+          test "$(xcodebuild -version | sed -n '1s/^Xcode //p')" = "$PINNED_XCODE_VERSION"
+          test "$(xcodebuild -version | sed -n '2s/^Build version //p')" = "$PINNED_XCODE_BUILD"
+          test "$(xcrun --sdk iphonesimulator --show-sdk-version)" = "$PINNED_IOS_SIMULATOR_SDK"
+
+      - name: Swift version
+        run: swift --version
+
+      - name: Run deterministic simulation tests
+        run: xcrun swift test --quiet
+
+  ios-build:
+    name: iOS build, tests, and analysis (Xcode 26.6)
+    runs-on: macos-26
+    timeout-minutes: 45
+    steps:
+      - name: Check out exact triggering commit
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: ${{ env.TARGET_SHA }}
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Select and verify pinned Xcode and iOS SDK
+        run: |
+          set -euo pipefail
+          test -d "$DEVELOPER_DIR"
+          sudo xcode-select -s "$DEVELOPER_DIR"
+          test "$(git rev-parse HEAD)" = "$TARGET_SHA"
+          test "$(xcodebuild -version | sed -n '1s/^Xcode //p')" = "$PINNED_XCODE_VERSION"
+          test "$(xcodebuild -version | sed -n '2s/^Build version //p')" = "$PINNED_XCODE_BUILD"
+          test "$(xcrun --sdk iphonesimulator --show-sdk-version)" = "$PINNED_IOS_SIMULATOR_SDK"
+          xcodebuild -showsdks | grep -F "iphonesimulator$PINNED_IOS_SIMULATOR_SDK"
 
       - name: Validate repository configuration
         run: |
@@ -70,14 +88,17 @@ jobs:
           DEVICE_UDID="$(
             xcrun simctl list devices available --json \
               | python3 -c '
-          import json, sys
+          import json, os, sys
           devices = json.load(sys.stdin)["devices"]
-          runtime = next((key for key in devices if key.endswith("iOS-26-0")), None)
+          suffix = "iOS-" + os.environ["PINNED_IOS_SIMULATOR_SDK"].replace(".", "-")
+          runtime = next((key for key in sorted(devices) if key.endswith(suffix)), None)
           if runtime is None:
-              raise SystemExit("The pinned iOS 26.0 simulator runtime is unavailable")
-          iphone = next((device for device in devices[runtime] if device["name"].startswith("iPhone")), None)
+              raise SystemExit(f"The pinned iOS simulator runtime {suffix} is unavailable")
+          iphone = next((device for device in devices[runtime] if device["name"] == "iPhone 17 Pro"), None)
           if iphone is None:
-              raise SystemExit("No available iPhone exists in the iOS 26.0 runtime")
+              iphone = next((device for device in devices[runtime] if device["name"].startswith("iPhone")), None)
+          if iphone is None:
+              raise SystemExit("No available iPhone exists in the pinned iOS runtime")
           print(iphone["udid"])
           '
           )"
@@ -124,7 +145,15 @@ jobs:
           test "$(plutil -extract CFBundleIdentifier raw "$APP/Info.plist")" = "com.infinityball.neonracer"
           FAMILY=$(plutil -extract UIDeviceFamily json -o - "$APP/Info.plist")
           test "$FAMILY" = '[1]'
+          test -f "$APP/PrivacyInfo.xcprivacy"
           echo "Built bundle: $APP"
           echo "CFBundleIdentifier: com.infinityball.neonracer"
           echo "UIDeviceFamily: $FAMILY"
-          echo "iOS build contract: PASS"
+          echo "Privacy manifest: present"
+
+      - name: Clean up simulator
+        if: always()
+        run: |
+          if [ -n "${DEVICE_UDID:-}" ]; then
+            xcrun simctl shutdown "$DEVICE_UDID" || true
+          fi

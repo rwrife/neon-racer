@@ -7,6 +7,7 @@ final class InputService: NSObject, ObservableObject {
     @Published private(set) var isControllerConnected = false
 
     var actionHandler: (PlayerAction) -> Void = { _ in }
+    var controllerDisconnectHandler: () -> Void = {}
 
     private var states: [DrivingInputMethod: InputState] = [
         .touch: InputState(),
@@ -28,6 +29,10 @@ final class InputService: NSObject, ObservableObject {
 
     var currentCommand: PlayerCommand {
         states[inputMethod, default: InputState()].command
+    }
+
+    var currentInputSource: DrivingInputMethod {
+        inputMethod
     }
 
     func start() {
@@ -136,7 +141,14 @@ final class InputService: NSObject, ObservableObject {
     }
 
     private func controllerDidConnect(_ controller: GCController) {
-        guard activeController == nil else {
+        if let activeController {
+            guard activeController.extendedGamepad == nil, controller.extendedGamepad != nil else {
+                isControllerConnected = true
+                return
+            }
+            clearHandlers(on: activeController)
+        }
+        guard activeController == nil || controller.extendedGamepad != nil else {
             isControllerConnected = true
             return
         }
@@ -153,6 +165,8 @@ final class InputService: NSObject, ObservableObject {
         }
 
         clearHandlers(on: controller)
+        let shouldPauseForDisconnect = inputMethod == .controller
+            && states[.controller, default: InputState()].hasActiveDrivingInput
         states[.controller] = InputState()
         activeController = nil
 
@@ -163,6 +177,10 @@ final class InputService: NSObject, ObservableObject {
             if inputMethod == .controller {
                 inputMethod = .touch
             }
+            if shouldPauseForDisconnect {
+                actionHandler(.pause)
+            }
+            controllerDisconnectHandler()
             GCController.startWirelessControllerDiscovery()
         }
     }
@@ -189,7 +207,7 @@ final class InputService: NSObject, ObservableObject {
                     self?.update(.controller) { $0.brake = Double(value) }
                 }
             }
-            bind(gamepad.buttonA, to: .confirm, drivingAction: .throttle)
+            bind(gamepad.buttonA, to: .confirm, drivingAction: .boost)
             bind(gamepad.buttonB, to: .cancel, drivingAction: .brake)
             bind(gamepad.buttonX, to: .boost, drivingAction: .boost)
             bind(gamepad.buttonMenu, to: .pause)
@@ -316,6 +334,85 @@ final class InputService: NSObject, ObservableObject {
     }
 }
 
+#if DEBUG
+extension InputService {
+    func simulateKeyboard(_ key: KeyboardKey, isPressed: Bool) {
+        for action in remapping.actions(for: key) {
+            updateDigitalAction(action, isPressed: isPressed, source: .keyboard)
+            if isPressed && action.isDiscrete {
+                actionHandler(action)
+            }
+        }
+    }
+
+    func simulateController(
+        steering: Double? = nil,
+        throttle: Double? = nil,
+        brake: Double? = nil,
+        isBoosting: Bool? = nil
+    ) {
+        update(.controller) { state in
+            if let steering {
+                state.steering = steering
+                state.menuX = steering
+            }
+            if let throttle {
+                state.throttle = throttle
+            }
+            if let brake {
+                state.brake = brake
+            }
+            if let isBoosting {
+                state.isBoosting = isBoosting
+            }
+        }
+    }
+
+    func simulateControllerDpad(x: Double, y: Double) {
+        updateControllerDpad(x: x, y: y)
+    }
+}
+#endif
+
+struct InputPromptGlyphs: Equatable, Sendable {
+    let sourceSystemImage: String
+    let navigate: String
+    let confirm: String
+    let cancel: String
+    let pause: String
+}
+
+extension DrivingInputMethod {
+    var menuPromptGlyphs: InputPromptGlyphs {
+        switch self {
+        case .touch:
+            InputPromptGlyphs(
+                sourceSystemImage: "hand.tap",
+                navigate: "Tap",
+                confirm: "Tap",
+                cancel: "Back",
+                pause: "Pause"
+            )
+        case .controller:
+            InputPromptGlyphs(
+                sourceSystemImage: "gamecontroller",
+                navigate: "D-Pad/Stick",
+                confirm: "A",
+                cancel: "B",
+                pause: "Menu"
+            )
+        case .keyboard:
+            InputPromptGlyphs(
+                sourceSystemImage: "keyboard",
+                navigate: "Arrows/WASD",
+                confirm: "Return",
+                cancel: "Esc",
+                pause: "Esc"
+            )
+        }
+    }
+}
+
 private struct InputState {
     var steering = 0.0
     var throttle = 0.0
@@ -334,6 +431,10 @@ private struct InputState {
             brake: brake,
             isBoosting: isBoosting
         )
+    }
+
+    var hasActiveDrivingInput: Bool {
+        command != .idle
     }
 }
 

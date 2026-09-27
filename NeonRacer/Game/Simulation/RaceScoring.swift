@@ -128,6 +128,31 @@ extension ScoreInputs {
         case .collision: collisionPoints += points
         }
     }
+
+    func scoreBreakdownEntries() -> [ScoreBreakdownEntry] {
+        ScoreSource.allCases.compactMap { source in
+            let awardedPoints: Double
+            switch source {
+            case .distance: awardedPoints = distancePoints
+            case .speed: awardedPoints = speedPoints
+            case .boost: awardedPoints = boostPoints
+            case .overtake: awardedPoints = overtakePoints
+            case .nearMiss: awardedPoints = nearMissPoints
+            case .drift: awardedPoints = driftPoints
+            case .checkpoint: awardedPoints = checkpointPoints
+            case .position: awardedPoints = positionPoints
+            case .finish: awardedPoints = finishPoints
+            case .collision: awardedPoints = collisionPoints
+            }
+            guard awardedPoints != 0 else { return nil }
+            return ScoreBreakdownEntry(
+                source: source,
+                eventCount: 0,
+                basePoints: awardedPoints,
+                awardedPoints: awardedPoints
+            )
+        }
+    }
 }
 
 extension RaceSimulation {

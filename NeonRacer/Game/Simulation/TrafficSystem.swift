@@ -9,6 +9,11 @@ struct TrafficSystem: Equatable, Sendable {
         static let finishSpawnBuffer = 150.0
         static let sameLaneSafetyBuffer = 36.0
         static let clusterHalfWindow = 58.0
+        static let blindCrestClearanceDistance = 170.0
+        static let blindCrestScanStep = 18.0
+        static let blindCrestGradeProbeDistance = 36.0
+        static let blindCrestRisingGrade = 0.012
+        static let blindCrestFallingGrade = -0.012
     }
 
     private var randomNumberGenerator: SeededRandomNumberGenerator
@@ -165,7 +170,14 @@ struct TrafficSystem: Equatable, Sendable {
             }
             guard nextSpawnDistance <= spawnWindow.upperBound else { return }
 
-            let candidateDistance = nextSpawnDistance
+            guard let candidateDistance = firstSightlineSafeDistance(
+                startingAt: nextSpawnDistance,
+                in: spawnWindow,
+                trackLayout: trackLayout,
+                stage: currentStage,
+                stageStartDistance: stageStartDistance
+            ) else { return }
+            nextSpawnDistance = max(nextSpawnDistance, candidateDistance)
             if let lane = chooseSafeLane(
                 at: candidateDistance,
                 state: state,
@@ -228,7 +240,15 @@ struct TrafficSystem: Equatable, Sendable {
             stageStartDistance: stageStartDistance
         ), nextObstacleDistance <= spawnWindow.upperBound else { return }
 
-        let candidateDistance = max(nextObstacleDistance, spawnWindow.lowerBound)
+        let requestedDistance = max(nextObstacleDistance, spawnWindow.lowerBound)
+        guard let candidateDistance = firstSightlineSafeDistance(
+            startingAt: requestedDistance,
+            in: spawnWindow,
+            trackLayout: trackLayout,
+            stage: currentStage,
+            stageStartDistance: stageStartDistance
+        ) else { return }
+        nextObstacleDistance = max(nextObstacleDistance, candidateDistance)
         guard candidateDistance <= spawnWindow.upperBound else { return }
         guard let lane = chooseSafeLane(
             at: candidateDistance,
@@ -278,7 +298,15 @@ struct TrafficSystem: Equatable, Sendable {
             stage: currentStage,
             stageStartDistance: stageStartDistance
         ) else { return }
-        let candidateDistance = max(nextRoadsideObstacleDistance, spawnWindow.lowerBound)
+        let requestedDistance = max(nextRoadsideObstacleDistance, spawnWindow.lowerBound)
+        guard let candidateDistance = firstSightlineSafeDistance(
+            startingAt: requestedDistance,
+            in: spawnWindow,
+            trackLayout: trackLayout,
+            stage: currentStage,
+            stageStartDistance: stageStartDistance
+        ) else { return }
+        nextRoadsideObstacleDistance = max(nextRoadsideObstacleDistance, candidateDistance)
         guard candidateDistance <= spawnWindow.upperBound else { return }
         let kind = chooseRoadsideObstacleKind()
         let side = randomUnit() < 0.5 ? -1.0 : 1.0
@@ -313,6 +341,54 @@ struct TrafficSystem: Equatable, Sendable {
         )
         guard upperBound >= lowerBound else { return nil }
         return lowerBound...upperBound
+    }
+
+    private func firstSightlineSafeDistance(
+        startingAt distance: Double,
+        in window: ClosedRange<Double>,
+        trackLayout: TrackLayout,
+        stage: RouteStage,
+        stageStartDistance: Double
+    ) -> Double? {
+        var candidate = max(distance, window.lowerBound)
+        while candidate <= window.upperBound {
+            if isSightlineSafeSpawn(
+                at: candidate,
+                trackLayout: trackLayout,
+                stage: stage,
+                stageStartDistance: stageStartDistance
+            ) {
+                return candidate
+            }
+            candidate += Tuning.blindCrestScanStep
+        }
+        return nil
+    }
+
+    private func isSightlineSafeSpawn(
+        at distance: Double,
+        trackLayout: TrackLayout,
+        stage: RouteStage,
+        stageStartDistance: Double
+    ) -> Bool {
+        let profile = trackLayout.profile(for: stage.id)
+        let distanceInStage = (distance - stageStartDistance).clamped(to: 0...stage.distance)
+        let scanStart = max(0, distanceInStage - Tuning.blindCrestClearanceDistance)
+        var probe = scanStart
+        while probe <= distanceInStage {
+            let beforeDistance = max(0, probe - Tuning.blindCrestGradeProbeDistance)
+            let afterDistance = min(profile.length, probe + Tuning.blindCrestGradeProbeDistance)
+            let gradeBefore = profile.grade(at: beforeDistance)
+            let gradeAfter = profile.grade(at: afterDistance)
+            if gradeBefore >= Tuning.blindCrestRisingGrade,
+               gradeAfter <= Tuning.blindCrestFallingGrade,
+               distanceInStage >= probe,
+               distanceInStage - probe <= Tuning.blindCrestClearanceDistance {
+                return false
+            }
+            probe += Tuning.blindCrestScanStep
+        }
+        return true
     }
 
     private mutating func chooseSafeLane(

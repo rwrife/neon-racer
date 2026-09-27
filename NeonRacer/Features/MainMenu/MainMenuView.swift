@@ -10,6 +10,7 @@ struct MainMenuView: View {
 
     @Environment(\.accessibilityReduceMotion) private var systemReduceMotion
     @EnvironmentObject private var accessibility: AccessibilitySettingsStore
+    @StateObject private var inputService = InputService()
     @State private var isShowingDrivingGuide = false
     @State private var isShowingSettings = false
     @State private var isShowingGarage = false
@@ -54,6 +55,8 @@ struct MainMenuView: View {
                     .font(.headline.monospaced())
                     .foregroundStyle(palette.secondary.color)
                     .multilineTextAlignment(.center)
+
+                MenuInputPrompt(inputMethod: inputService.currentInputSource)
 
                 Button(action: startRace) {
                     Label("START ENGINE", systemImage: "flag.checkered")
@@ -140,27 +143,45 @@ struct MainMenuView: View {
                     saveProfile()
                 }
             )
+            .safeAreaInset(edge: .bottom) {
+                MenuInputPrompt(inputMethod: inputService.currentInputSource)
+                    .padding(.bottom, 8)
+            }
+            .onAppear {
+                inputService.actionHandler = { action in
+                    if action == .cancel || action == .pause {
+                        isShowingDrivingGuide = false
+                    }
+                }
+            }
         }
         .sheet(isPresented: $isShowingSettings) {
             SettingsView(
                 audio: audio,
                 gameplaySettings: gameplaySettings,
+                inputService: inputService,
                 resetProfile: resetProfile
             )
         }
         .sheet(isPresented: $isShowingGarage) {
-            GarageView(profile: $profile, saveProfile: saveProfile)
+            GarageView(
+                profile: $profile,
+                inputService: inputService,
+                saveProfile: saveProfile
+            )
         }
         .sheet(isPresented: $isShowingCredits) {
             InformationView(
                 title: "Credits",
-                text: "Designed and built with SwiftUI and SpriteKit.\n\nCreated by the Neon Racer team."
+                text: "Designed and built with SwiftUI and SpriteKit.\n\nCreated by the Neon Racer team.",
+                inputService: inputService
             )
         }
         .sheet(isPresented: $isShowingLegal) {
             InformationView(
                 title: "Legal",
-                text: "Neon Racer is provided under the terms included with this application. No account, advertising identifier, or online service is required."
+                text: "Neon Racer is provided under the terms included with this application. No account, advertising identifier, or online service is required.",
+                inputService: inputService
             )
         }
         .animation(
@@ -169,7 +190,85 @@ struct MainMenuView: View {
                 : .easeInOut(duration: 0.25),
             value: accessibility.settings
         )
-        .onAppear { focusedButton = .start }
+        .onAppear {
+            focusedButton = .start
+            configureMenuInput()
+            inputService.start()
+            inputService.updateRemapping(gameplaySettings.settings.inputRemapping)
+        }
+        .onDisappear {
+            inputService.stop()
+        }
+        .onChange(of: gameplaySettings.settings.inputRemapping) { _, newValue in
+            inputService.updateRemapping(newValue)
+        }
+        .onChange(of: isShowingDrivingGuide) { configureMenuInputIfNeeded() }
+        .onChange(of: isShowingSettings) { configureMenuInputIfNeeded() }
+        .onChange(of: isShowingGarage) { configureMenuInputIfNeeded() }
+        .onChange(of: isShowingCredits) { configureMenuInputIfNeeded() }
+        .onChange(of: isShowingLegal) { configureMenuInputIfNeeded() }
+    }
+
+    private var menuFocusOrder: [MenuButton] {
+        [.start, .garage, .guide, .settings, .credits, .legal]
+    }
+
+    private func configureMenuInputIfNeeded() {
+        guard !hasPresentedSheet else {
+            return
+        }
+        configureMenuInput()
+    }
+
+    private var hasPresentedSheet: Bool {
+        isShowingDrivingGuide
+            || isShowingSettings
+            || isShowingGarage
+            || isShowingCredits
+            || isShowingLegal
+    }
+
+    private func configureMenuInput() {
+        inputService.actionHandler = handleInputAction
+    }
+
+    private func handleInputAction(_ action: PlayerAction) {
+        switch action {
+        case .menuUp:
+            moveMenuFocus(-1)
+        case .menuDown:
+            moveMenuFocus(1)
+        case .confirm:
+            confirmFocusedButton()
+        case .cancel, .pause:
+            break
+        default:
+            break
+        }
+    }
+
+    private func moveMenuFocus(_ offset: Int) {
+        let current = focusedButton.flatMap(menuFocusOrder.firstIndex) ?? 0
+        focusedButton = menuFocusOrder[
+            (current + offset + menuFocusOrder.count) % menuFocusOrder.count
+        ]
+    }
+
+    private func confirmFocusedButton() {
+        switch focusedButton ?? .start {
+        case .start:
+            startRace()
+        case .garage:
+            isShowingGarage = true
+        case .guide:
+            isShowingDrivingGuide = true
+        case .settings:
+            isShowingSettings = true
+        case .credits:
+            isShowingCredits = true
+        case .legal:
+            isShowingLegal = true
+        }
     }
 }
 
@@ -280,19 +379,30 @@ struct ResultsView: View {
 private struct InformationView: View {
     let title: String
     let text: String
+    @ObservedObject var inputService: InputService
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {
         NavigationStack {
             ScrollView {
-                Text(text)
-                    .frame(maxWidth: 560, alignment: .leading)
-                    .padding(32)
+                VStack(alignment: .leading, spacing: 20) {
+                    MenuInputPrompt(inputMethod: inputService.currentInputSource)
+                    Text(text)
+                        .frame(maxWidth: 560, alignment: .leading)
+                }
+                .padding(32)
             }
             .navigationTitle(title)
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Done") { dismiss() }
+                }
+            }
+        }
+        .onAppear {
+            inputService.actionHandler = { action in
+                if action == .cancel || action == .pause || action == .confirm {
+                    dismiss()
                 }
             }
         }

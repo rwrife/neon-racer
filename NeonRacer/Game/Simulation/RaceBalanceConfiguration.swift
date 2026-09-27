@@ -182,6 +182,8 @@ struct BoostEconomy: Equatable, Sendable {
 struct ScoringBalance: Equatable, Sendable {
     let pointsPerDistance: Double
     let pointsPerBoostSecond: Double
+    /// Representative no-boost, opening-tank, and managed-boost runs validate
+    /// these thresholds in tests so ranks reward mastery without time grinding.
     let bronzeThreshold: Double
     let silverThreshold: Double
     let goldThreshold: Double
@@ -236,6 +238,9 @@ enum RaceConfigurationValidationError: Error, Equatable, CustomStringConvertible
 }
 
 extension RaceConfiguration {
+    /// Novice keeps the same route readable after onboarding: lower speed and
+    /// traffic pressure, more timer slack, forgiving recovery, and a full initial
+    /// boost tank so first-time players commonly reach the opening fork.
     static let novice = RaceConfiguration(
         fixedTimeStep: 1.0 / 120.0,
         maximumFrameDelta: 0.25,
@@ -272,6 +277,8 @@ extension RaceConfiguration {
         )
     )
 
+    /// Expert preserves the same deterministic rules but raises traffic density,
+    /// trims timer slack, and requires managed boost/clean lines for gold.
     static let expert = RaceConfiguration(
         fixedTimeStep: 1.0 / 120.0,
         maximumFrameDelta: 0.25,
