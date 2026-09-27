@@ -128,7 +128,6 @@ struct RootView: View {
     }
 
     private func showResults(_ result: RaceResult) {
-        print("UITEST: showResults \(result.outcome)")
         audio.handle(.showMenu)
         let previousBest = profile.bestScore
         let previousUnlocks = profile.unlockedVehicleIDs
@@ -145,7 +144,6 @@ struct RootView: View {
             unlocks: Array(currentUnlocks.subtracting(previousUnlocks)).sorted()
         )
         setDestination(resultDestination)
-        print("UITEST: destination set to results")
     }
 
     private var profileSaveErrorIsPresented: Binding<Bool> {

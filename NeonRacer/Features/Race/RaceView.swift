@@ -38,6 +38,7 @@ struct RaceView: View {
     }
 #if DEBUG
     @State private var showsVehicleArtPreview = false
+    @State private var forcedUITestResult: RaceResult?
 #endif
 
     init(
@@ -112,11 +113,7 @@ struct RaceView: View {
             HStack {
                 if ProcessInfo.processInfo.arguments.contains("UITestFinishRace") {
                     Button("COMPLETE TEST RACE") {
-                        print("UITEST: completing race")
-                        handleRaceCompleted(
-                            scene.completeForUITesting(succeeded: true)
-                        )
-                        print("UITEST: completion callback returned")
+                        forcedUITestResult = scene.completeForUITesting(succeeded: true)
                     }
                 }
                 Button("VEHICLE SHEET") {
@@ -127,6 +124,7 @@ struct RaceView: View {
             .tint(.white)
             .padding()
             .frame(maxWidth: .infinity, alignment: .trailing)
+            .zIndex(20_000)
 #endif
 
             inputSourcePrompt
@@ -154,6 +152,19 @@ struct RaceView: View {
                 .padding(24)
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomTrailing)
             }
+
+#if DEBUG
+            if let forcedUITestResult {
+                ResultsView(
+                    result: forcedUITestResult,
+                    previousBest: 0,
+                    unlocks: [],
+                    retry: restartRace,
+                    returnToTitle: exitRace
+                )
+                .zIndex(10_000)
+            }
+#endif
         }
         .onAppear {
             scene.scaleMode = .aspectFill
@@ -405,7 +416,10 @@ struct RaceView: View {
         inputService.resetDrivingState()
         audioService.stop()
         hapticsService.stop()
-        completed(result)
+        let completion = completed
+        Task { @MainActor in
+            completion(result)
+        }
     }
 
     private func apply(_ actions: [RunLifecycleAction]) {
