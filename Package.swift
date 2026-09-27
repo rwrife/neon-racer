@@ -5,7 +5,8 @@ import PackageDescription
 let package = Package(
     name: "NeonRacerCore",
     platforms: [
-        .iOS(.v26)
+        .iOS(.v26),
+        .macOS(.v13)
     ],
     products: [
         .library(name: "NeonRacerCore", targets: ["NeonRacerCore"])
@@ -16,18 +17,27 @@ let package = Package(
             path: "NeonRacer",
             exclude: [
                 "App",
-                "Content",
                 "Features",
                 "Game/Rendering",
                 "Resources",
-                "Services",
+                "Services/Audio",
+                "Services/Haptics",
+                "Services/Input",
                 "Shared/Accessibility/AccessibilitySettingsStore.swift",
                 "Shared/Design/NeonPalette.swift"
             ],
             sources: [
+                "Content/ContentValidation.swift",
+                "Content/InitialRouteContent.swift",
+                "Content/StageContentLoader.swift",
+                "Content/StageDefinition.swift",
                 "Game/Simulation",
+                "Services/Persistence",
                 "Shared/Accessibility/AccessibilitySettings.swift",
                 "Shared/Design/AccessiblePalette.swift"
+            ],
+            resources: [
+                .process("Content/Fixtures")
             ]
         ),
         .testTarget(

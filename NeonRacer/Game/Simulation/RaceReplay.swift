@@ -5,7 +5,21 @@ enum RaceReplayError: Error, Equatable, Sendable {
     case invalidFrameDelta
     case invalidRepeatCount
     case invalidCommand
+    case invalidGameplayEventFrame(Int)
     case eventMismatch(expected: [RaceEvent], actual: [RaceEvent])
+}
+
+struct RecordedGameplayScoreEvent: Codable, Equatable, Sendable {
+    let frameIndex: Int
+    let event: GameplayScoreEvent
+
+    init(frameIndex: Int, event: GameplayScoreEvent) throws {
+        guard frameIndex >= 0 else {
+            throw RaceReplayError.invalidGameplayEventFrame(frameIndex)
+        }
+        self.frameIndex = frameIndex
+        self.event = event
+    }
 }
 
 struct RaceCommandRun: Codable, Equatable, Sendable {
@@ -52,11 +66,18 @@ struct RaceReplay: Codable, Equatable, Sendable {
     let seed: UInt64
     let commandRuns: [RaceCommandRun]
     let events: [RaceEvent]
+    let gameplayEvents: [RecordedGameplayScoreEvent]
 
-    init(seed: UInt64, commandRuns: [RaceCommandRun], events: [RaceEvent] = []) {
+    init(
+        seed: UInt64,
+        commandRuns: [RaceCommandRun],
+        events: [RaceEvent] = [],
+        gameplayEvents: [RecordedGameplayScoreEvent] = []
+    ) {
         self.seed = seed
         self.commandRuns = commandRuns
         self.events = events
+        self.gameplayEvents = gameplayEvents
     }
 
     private enum CodingKeys: String, CodingKey {
@@ -64,6 +85,7 @@ struct RaceReplay: Codable, Equatable, Sendable {
         case seed = "s"
         case commandRuns = "r"
         case events = "e"
+        case gameplayEvents = "g"
     }
 
     init(from decoder: Decoder) throws {
@@ -75,6 +97,9 @@ struct RaceReplay: Codable, Equatable, Sendable {
         seed = try container.decode(UInt64.self, forKey: .seed)
         commandRuns = try container.decode([RaceCommandRun].self, forKey: .commandRuns)
         events = try container.decodeIfPresent([RaceEvent].self, forKey: .events) ?? []
+        gameplayEvents =
+            try container.decodeIfPresent([RecordedGameplayScoreEvent].self, forKey: .gameplayEvents)
+            ?? []
     }
 
     func encode(to encoder: Encoder) throws {
@@ -84,6 +109,9 @@ struct RaceReplay: Codable, Equatable, Sendable {
         try container.encode(commandRuns, forKey: .commandRuns)
         if !events.isEmpty {
             try container.encode(events, forKey: .events)
+        }
+        if !gameplayEvents.isEmpty {
+            try container.encode(gameplayEvents, forKey: .gameplayEvents)
         }
     }
 }
@@ -116,14 +144,23 @@ struct RaceReplayRecorder: Sendable {
         }
     }
 
-    func finish(events: [RaceEvent] = []) -> RaceReplay {
-        RaceReplay(seed: seed, commandRuns: commandRuns, events: events)
+    func finish(
+        events: [RaceEvent] = [],
+        gameplayEvents: [RecordedGameplayScoreEvent] = []
+    ) -> RaceReplay {
+        RaceReplay(
+            seed: seed,
+            commandRuns: commandRuns,
+            events: events,
+            gameplayEvents: gameplayEvents
+        )
     }
 }
 
 struct RaceReplayResult: Equatable, Sendable {
     let finalState: RaceState
     let events: [RaceEvent]
+    let scoreEvents: [ScoreEvent]
     let frameCount: Int
 }
 
@@ -135,12 +172,23 @@ enum RaceReplayExecutor {
     ) throws -> RaceReplayResult {
         var simulation = RaceSimulation(configuration: configuration, seed: replay.seed)
         var frameCount = 0
+        var gameplayEventIndex = 0
 
         for run in replay.commandRuns {
             for _ in 0..<run.repeatCount {
                 simulation.advance(frameDelta: run.frameDelta, command: run.command)
+                while gameplayEventIndex < replay.gameplayEvents.count,
+                      replay.gameplayEvents[gameplayEventIndex].frameIndex == frameCount {
+                    simulation.ingest(replay.gameplayEvents[gameplayEventIndex].event)
+                    gameplayEventIndex += 1
+                }
                 frameCount += 1
             }
+        }
+        if gameplayEventIndex != replay.gameplayEvents.count {
+            throw RaceReplayError.invalidGameplayEventFrame(
+                replay.gameplayEvents[gameplayEventIndex].frameIndex
+            )
         }
 
         if verifyEvents, !replay.events.isEmpty, replay.events != simulation.events {
@@ -153,6 +201,7 @@ enum RaceReplayExecutor {
         return RaceReplayResult(
             finalState: simulation.state,
             events: simulation.events,
+            scoreEvents: simulation.scoreEvents,
             frameCount: frameCount
         )
     }

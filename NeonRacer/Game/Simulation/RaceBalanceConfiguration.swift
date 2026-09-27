@@ -123,9 +123,9 @@ extension RaceConfiguration {
         scoring: ScoringBalance(
             pointsPerDistance: 1,
             pointsPerBoostSecond: 18,
-            bronzeThreshold: 4_400,
-            silverThreshold: 4_600,
-            goldThreshold: 4_750
+            bronzeThreshold: 5_200,
+            silverThreshold: 5_400,
+            goldThreshold: 5_550
         )
     )
 
@@ -157,9 +157,9 @@ extension RaceConfiguration {
         scoring: ScoringBalance(
             pointsPerDistance: 1,
             pointsPerBoostSecond: 35,
-            bronzeThreshold: 5_400,
-            silverThreshold: 5_575,
-            goldThreshold: 5_725
+            bronzeThreshold: 6_200,
+            silverThreshold: 6_375,
+            goldThreshold: 6_525
         )
     )
 
@@ -245,6 +245,8 @@ extension RaceConfiguration {
         let theoreticalMaximumScore =
             stageLength * scoring.pointsPerDistance
             + theoreticalBoostTime * scoring.pointsPerBoostSecond
+            + arcadeScoring.finishPoints
+            + arcadeScoring.checkpointPoints * 2
         if scoring.goldThreshold.isFinite,
            theoreticalMaximumScore.isFinite,
            scoring.goldThreshold > theoreticalMaximumScore {

@@ -4,9 +4,13 @@ import os
 
 struct RaceView: View {
     let inputMethod: DrivingInputMethod
+    let routeID: String
     let audioService: AudioService
+    @ObservedObject var gameplaySettings: GameplaySettingsStore
     let updateTutorialProgress: (TutorialProgress) -> Void
+    let restartRace: () -> Void
     let exitRace: () -> Void
+    let completed: (RaceResult) -> Void
 
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.accessibilityReduceMotion) private var systemReduceMotion
@@ -17,18 +21,59 @@ struct RaceView: View {
     @State private var lifecycle = RunInterruptionCoordinator()
     @State private var hapticsService = HapticsService()
     @State private var feedbackError: String?
+    @State private var hudSnapshot = RaceHUDSnapshot.initial
+    @State private var hudFeedback: RaceHUDFeedback?
+    @State private var hudFeedbackID = 0
+    @State private var hudFeedbackTask: Task<Void, Never>?
+    @State private var confirmation: Confirmation?
+    @FocusState private var focusedPauseAction: PauseAction?
+
+    private enum Confirmation: String, Identifiable {
+        case restart, title
+        var id: String { rawValue }
+    }
+
+    private enum PauseAction: Hashable {
+        case resume, restart, title
+    }
+#if DEBUG
+    @State private var showsVehicleArtPreview = false
+#endif
 
     init(
         tutorialProgress: TutorialProgress,
         inputMethod: DrivingInputMethod,
+        configuration: RaceConfiguration,
+        routeID: String,
+        garagePalette: GaragePaletteDefinition,
         audioService: AudioService,
+        gameplaySettings: GameplaySettingsStore,
         updateTutorialProgress: @escaping (TutorialProgress) -> Void,
-        exitRace: @escaping () -> Void
+        restartRace: @escaping () -> Void,
+        exitRace: @escaping () -> Void,
+        completed: @escaping (RaceResult) -> Void
     ) {
         self.inputMethod = inputMethod
+        self.routeID = routeID
         self.audioService = audioService
+        self.gameplaySettings = gameplaySettings
         self.updateTutorialProgress = updateTutorialProgress
+        self.restartRace = restartRace
         self.exitRace = exitRace
+        self.completed = completed
+        let routeName = ProgressionCatalog.routes.first { $0.id == routeID }?.displayName
+            ?? ProgressionCatalog.routes[0].displayName
+        _scene = State(
+            initialValue: RaceScene(
+                configuration: configuration,
+                routeGraph: ProgressionCatalog.routeGraph(
+                    id: routeID,
+                    configuration: configuration
+                ),
+                routeName: routeName,
+                garagePalette: garagePalette
+            )
+        )
         _tutorialSession = State(initialValue: TutorialSession(progress: tutorialProgress))
         _inputService = StateObject(
             wrappedValue: InputService(initialInputMethod: inputMethod)
@@ -42,13 +87,18 @@ struct RaceView: View {
                 .accessibilityElement(children: .ignore)
                 .accessibilityLabel("Race in progress")
                 .accessibilityValue("Use the labeled steering, brake, boost, and go controls.")
-                .accessibilityHint("Use Exit race to return to the main menu")
+                .accessibilityHint("Use Pause race for resume, restart, and title controls")
+
+            RaceHUDView(
+                snapshot: hudSnapshot,
+                feedback: hudFeedback,
+                settings: accessibility.settings
+            )
 
             Button {
-                audioService.handle(.raceExited)
-                exitRace()
+                apply(lifecycle.handle(.pauseRequested))
             } label: {
-                Label("Exit race", systemImage: "xmark")
+                Label("Pause race", systemImage: "pause.fill")
                     .font(.headline.bold())
                     .padding(.horizontal, 16)
                     .frame(minHeight: 52)
@@ -56,7 +106,28 @@ struct RaceView: View {
             .buttonStyle(.borderedProminent)
             .tint(.black.opacity(accessibility.settings.highContrast ? 0.95 : 0.65))
             .padding()
-            .accessibilityHint("Returns to the main menu")
+            .accessibilityHint("Opens pause controls")
+
+#if DEBUG
+            HStack {
+                if ProcessInfo.processInfo.arguments.contains("UITestFinishRace") {
+                    Button("COMPLETE TEST RACE") {
+                        print("UITEST: completing race")
+                        handleRaceCompleted(
+                            scene.completeForUITesting(succeeded: true)
+                        )
+                        print("UITEST: completion callback returned")
+                    }
+                }
+                Button("VEHICLE SHEET") {
+                    showsVehicleArtPreview = true
+                }
+            }
+            .buttonStyle(.bordered)
+            .tint(.white)
+            .padding()
+            .frame(maxWidth: .infinity, alignment: .trailing)
+#endif
 
             inputSourcePrompt
 
@@ -101,11 +172,12 @@ struct RaceView: View {
             scene.feedbackDidOccur = { [weak haptics] event in
                 haptics?.play(event)
             }
+            scene.hudDidUpdate = handleHUDUpdate
+            scene.raceDidEnd = handleRaceCompleted
             inputService.actionHandler = handleInputAction
             inputService.start()
-            let gameplaySettings = GameplaySettingsStore().settings
-            inputService.updateRemapping(gameplaySettings.inputRemapping)
-            hapticsService.configure(gameplaySettings.haptics)
+            inputService.updateRemapping(gameplaySettings.settings.inputRemapping)
+            hapticsService.configure(gameplaySettings.settings.haptics)
             configureSceneAccessibility()
             tutorialSession.startIfNeeded()
             updateTutorialProgress(tutorialSession.progress)
@@ -121,9 +193,10 @@ struct RaceView: View {
             scene.tearDown()
             scene.audioFrameHandler = nil
             scene.audioEventHandler = nil
+            scene.hudDidUpdate = { _ in }
+            hudFeedbackTask?.cancel()
             audioService.endObserving()
             audioService.stop()
-            audioService.handle(.showMenu)
             hapticsService.stop()
         }
         .onChange(of: scenePhase, initial: true) { _, newPhase in
@@ -134,12 +207,37 @@ struct RaceView: View {
         } message: {
             Text(feedbackError ?? "")
         }
+        .confirmationDialog(
+            confirmationTitle,
+            isPresented: confirmationIsPresented,
+            titleVisibility: .visible
+        ) {
+            if confirmation == .restart {
+                Button("Restart Race", role: .destructive) {
+                    audioService.handle(.raceExited)
+                    restartRace()
+                }
+            } else {
+                Button("Return to Title", role: .destructive) {
+                    audioService.handle(.raceExited)
+                    exitRace()
+                }
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("Current run progress will be lost.")
+        }
         .onChange(of: accessibility.settings) {
             configureSceneAccessibility()
         }
         .onChange(of: systemReduceMotion) {
             configureSceneAccessibility()
         }
+#if DEBUG
+        .sheet(isPresented: $showsVehicleArtPreview) {
+            VehicleArtPreviewView()
+        }
+#endif
     }
 
     private var recoveryOverlay: some View {
@@ -154,11 +252,23 @@ struct RaceView: View {
             }
             .buttonStyle(.borderedProminent)
             .accessibilityHint("Resumes the paused race")
+            .focused($focusedPauseAction, equals: .resume)
+            Button("RESTART") {
+                confirmation = .restart
+            }
+            .buttonStyle(.bordered)
+            .focused($focusedPauseAction, equals: .restart)
+            Button("RETURN TO TITLE") {
+                confirmation = .title
+            }
+            .buttonStyle(.bordered)
+            .focused($focusedPauseAction, equals: .title)
         }
         .padding(32)
         .frame(maxWidth: 420)
         .background(.black.opacity(0.85), in: RoundedRectangle(cornerRadius: 24))
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .onAppear { focusedPauseAction = .resume }
     }
 
     private var inputSourcePrompt: some View {
@@ -266,18 +376,36 @@ struct RaceView: View {
             } else if lifecycle.state == .pausedForRecovery {
                 apply(lifecycle.handle(.resumeRequested))
             }
+
         case .confirm where lifecycle.state == .pausedForRecovery:
-            apply(lifecycle.handle(.resumeRequested))
+            switch focusedPauseAction ?? .resume {
+            case .resume:
+                apply(lifecycle.handle(.resumeRequested))
+            case .restart:
+                confirmation = .restart
+            case .title:
+                confirmation = .title
+            }
         case .cancel:
             if lifecycle.state == .pausedForRecovery {
-                audioService.handle(.raceExited)
-                exitRace()
+                confirmation = .title
             } else {
                 apply(lifecycle.handle(.pauseRequested))
             }
+        case .menuUp where lifecycle.state == .pausedForRecovery:
+            movePauseFocus(-1)
+        case .menuDown where lifecycle.state == .pausedForRecovery:
+            movePauseFocus(1)
         default:
             break
         }
+    }
+
+    private func handleRaceCompleted(_ result: RaceResult) {
+        inputService.resetDrivingState()
+        audioService.stop()
+        hapticsService.stop()
+        completed(result)
     }
 
     private func apply(_ actions: [RunLifecycleAction]) {
@@ -347,7 +475,81 @@ struct RaceView: View {
             systemReduceMotion: systemReduceMotion
         )
     }
+
+    private func handleHUDUpdate(_ update: RaceHUDUpdate) {
+        hudSnapshot = update.snapshot
+        guard let feedback = update.feedback else {
+            return
+        }
+
+        hudFeedbackID += 1
+        let feedbackID = hudFeedbackID
+        let reduceMotion = accessibility.settings.resolvedReduceMotion(
+            systemReduceMotion: systemReduceMotion
+        )
+        hudFeedbackTask?.cancel()
+        if reduceMotion {
+            hudFeedback = feedback
+        } else {
+            withAnimation(.easeOut(duration: 0.18)) {
+                hudFeedback = feedback
+            }
+        }
+        hudFeedbackTask = Task { @MainActor in
+            let duration = feedback == .finished || feedback == .failed ? 3.0 : 1.5
+            try? await Task.sleep(for: .seconds(duration))
+            guard !Task.isCancelled, feedbackID == hudFeedbackID else {
+                return
+            }
+            if reduceMotion {
+                hudFeedback = nil
+            } else {
+                withAnimation(.easeIn(duration: 0.18)) {
+                    hudFeedback = nil
+                }
+            }
+        }
+    }
+
+    private func movePauseFocus(_ offset: Int) {
+        let actions: [PauseAction] = [.resume, .restart, .title]
+        let current = focusedPauseAction.flatMap(actions.firstIndex) ?? 0
+        focusedPauseAction = actions[(current + offset + actions.count) % actions.count]
+    }
+
+    private var confirmationTitle: String {
+        confirmation == .restart ? "Restart this race?" : "Return to the title?"
+    }
+
+    private var confirmationIsPresented: Binding<Bool> {
+        Binding(
+            get: { confirmation != nil },
+            set: { if !$0 { confirmation = nil } }
+        )
+    }
 }
+
+#if DEBUG
+private struct VehicleArtPreviewView: View {
+    @Environment(\.dismiss) private var dismiss
+    @State private var scene = VehicleArtPreviewScene(size: CGSize(width: 1920, height: 1080))
+
+    var body: some View {
+        ZStack(alignment: .topTrailing) {
+            SpriteView(scene: scene)
+                .ignoresSafeArea()
+            Button("DONE") {
+                dismiss()
+            }
+            .buttonStyle(.borderedProminent)
+            .padding()
+        }
+        .onAppear {
+            scene.scaleMode = .aspectFit
+        }
+    }
+}
+#endif
 
 private struct HoldButton: View {
     let title: String
@@ -391,9 +593,15 @@ private extension Logger {
     RaceView(
         tutorialProgress: .notStarted,
         inputMethod: .touch,
+        configuration: .standard,
+        routeID: "neon-loop",
+        garagePalette: ProgressionCatalog.palettes[0],
         audioService: AudioService(),
+        gameplaySettings: GameplaySettingsStore(),
         updateTutorialProgress: { _ in },
-        exitRace: {}
+        restartRace: {},
+        exitRace: {},
+        completed: { _ in }
     )
     .environmentObject(AccessibilitySettingsStore())
 }

@@ -76,6 +76,10 @@ xcodebuild test \
 Performance budgets, quality tiers, and the physical-device Instruments procedure are
 documented in [`Documentation/Performance.md`](Documentation/Performance.md).
 
+The launch route's three typed themes, fork/reconnect graph, transition contract, and
+renderer integration gaps are documented in
+[`Documentation/RouteThemes.md`](Documentation/RouteThemes.md).
+
 ## Release readiness
 
 - [Release/archive and signing runbook](Documentation/Release.md)
@@ -90,7 +94,7 @@ signing remain release gates.
 
 ## Adding content
 
-Add stage definitions under `NeonRacer/Content` and visual assets under `NeonRacer/Resources/Assets.xcassets`. Stage content should be decoded into typed `Codable` models and validated before a race begins. Avoid raw dictionaries and runtime string lookups in gameplay systems.
+Add stage definitions under `NeonRacer/Content` and visual assets under `NeonRacer/Resources/Assets.xcassets`. Stage content is decoded into versioned typed `Codable` models and validated before a race begins. Avoid raw dictionaries and runtime string lookups in gameplay systems. See the [content authoring guide](Documentation/ContentAuthoring.md) for the schema, migration policy, route and theme workflow, validation rules, and fixture loader.
 
 All shipped art, fonts, music, and sound effects must be original or have documented redistribution rights.
 

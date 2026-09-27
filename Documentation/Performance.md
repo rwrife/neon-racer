@@ -44,6 +44,20 @@ Automatic thermal fallback may only replace the rendering configuration; it must
 alter fixed timestep, controls, collision/traffic decisions, scoring, stage geometry, or
 seeded random-number consumption.
 
+## Native effects stack
+
+`NeonEffectsStack` renders bounded, SpriteKit-native overlays and pooled motion effects
+above the world and below a separate `crisp-hud` node tree. Ordering is world glow,
+exhaust/smoke/trails/sparks, speed streaks and heat haze, color grade, scanlines/chromatic
+edge treatment/vignette, collision flash, then HUD.
+
+Each effect has a typed enable switch and clamped `0...1` intensity. Efficiency disables
+heat haze, chromatic separation, and sparks; balanced scales expensive effects; fidelity
+uses the full bounded pools. Reduce Motion clamps moving effects to 18% and limits their
+speed driver. Reduce Flashes clamps bloom, color/chromatic treatment, and collision flash.
+DEBUG builds report active effects and pool occupancy; tap an effect name to toggle it.
+Nodes are created once and particle slots are recycled without per-emission `SKAction`s.
+
 ## Profiling procedure
 
 1. Disable Low Power Mode, reboot the phone, let it cool to nominal, and disconnect other
@@ -55,7 +69,8 @@ seeded random-number consumption.
    Export p50/p95 timings and inspect CPU call trees for regressions.
 3. Repeat with **Core Animation** (and Metal System Trace once Metal rendering exists).
    Record frame hitches, GPU duration, draw calls, and live node count. The DEBUG overlay
-   provides FPS, smoothed frame time, vehicle count, segment count, node count, and tier;
+   provides FPS, smoothed frame time, vehicle count, segment count, total node count,
+   environment visible-node/estimated-draw counts, effects/pool counts, and tier;
    acceptance numbers still come from the Release trace.
 4. Run **Allocations + Leaks** through the same three-run scenario. Mark generations
    after each finish/retry, record peak resident and texture memory, and investigate any
@@ -66,6 +81,7 @@ seeded random-number consumption.
 6. Save `.trace` files outside source control, add measured numbers to the baseline table,
    and include device model, OS, build/commit, tier, scenario, and regressions in the PR.
 
-The current placeholder scene has no AI, particles, asynchronous stage loader, or Metal
-render path. Add signposts to those boundaries when they are introduced, preserving the
-same category and cosmetic-only tier rule.
+The current scene has no AI or Metal render path. SpriteKit effects use fixed-capacity
+pools, and stage content is loaded before scene construction. Add signposts to new
+asynchronous or Metal boundaries when introduced, preserving the same category and
+cosmetic-only tier rule.

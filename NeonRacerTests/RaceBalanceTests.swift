@@ -45,8 +45,8 @@ struct RaceBalanceTests {
 
     @Test
     func boostIsFiniteImprovesPerformanceAndRechargesWhenReleased() {
-        var boosted = RaceSimulation(seed: 50)
-        var unboosted = RaceSimulation(seed: 50)
+        var boosted = RaceSimulation(seed: 50, countdownDuration: 0)
+        var unboosted = RaceSimulation(seed: 50, countdownDuration: 0)
         let boostCommand = PlayerCommand(
             steering: 0,
             throttle: 1,

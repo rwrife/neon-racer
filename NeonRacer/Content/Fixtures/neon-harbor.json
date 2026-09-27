@@ -1,0 +1,175 @@
+{
+  "schemaVersion": 1,
+  "stage": {
+    "id": "neon-harbor",
+    "displayName": "Neon Harbor",
+    "route": {
+      "startSectionID": "launch",
+      "finishSectionIDs": ["finish"],
+      "sections": [
+        {
+          "id": "launch",
+          "length": 900,
+          "curve": { "entry": 0, "apex": 0.18, "exit": 0.1 },
+          "elevation": { "startMeters": 0, "endMeters": 8 },
+          "lanes": { "count": 3, "width": 3.6, "shoulderWidth": 1.2 },
+          "laneChanges": [{ "id": "launch-narrow", "at": 700, "laneCount": 2 }],
+          "links": [
+            { "destinationSectionID": "coast", "forkID": "harbor-split" },
+            { "destinationSectionID": "tunnel", "forkID": "harbor-split" }
+          ]
+        },
+        {
+          "id": "coast",
+          "length": 1300,
+          "curve": { "entry": 0.1, "apex": 0.55, "exit": 0 },
+          "elevation": { "startMeters": 8, "endMeters": 14, "crestMeters": 20 },
+          "lanes": { "count": 2, "width": 3.6, "shoulderWidth": 1 },
+          "laneChanges": [],
+          "links": [{ "destinationSectionID": "finish" }]
+        },
+        {
+          "id": "tunnel",
+          "length": 1050,
+          "curve": { "entry": -0.1, "apex": -0.45, "exit": 0 },
+          "elevation": { "startMeters": 8, "endMeters": 4 },
+          "lanes": { "count": 2, "width": 3.5, "shoulderWidth": 0.5 },
+          "laneChanges": [],
+          "links": [{ "destinationSectionID": "finish" }]
+        },
+        {
+          "id": "finish",
+          "length": 850,
+          "curve": { "entry": 0, "apex": 0, "exit": 0 },
+          "elevation": { "startMeters": 4, "endMeters": 0 },
+          "lanes": { "count": 3, "width": 3.6, "shoulderWidth": 1.2 },
+          "laneChanges": [],
+          "links": []
+        }
+      ],
+      "checkpoints": [
+        { "id": "dock-gate", "sectionID": "launch", "at": 650, "order": 0, "isRequired": true },
+        { "id": "final-gate", "sectionID": "finish", "at": 200, "order": 1, "isRequired": true }
+      ],
+      "forks": [
+        {
+          "id": "harbor-split",
+          "sectionID": "launch",
+          "at": 820,
+          "destinationSectionIDs": ["coast", "tunnel"],
+          "defaultDestinationSectionID": "coast"
+        }
+      ]
+    },
+    "paletteID": "harbor-night",
+    "trafficProfileID": "harbor-traffic",
+    "sceneryProfileID": "harbor-scenery",
+    "weatherProfileID": "clear-night",
+    "musicCueIDs": ["race-loop", "finish-sting"],
+    "difficultyIDs": ["novice", "standard", "expert"]
+  },
+  "palettes": [
+    {
+      "id": "harbor-night",
+      "skyTopHex": "#05051A",
+      "skyBottomHex": "#26104A",
+      "roadHex": "#171826",
+      "shoulderHex": "#25283A",
+      "laneMarkerHex": "#E8F7FF",
+      "primaryAccentHex": "#00E5FF",
+      "secondaryAccentHex": "#FF2BD6",
+      "fogHex": "#342A62CC"
+    }
+  ],
+  "trafficProfiles": [
+    {
+      "id": "harbor-traffic",
+      "baseDensity": 0.28,
+      "maximumVehicles": 24,
+      "minimumHeadway": 20,
+      "speedRange": { "lowerBound": 32, "upperBound": 74 },
+      "vehicleAssetIDs": ["traffic-coupe"]
+    }
+  ],
+  "sceneryProfiles": [
+    {
+      "id": "harbor-scenery",
+      "bands": [
+        {
+          "id": "cityline",
+          "side": "both",
+          "distanceRange": { "lowerBound": 0, "upperBound": 4100 },
+          "lateralRange": { "lowerBound": 18, "upperBound": 50 },
+          "spacing": 80,
+          "assetIDs": ["tower-silhouette"],
+          "maximumInstances": 104
+        }
+      ]
+    }
+  ],
+  "weatherProfiles": [
+    {
+      "id": "clear-night",
+      "kind": "clear",
+      "intensity": 0,
+      "visibility": 1,
+      "roadGrip": 1
+    }
+  ],
+  "musicCues": [
+    {
+      "id": "race-loop",
+      "trigger": "stageStart",
+      "assetID": "music-harbor",
+      "loop": true,
+      "crossfadeSeconds": 1.5
+    },
+    {
+      "id": "finish-sting",
+      "trigger": "finish",
+      "assetID": "music-finish",
+      "loop": false,
+      "crossfadeSeconds": 0.2
+    }
+  ],
+  "difficulties": [
+    {
+      "id": "novice",
+      "trafficDensityMultiplier": 0.7,
+      "opponentSpeedMultiplier": 0.9,
+      "timeLimitSeconds": 100,
+      "checkpointTimeBonusSeconds": 8,
+      "scoreMultiplier": 0.8
+    },
+    {
+      "id": "standard",
+      "trafficDensityMultiplier": 1,
+      "opponentSpeedMultiplier": 1,
+      "timeLimitSeconds": 90,
+      "checkpointTimeBonusSeconds": 6,
+      "scoreMultiplier": 1
+    },
+    {
+      "id": "expert",
+      "trafficDensityMultiplier": 1.3,
+      "opponentSpeedMultiplier": 1.12,
+      "timeLimitSeconds": 82,
+      "checkpointTimeBonusSeconds": 4,
+      "scoreMultiplier": 1.35
+    }
+  ],
+  "assets": {
+    "entries": [
+      { "id": "traffic-coupe", "kind": "vehicle", "resourceName": "traffic-coupe" },
+      { "id": "tower-silhouette", "kind": "image", "resourceName": "tower-silhouette" },
+      { "id": "music-harbor", "kind": "audio", "resourceName": "music-harbor.m4a" },
+      { "id": "music-finish", "kind": "audio", "resourceName": "music-finish.m4a" }
+    ]
+  },
+  "budgets": {
+    "maximumSections": 256,
+    "maximumTotalRoadLength": 100000,
+    "maximumSceneryInstances": 4000,
+    "maximumTrafficVehicles": 64
+  }
+}

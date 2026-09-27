@@ -1,0 +1,739 @@
+{
+  "assets" : {
+    "entries" : [
+      {
+        "id" : "coast-cruiser-placeholder",
+        "kind" : "vehicle",
+        "resourceName" : "procedural://coast-cruiser-placeholder"
+      },
+      {
+        "id" : "city-commuter-placeholder",
+        "kind" : "vehicle",
+        "resourceName" : "procedural://city-commuter-placeholder"
+      },
+      {
+        "id" : "city-hauler-placeholder",
+        "kind" : "vehicle",
+        "resourceName" : "procedural://city-hauler-placeholder"
+      },
+      {
+        "id" : "peaks-runner-placeholder",
+        "kind" : "vehicle",
+        "resourceName" : "procedural://peaks-runner-placeholder"
+      },
+      {
+        "id" : "striped-sun-placeholder",
+        "kind" : "image",
+        "resourceName" : "procedural://striped-sun-placeholder"
+      },
+      {
+        "id" : "angular-coast-placeholder",
+        "kind" : "image",
+        "resourceName" : "procedural://angular-coast-placeholder"
+      },
+      {
+        "id" : "palm-fan-placeholder",
+        "kind" : "image",
+        "resourceName" : "procedural://palm-fan-placeholder"
+      },
+      {
+        "id" : "skyline-block-placeholder",
+        "kind" : "image",
+        "resourceName" : "procedural://skyline-block-placeholder"
+      },
+      {
+        "id" : "fictional-sign-placeholder",
+        "kind" : "image",
+        "resourceName" : "procedural://fictional-sign-placeholder"
+      },
+      {
+        "id" : "overpass-placeholder",
+        "kind" : "image",
+        "resourceName" : "procedural://overpass-placeholder"
+      },
+      {
+        "id" : "tunnel-bay-placeholder",
+        "kind" : "image",
+        "resourceName" : "procedural://tunnel-bay-placeholder"
+      },
+      {
+        "id" : "wireframe-mountain-placeholder",
+        "kind" : "image",
+        "resourceName" : "procedural://wireframe-mountain-placeholder"
+      },
+      {
+        "id" : "star-field-placeholder",
+        "kind" : "image",
+        "resourceName" : "procedural://star-field-placeholder"
+      },
+      {
+        "id" : "aurora-placeholder",
+        "kind" : "image",
+        "resourceName" : "procedural://aurora-placeholder"
+      },
+      {
+        "id" : "relay-beacon-placeholder",
+        "kind" : "image",
+        "resourceName" : "procedural://relay-beacon-placeholder"
+      },
+      {
+        "id" : "coastline-pulse-placeholder",
+        "kind" : "audio",
+        "resourceName" : "procedural://coastline-pulse-placeholder"
+      },
+      {
+        "id" : "vertical-current-placeholder",
+        "kind" : "audio",
+        "resourceName" : "procedural://vertical-current-placeholder"
+      },
+      {
+        "id" : "summit-signal-placeholder",
+        "kind" : "audio",
+        "resourceName" : "procedural://summit-signal-placeholder"
+      }
+    ]
+  },
+  "budgets" : {
+    "maximumSceneryInstances" : 900,
+    "maximumSections" : 16,
+    "maximumTotalRoadLength" : 12000,
+    "maximumTrafficVehicles" : 24
+  },
+  "difficulties" : [
+    {
+      "checkpointTimeBonusSeconds" : 18,
+      "id" : "solar-to-summit-standard",
+      "opponentSpeedMultiplier" : 1,
+      "scoreMultiplier" : 1,
+      "timeLimitSeconds" : 205,
+      "trafficDensityMultiplier" : 1
+    }
+  ],
+  "musicCues" : [
+    {
+      "assetID" : "coastline-pulse-placeholder",
+      "crossfadeSeconds" : 3.2,
+      "id" : "coastline-pulse",
+      "loop" : true,
+      "trigger" : "stageStart"
+    },
+    {
+      "assetID" : "vertical-current-placeholder",
+      "crossfadeSeconds" : 3.6,
+      "id" : "vertical-current",
+      "loop" : true,
+      "trigger" : "checkpoint"
+    },
+    {
+      "assetID" : "summit-signal-placeholder",
+      "crossfadeSeconds" : 5.2,
+      "id" : "summit-signal",
+      "loop" : true,
+      "trigger" : "finalStretch"
+    }
+  ],
+  "palettes" : [
+    {
+      "fogHex" : "#C63D8F",
+      "id" : "sunset-coast-palette",
+      "laneMarkerHex" : "#DDFBFF",
+      "primaryAccentHex" : "#25E6E0",
+      "roadHex" : "#171A32",
+      "secondaryAccentHex" : "#FFD06A",
+      "shoulderHex" : "#27324D",
+      "skyBottomHex" : "#F05A61",
+      "skyTopHex" : "#35115C"
+    },
+    {
+      "fogHex" : "#253C66",
+      "id" : "neon-city-palette",
+      "laneMarkerHex" : "#E8F7FF",
+      "primaryAccentHex" : "#FF3C91",
+      "roadHex" : "#101522",
+      "secondaryAccentHex" : "#55C7FF",
+      "shoulderHex" : "#202944",
+      "skyBottomHex" : "#39205C",
+      "skyTopHex" : "#080B24"
+    },
+    {
+      "fogHex" : "#7359B7",
+      "id" : "midnight-peaks-palette",
+      "laneMarkerHex" : "#E6F2FF",
+      "primaryAccentHex" : "#75F4C8",
+      "roadHex" : "#0C1320",
+      "secondaryAccentHex" : "#6AB7FF",
+      "shoulderHex" : "#233143",
+      "skyBottomHex" : "#102A47",
+      "skyTopHex" : "#030A20"
+    }
+  ],
+  "sceneryProfiles" : [
+    {
+      "bands" : [
+        {
+          "assetIDs" : [
+            "striped-sun-placeholder",
+            "angular-coast-placeholder"
+          ],
+          "distanceRange" : {
+            "lowerBound" : 150,
+            "upperBound" : 1200
+          },
+          "id" : "coast-horizon",
+          "lateralRange" : {
+            "lowerBound" : 70,
+            "upperBound" : 180
+          },
+          "maximumInstances" : 28,
+          "side" : "left",
+          "spacing" : 420
+        },
+        {
+          "assetIDs" : [
+            "palm-fan-placeholder"
+          ],
+          "distanceRange" : {
+            "lowerBound" : 30,
+            "upperBound" : 420
+          },
+          "id" : "coast-palms",
+          "lateralRange" : {
+            "lowerBound" : 12,
+            "upperBound" : 38
+          },
+          "maximumInstances" : 42,
+          "side" : "both",
+          "spacing" : 85
+        }
+      ],
+      "id" : "sunset-coast-scenery"
+    },
+    {
+      "bands" : [
+        {
+          "assetIDs" : [
+            "skyline-block-placeholder",
+            "overpass-placeholder"
+          ],
+          "distanceRange" : {
+            "lowerBound" : 40,
+            "upperBound" : 700
+          },
+          "id" : "city-blocks",
+          "lateralRange" : {
+            "lowerBound" : 18,
+            "upperBound" : 90
+          },
+          "maximumInstances" : 150,
+          "side" : "both",
+          "spacing" : 55
+        },
+        {
+          "assetIDs" : [
+            "fictional-sign-placeholder"
+          ],
+          "distanceRange" : {
+            "lowerBound" : 25,
+            "upperBound" : 360
+          },
+          "id" : "city-signs",
+          "lateralRange" : {
+            "lowerBound" : 12,
+            "upperBound" : 42
+          },
+          "maximumInstances" : 54,
+          "side" : "both",
+          "spacing" : 96
+        },
+        {
+          "assetIDs" : [
+            "tunnel-bay-placeholder"
+          ],
+          "distanceRange" : {
+            "lowerBound" : 10,
+            "upperBound" : 240
+          },
+          "id" : "city-tunnel-bays",
+          "lateralRange" : {
+            "lowerBound" : 7,
+            "upperBound" : 18
+          },
+          "maximumInstances" : 72,
+          "side" : "both",
+          "spacing" : 32
+        }
+      ],
+      "id" : "neon-city-scenery"
+    },
+    {
+      "bands" : [
+        {
+          "assetIDs" : [
+            "wireframe-mountain-placeholder",
+            "star-field-placeholder",
+            "aurora-placeholder"
+          ],
+          "distanceRange" : {
+            "lowerBound" : 180,
+            "upperBound" : 1500
+          },
+          "id" : "peaks-horizon",
+          "lateralRange" : {
+            "lowerBound" : 80,
+            "upperBound" : 240
+          },
+          "maximumInstances" : 90,
+          "side" : "both",
+          "spacing" : 260
+        },
+        {
+          "assetIDs" : [
+            "relay-beacon-placeholder"
+          ],
+          "distanceRange" : {
+            "lowerBound" : 70,
+            "upperBound" : 620
+          },
+          "id" : "peaks-relays",
+          "lateralRange" : {
+            "lowerBound" : 18,
+            "upperBound" : 65
+          },
+          "maximumInstances" : 12,
+          "side" : "right",
+          "spacing" : 310
+        }
+      ],
+      "id" : "midnight-peaks-scenery"
+    }
+  ],
+  "schemaVersion" : 1,
+  "stage" : {
+    "difficultyIDs" : [
+      "solar-to-summit-standard"
+    ],
+    "displayName" : "Solar to Summit",
+    "id" : "solar-to-summit",
+    "musicCueIDs" : [
+      "coastline-pulse",
+      "vertical-current",
+      "summit-signal"
+    ],
+    "paletteID" : "sunset-coast-palette",
+    "route" : {
+      "checkpoints" : [
+        {
+          "at" : 760,
+          "id" : "coast-exit-checkpoint",
+          "isRequired" : true,
+          "order" : 0,
+          "sectionID" : "coast-cliff-arc"
+        },
+        {
+          "at" : 360,
+          "id" : "city-fork-checkpoint",
+          "isRequired" : true,
+          "order" : 1,
+          "sectionID" : "city-fork"
+        },
+        {
+          "at" : 760,
+          "id" : "summit-checkpoint",
+          "isRequired" : true,
+          "order" : 2,
+          "sectionID" : "peaks-relay-ridge"
+        }
+      ],
+      "finishSectionIDs" : [
+        "peaks-summit-finish"
+      ],
+      "forks" : [
+        {
+          "at" : 390,
+          "defaultDestinationSectionID" : "city-axis-tunnel",
+          "destinationSectionIDs" : [
+            "city-axis-tunnel",
+            "peaks-storm-switchback"
+          ],
+          "id" : "gateway-choice",
+          "sectionID" : "city-fork"
+        }
+      ],
+      "sections" : [
+        {
+          "curve" : {
+            "apex" : 0.18,
+            "entry" : 0.05,
+            "exit" : 0.22
+          },
+          "elevation" : {
+            "crestMeters" : 10,
+            "endMeters" : 8,
+            "startMeters" : 0
+          },
+          "id" : "coast-causeway",
+          "laneChanges" : [
+
+          ],
+          "lanes" : {
+            "count" : 3,
+            "shoulderWidth" : 1.4,
+            "width" : 4
+          },
+          "length" : 850,
+          "links" : [
+            {
+              "destinationSectionID" : "coast-solar-sweep"
+            }
+          ]
+        },
+        {
+          "curve" : {
+            "apex" : -0.48,
+            "entry" : 0.12,
+            "exit" : -0.18
+          },
+          "elevation" : {
+            "crestMeters" : 28,
+            "endMeters" : 24,
+            "startMeters" : 8
+          },
+          "id" : "coast-solar-sweep",
+          "laneChanges" : [
+
+          ],
+          "lanes" : {
+            "count" : 3,
+            "shoulderWidth" : 1.2,
+            "width" : 4
+          },
+          "length" : 1050,
+          "links" : [
+            {
+              "destinationSectionID" : "coast-cliff-arc"
+            }
+          ]
+        },
+        {
+          "curve" : {
+            "apex" : 0.58,
+            "entry" : -0.1,
+            "exit" : 0.2
+          },
+          "elevation" : {
+            "crestMeters" : 48,
+            "endMeters" : 42,
+            "startMeters" : 24
+          },
+          "id" : "coast-cliff-arc",
+          "laneChanges" : [
+
+          ],
+          "lanes" : {
+            "count" : 3,
+            "shoulderWidth" : 1.1,
+            "width" : 3.9
+          },
+          "length" : 900,
+          "links" : [
+            {
+              "destinationSectionID" : "city-rain-gate"
+            }
+          ]
+        },
+        {
+          "curve" : {
+            "apex" : -0.16,
+            "entry" : 0.08,
+            "exit" : 0.05
+          },
+          "elevation" : {
+            "crestMeters" : 52,
+            "endMeters" : 48,
+            "startMeters" : 42
+          },
+          "id" : "city-rain-gate",
+          "laneChanges" : [
+            {
+              "at" : 620,
+              "id" : "city-merge-one",
+              "laneCount" : 3
+            }
+          ],
+          "lanes" : {
+            "count" : 4,
+            "shoulderWidth" : 0.8,
+            "width" : 3.8
+          },
+          "length" : 760,
+          "links" : [
+            {
+              "destinationSectionID" : "city-vanta-canyon"
+            }
+          ]
+        },
+        {
+          "curve" : {
+            "apex" : 0.36,
+            "entry" : 0.06,
+            "exit" : 0.1
+          },
+          "elevation" : {
+            "crestMeters" : 72,
+            "endMeters" : 68,
+            "startMeters" : 48
+          },
+          "id" : "city-vanta-canyon",
+          "laneChanges" : [
+
+          ],
+          "lanes" : {
+            "count" : 3,
+            "shoulderWidth" : 0.7,
+            "width" : 3.9
+          },
+          "length" : 950,
+          "links" : [
+            {
+              "destinationSectionID" : "city-fork"
+            }
+          ]
+        },
+        {
+          "curve" : {
+            "apex" : 0.08,
+            "entry" : 0,
+            "exit" : 0
+          },
+          "elevation" : {
+            "crestMeters" : 74,
+            "endMeters" : 72,
+            "startMeters" : 68
+          },
+          "id" : "city-fork",
+          "laneChanges" : [
+
+          ],
+          "lanes" : {
+            "count" : 4,
+            "shoulderWidth" : 0.8,
+            "width" : 3.8
+          },
+          "length" : 520,
+          "links" : [
+            {
+              "destinationSectionID" : "city-axis-tunnel",
+              "forkID" : "gateway-choice"
+            },
+            {
+              "destinationSectionID" : "peaks-storm-switchback",
+              "forkID" : "gateway-choice"
+            }
+          ]
+        },
+        {
+          "curve" : {
+            "apex" : -0.22,
+            "entry" : 0,
+            "exit" : -0.08
+          },
+          "elevation" : {
+            "crestMeters" : 76,
+            "endMeters" : 60,
+            "startMeters" : 72
+          },
+          "id" : "city-axis-tunnel",
+          "laneChanges" : [
+
+          ],
+          "lanes" : {
+            "count" : 3,
+            "shoulderWidth" : 0.9,
+            "width" : 4
+          },
+          "length" : 720,
+          "links" : [
+            {
+              "destinationSectionID" : "city-orbit-skyway"
+            }
+          ]
+        },
+        {
+          "curve" : {
+            "apex" : 0.49,
+            "entry" : -0.08,
+            "exit" : 0.18
+          },
+          "elevation" : {
+            "crestMeters" : 138,
+            "endMeters" : 132,
+            "startMeters" : 60
+          },
+          "id" : "city-orbit-skyway",
+          "laneChanges" : [
+
+          ],
+          "lanes" : {
+            "count" : 3,
+            "shoulderWidth" : 1,
+            "width" : 4.1
+          },
+          "length" : 940,
+          "links" : [
+            {
+              "destinationSectionID" : "peaks-relay-ridge"
+            }
+          ]
+        },
+        {
+          "curve" : {
+            "apex" : -0.76,
+            "entry" : 0.1,
+            "exit" : 0.24
+          },
+          "elevation" : {
+            "crestMeters" : 212,
+            "endMeters" : 196,
+            "startMeters" : 74
+          },
+          "id" : "peaks-storm-switchback",
+          "laneChanges" : [
+
+          ],
+          "lanes" : {
+            "count" : 2,
+            "shoulderWidth" : 1.2,
+            "width" : 3.7
+          },
+          "length" : 980,
+          "links" : [
+            {
+              "destinationSectionID" : "peaks-relay-ridge"
+            }
+          ]
+        },
+        {
+          "curve" : {
+            "apex" : 0.65,
+            "entry" : -0.12,
+            "exit" : 0.16
+          },
+          "elevation" : {
+            "crestMeters" : 252,
+            "endMeters" : 244,
+            "startMeters" : 196
+          },
+          "id" : "peaks-relay-ridge",
+          "laneChanges" : [
+
+          ],
+          "lanes" : {
+            "count" : 2,
+            "shoulderWidth" : 1.3,
+            "width" : 3.8
+          },
+          "length" : 900,
+          "links" : [
+            {
+              "destinationSectionID" : "peaks-summit-finish"
+            }
+          ]
+        },
+        {
+          "curve" : {
+            "apex" : -0.2,
+            "entry" : 0.08,
+            "exit" : 0
+          },
+          "elevation" : {
+            "crestMeters" : 274,
+            "endMeters" : 270,
+            "startMeters" : 244
+          },
+          "id" : "peaks-summit-finish",
+          "laneChanges" : [
+
+          ],
+          "lanes" : {
+            "count" : 3,
+            "shoulderWidth" : 1.5,
+            "width" : 3.9
+          },
+          "length" : 780,
+          "links" : [
+
+          ]
+        }
+      ],
+      "startSectionID" : "coast-causeway"
+    },
+    "sceneryProfileID" : "sunset-coast-scenery",
+    "trafficProfileID" : "sunset-coast-traffic",
+    "weatherProfileID" : "sunset-coast-weather"
+  },
+  "trafficProfiles" : [
+    {
+      "baseDensity" : 0.24,
+      "id" : "sunset-coast-traffic",
+      "maximumVehicles" : 9,
+      "minimumHeadway" : 2.1,
+      "speedRange" : {
+        "lowerBound" : 72,
+        "upperBound" : 98
+      },
+      "vehicleAssetIDs" : [
+        "coast-cruiser-placeholder"
+      ]
+    },
+    {
+      "baseDensity" : 0.62,
+      "id" : "neon-city-traffic",
+      "maximumVehicles" : 18,
+      "minimumHeadway" : 1.45,
+      "speedRange" : {
+        "lowerBound" : 58,
+        "upperBound" : 92
+      },
+      "vehicleAssetIDs" : [
+        "city-commuter-placeholder",
+        "city-hauler-placeholder"
+      ]
+    },
+    {
+      "baseDensity" : 0.2,
+      "id" : "midnight-peaks-traffic",
+      "maximumVehicles" : 7,
+      "minimumHeadway" : 2.5,
+      "speedRange" : {
+        "lowerBound" : 62,
+        "upperBound" : 84
+      },
+      "vehicleAssetIDs" : [
+        "peaks-runner-placeholder"
+      ]
+    }
+  ],
+  "weatherProfiles" : [
+    {
+      "id" : "sunset-coast-weather",
+      "intensity" : 0.16,
+      "kind" : "dust",
+      "roadGrip" : 1,
+      "visibility" : 0.88
+    },
+    {
+      "id" : "neon-city-weather",
+      "intensity" : 0.42,
+      "kind" : "rain",
+      "roadGrip" : 0.88,
+      "visibility" : 0.76
+    },
+    {
+      "id" : "midnight-peaks-weather",
+      "intensity" : 0.34,
+      "kind" : "fog",
+      "roadGrip" : 0.82,
+      "visibility" : 0.68
+    }
+  ]
+}

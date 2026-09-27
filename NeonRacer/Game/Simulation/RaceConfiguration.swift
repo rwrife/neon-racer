@@ -15,6 +15,7 @@ struct RaceConfiguration: Equatable, Sendable {
     let traffic: TrafficBalance
     let boost: BoostEconomy
     let scoring: ScoringBalance
+    let arcadeScoring: ArcadeScoringBalance = .standard
 
     static let standard = RaceConfiguration(
         fixedTimeStep: 1.0 / 120.0,
@@ -44,9 +45,9 @@ struct RaceConfiguration: Equatable, Sendable {
         scoring: ScoringBalance(
             pointsPerDistance: 1,
             pointsPerBoostSecond: 25,
-            bronzeThreshold: 4_900,
-            silverThreshold: 5_080,
-            goldThreshold: 5_250
+            bronzeThreshold: 5_700,
+            silverThreshold: 5_880,
+            goldThreshold: 6_050
         )
     )
 }

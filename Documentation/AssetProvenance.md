@@ -8,9 +8,11 @@ Every shipped visual, font, music, sound, copy, and generated asset must be regi
 | --- | --- | --- | --- | --- | --- |
 | `Assets.xcassets/AccentColor.colorset/Contents.json` | Color definition | Project authors | Original configuration | Git history | Cleared |
 | `Assets.xcassets/AppIcon.appiconset/Contents.json` | Empty icon catalog definition | Project authors | Original configuration | Git history | **Blocked: final icon art absent** |
-| SpriteKit road, vehicle, and effects drawn in `RaceScene.swift` | Runtime vector/primitive art | Project authors | Original code-generated art | Git history and code review | Provisional; final visual review required |
+| Procedural vehicle definitions and animation in `VehicleArt.swift` | Runtime vector/primitive placeholder art | Project authors, 2026-09-26 | Original normalized polygon geometry; no source images, model generation, logos, or traced references | Git history, `VehicleArtPipeline.md`, and code review | Cleared as placeholder; final commissioned art and trade-dress review absent |
+| SpriteKit road and effects drawn in `RaceScene.swift` | Runtime vector/primitive art | Project authors | Original code-generated art | Git history and code review | Provisional; final visual review required |
 | SwiftUI interface copy and styling | UI/copy | Project authors | Original | Git history | Provisional; final copy review required |
 | Procedural synthwave loop, engine tone, ambience/noise, and cues in `AudioService.swift` | Runtime-generated audio | Project authors | Original deterministic synthesis code; no recordings, samples, or third-party assets | Git history and code review | Cleared |
+| Theme scenery instructions in `InitialRouteContent.swift` | Runtime primitive specifications | Project authors | Original procedural content definitions; no external art or media | Git history and code review | Cleared as placeholders; rendered output requires visual review |
 | Future recorded music, SFX, images, and custom fonts | Media | None currently shipped | N/A | Resource audit | Add each file before shipping |
 
 For generated assets, record the generator/model and version, prompt or source inputs, generation date, editor, post-processing, commercial-use terms, and evidence that inputs and outputs do not imitate protected characters, brands, or living artists.

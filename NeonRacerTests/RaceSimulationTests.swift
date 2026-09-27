@@ -9,6 +9,25 @@ import Testing
 
 struct RaceSimulationTests {
     @Test
+    func resultCapturesTypedScoreBreakdown() {
+        var state = RaceState()
+        state.phase = .finished
+        state.elapsedTime = 42.5
+        state.distance = 5_000
+        state.scoreInputs.distancePoints = 5_000
+        state.scoreInputs.boostPoints = 250
+
+        let result = RaceResult(state: state, rank: .gold)
+
+        #expect(result.outcome == .finished)
+        #expect(result.score == 5_250)
+        #expect(result.distancePoints == 5_000)
+        #expect(result.boostPoints == 250)
+        #expect(result.speedPoints == 0)
+        #expect(result.rank == .gold)
+    }
+
+    @Test
     func playerCommandsNormalizeAnalogRanges() {
         let command = PlayerCommand(
             steering: 4,
@@ -146,6 +165,140 @@ struct RaceSimulationTests {
     }
 
     @Test
+    func runStateMachineCountsDownPausesAndRestartsWithoutAdvancingRaceTime() {
+            var simulation = RaceSimulation(seed: 7, countdownDuration: 0.025)
+            #expect(simulation.state.phase == .loading)
+
+            simulation.advance(frameDelta: 1.0 / 120.0, command: .idle)
+            #expect(simulation.state.phase == .countdown)
+            #expect(simulation.state.elapsedTime == 0)
+
+            for _ in 0..<4 {
+                simulation.advance(frameDelta: 1.0 / 120.0, command: .idle)
+            }
+            #expect(simulation.state.phase == .racing)
+            #expect(simulation.state.elapsedTime == 0)
+
+            simulation.setPaused(true)
+            #expect(simulation.state.phase == .paused)
+            simulation.setPaused(false)
+            #expect(simulation.state.phase == .racing)
+
+            simulation.beginRestart()
+            #expect(simulation.state.phase == .restarting)
+            simulation.completeRestart(seed: 7)
+            #expect(simulation.state.phase == .loading)
+            #expect(simulation.state.distance == 0)
+            #expect(simulation.state.completedStageIDs.isEmpty)
+    }
+
+    @Test
+    func forkChoiceCheckpointAwardAndContinuityAreDeterministic() throws {
+            let graph = forkTestGraph()
+            let configuration = RaceConfiguration.testConfiguration(
+                stageLength: 30,
+                raceDuration: 10
+            )
+            var left = RaceSimulation(
+                configuration: configuration,
+                seed: 88,
+                routeGraph: graph,
+                countdownDuration: 0
+            )
+            var replay = RaceSimulation(
+                configuration: configuration,
+                seed: 88,
+                routeGraph: graph,
+                countdownDuration: 0
+            )
+            let command = PlayerCommand(steering: -1, throttle: 1, brake: 0, isBoosting: false)
+
+            for _ in 0..<2_000 where left.state.currentStageID == "start" {
+                left.advance(frameDelta: 1.0 / 120.0, command: command)
+                replay.advance(frameDelta: 1.0 / 120.0, command: command)
+            }
+
+            #expect(left.state.currentStageID == "left")
+            #expect(left.state.committedBranchIDs == ["choose-left"])
+            #expect(left.state.completedStageIDs == ["start"])
+            #expect(left.state.distance > 0)
+            #expect(left.state.speed > 0)
+            #expect(left.state.timerRemaining > configuration.raceDuration - left.state.elapsedTime)
+            #expect(left.state == replay.state)
+            #expect(left.runEvents == replay.runEvents)
+            #expect(left.runEvents.contains { event in
+                if case .checkpointCrossed(_, "start", "left", 4) = event { return true }
+                return false
+            })
+    }
+
+    @Test
+    func rightForkCompletesThreeStageRouteAndPreservesTotalDistance() {
+            let graph = forkTestGraph()
+            let configuration = RaceConfiguration.testConfiguration(
+                stageLength: 30,
+                raceDuration: 20
+            )
+            var simulation = RaceSimulation(
+                configuration: configuration,
+                seed: 3,
+                routeGraph: graph,
+                countdownDuration: 0
+            )
+            let command = PlayerCommand(steering: 1, throttle: 1, brake: 0, isBoosting: false)
+
+            for _ in 0..<10_000
+            where simulation.state.phase != .finished && simulation.state.phase != .failed {
+                simulation.advance(frameDelta: 1.0 / 120.0, command: command)
+            }
+
+            #expect(simulation.state.phase == .finished)
+            #expect(simulation.state.committedBranchIDs == ["choose-right"])
+            #expect(simulation.state.completedStageIDs == ["start", "right"])
+            #expect(simulation.state.distance >= 30)
+    }
+
+    @Test
+    func routeValidationRejectsMissingLinksAndInsufficientForkWarning() {
+            let graph = RouteGraph(
+                startStageID: "start",
+                stages: [
+                    RouteStage(
+                        id: "start",
+                        displayName: "Start",
+                        environmentID: "city",
+                        distance: 100,
+                        checkpointTimeAward: 1,
+                        branches: [
+                            RouteBranch(
+                                id: "missing",
+                                direction: .left,
+                                destinationStageID: "nowhere",
+                                previewName: "Missing"
+                            ),
+                            RouteBranch(
+                                id: "also-missing",
+                                direction: .right,
+                                destinationStageID: "void",
+                                previewName: "Also Missing"
+                            )
+                        ]
+                    )
+                ],
+                forkDecisionDistance: 10,
+                minimumForkDecisionTime: 2
+            )
+
+            let errors = graph.validationErrors(maximumVehicleSpeed: 100)
+            #expect(errors.contains(.missingDestination(stageID: "start", destinationID: "nowhere")))
+            #expect(errors.contains(
+                .forkDecisionDistanceTooShort(stageID: "start", required: 200, actual: 10)
+            ))
+            #expect(errors.contains(.forkLongerThanStage(stageID: "start")) == false)
+            #expect(errors.contains(.noFinishStage))
+    }
+
+    @Test
     func slowFramesCapCatchUpStepsAndDropExcessTime() {
         var simulation = RaceSimulation(seed: 99)
         simulation.advance(frameDelta: 10, command: .idle)
@@ -160,7 +313,11 @@ struct RaceSimulationTests {
             stageLength: 0.5,
             raceDuration: 1.0 / 120.0
         )
-        var simulation = RaceSimulation(configuration: configuration, seed: 5)
+        var simulation = RaceSimulation(
+            configuration: configuration,
+            seed: 5,
+            countdownDuration: 0
+        )
 
         simulation.advance(frameDelta: 1.0 / 120.0, command: .idle)
         let terminalState = simulation.state
@@ -176,7 +333,11 @@ struct RaceSimulationTests {
             stageLength: 0.001,
             raceDuration: 10
         )
-        var simulation = RaceSimulation(configuration: configuration, seed: 6)
+        var simulation = RaceSimulation(
+            configuration: configuration,
+            seed: 6,
+            countdownDuration: 0
+        )
         let command = PlayerCommand(steering: 0, throttle: 1, brake: 0, isBoosting: false)
 
         simulation.advance(frameDelta: 1.0 / 120.0, command: command)
@@ -371,6 +532,75 @@ struct RaceSimulationTests {
         #expect(abs(lhs.lateralPosition - rhs.lateralPosition) < 0.01)
         #expect(abs(lhs.score - rhs.score) < 1)
         #expect(abs(lhs.stageProgress - rhs.stageProgress) < 0.001)
+    }
+
+    private func forkTestGraph() -> RouteGraph {
+        RouteGraph(
+            startStageID: "start",
+            stages: [
+                RouteStage(
+                    id: "start",
+                    displayName: "Start",
+                    environmentID: "city",
+                    distance: 10,
+                    checkpointTimeAward: 4,
+                    branches: [
+                        RouteBranch(
+                            id: "choose-left",
+                            direction: .left,
+                            destinationStageID: "left",
+                            previewName: "Left"
+                        ),
+                        RouteBranch(
+                            id: "choose-right",
+                            direction: .right,
+                            destinationStageID: "right",
+                            previewName: "Right"
+                        )
+                    ]
+                ),
+                RouteStage(
+                    id: "left",
+                    displayName: "Left",
+                    environmentID: "harbor",
+                    distance: 10,
+                    checkpointTimeAward: 2,
+                    branches: [
+                        RouteBranch(
+                            id: "left-finish",
+                            direction: .straight,
+                            destinationStageID: "finish",
+                            previewName: "Finish"
+                        )
+                    ]
+                ),
+                RouteStage(
+                    id: "right",
+                    displayName: "Right",
+                    environmentID: "skyway",
+                    distance: 10,
+                    checkpointTimeAward: 3,
+                    branches: [
+                        RouteBranch(
+                            id: "right-finish",
+                            direction: .straight,
+                            destinationStageID: "finish",
+                            previewName: "Finish"
+                        )
+                    ]
+                ),
+                RouteStage(
+                    id: "finish",
+                    displayName: "Finish",
+                    environmentID: "core",
+                    distance: 10,
+                    checkpointTimeAward: 0,
+                    branches: []
+                )
+            ],
+            forkDecisionDistance: 5,
+            minimumForkDecisionTime: 0
+        )
     }
 }
 
