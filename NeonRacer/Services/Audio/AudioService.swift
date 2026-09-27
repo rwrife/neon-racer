@@ -41,6 +41,8 @@ final class AudioService: NSObject, ObservableObject {
     private var engineLayers = EngineLayerMix()
     private var ambienceLayers = AmbienceLayerMix()
     private var isConfigured = false
+    private var soundtrack: AVAudioPlayer?
+    private var soundtrackTargetVolume: Float = 0
     private let settingsStore: AudioSettingsStore
     private var eventHandler: ((Event) -> Void)?
 
@@ -85,7 +87,9 @@ final class AudioService: NSObject, ObservableObject {
     }
 
     func handle(_ event: AudioEvent) {
+        let previousSection = mixState.musicSection
         mixState.handle(event)
+        restartSoundtrackIfNeeded(for: event, previousSection: previousSection)
         do {
             try start()
         } catch {
@@ -167,6 +171,7 @@ final class AudioService: NSObject, ObservableObject {
         configureOneShotGraph(format: format)
         configureContinuousBuffers(format: format)
         configureCueBuffers(format: format)
+        configureSoundtrack()
 
         musicEQ.bands[0].filterType = .lowPass
         musicEQ.bands[0].frequency = 12_000
@@ -176,6 +181,76 @@ final class AudioService: NSObject, ObservableObject {
 
         isConfigured = true
     }
+
+    private func configureSoundtrack() {
+        guard let url = Bundle.main.url(forResource: Self.soundtrackName, withExtension: "mp3") else {
+            Logger.audio.error("Soundtrack \(Self.soundtrackName, privacy: .public).mp3 is missing; using procedural music")
+            return
+        }
+        do {
+            let player = try AVAudioPlayer(contentsOf: url)
+            player.numberOfLoops = -1
+            player.volume = 0
+            player.prepareToPlay()
+            soundtrack = player
+        } catch {
+            Logger.audio.error("Failed to load soundtrack: \(error.localizedDescription)")
+        }
+    }
+
+    private func restartSoundtrackIfNeeded(for event: AudioEvent, previousSection: AdaptiveMusicSection) {
+        guard let soundtrack else { return }
+        switch event {
+        case .raceStarted, .raceRetried:
+            soundtrack.currentTime = 0
+        case .showMenu, .raceExited:
+            if previousSection != .menu {
+                soundtrack.currentTime = 0
+            }
+        default:
+            break
+        }
+    }
+
+    private func applySoundtrackMix(musicGain: Double) {
+        guard let soundtrack else {
+            musicLayerMixer.outputVolume = 1
+            return
+        }
+        // The streamed soundtrack replaces the procedural stems whenever it is available.
+        musicLayerMixer.outputVolume = 0
+        let target = Float(min(1, musicGain * soundtrackSectionGain(for: mixState.musicSection)))
+        guard target > 0.001 else {
+            if soundtrack.isPlaying {
+                soundtrack.pause()
+            }
+            soundtrack.volume = 0
+            soundtrackTargetVolume = 0
+            return
+        }
+        if !soundtrack.isPlaying {
+            soundtrack.volume = 0
+            soundtrack.play()
+            soundtrackTargetVolume = 0
+        }
+        if abs(target - soundtrackTargetVolume) > 0.005 {
+            soundtrack.setVolume(target, fadeDuration: soundtrackTargetVolume == 0 ? 0.8 : 0.5)
+            soundtrackTargetVolume = target
+        }
+    }
+
+    private func soundtrackSectionGain(for section: AdaptiveMusicSection) -> Double {
+        switch section {
+        case .menu: 1.1
+        case .countdown: 0.95
+        case .racing: 1.0
+        case .intense: 1.05
+        case .finish: 0.95
+        case .failure: 0.7
+        }
+    }
+
+    private static let soundtrackName = "CyberpunkSpaceRace"
 
     private static func makeMasterLimiter() -> AVAudioUnitEffect? {
         for subtype in [kAudioUnitSubType_PeakLimiter, kAudioUnitSubType_DynamicsProcessor] {
@@ -325,6 +400,7 @@ final class AudioService: NSObject, ObservableObject {
         }
 
         applyMusicLayerMix(for: mixState.musicSection)
+        applySoundtrackMix(musicGain: rendering && mixState.shouldPlayMusic ? preferences.gain(for: .music) : 0)
         applyVehicleLayerMix(isPlaying: vehicle)
         applyAmbienceMix(isRendering: rendering)
         engineRate.rate = Float(mixState.engine.pitchRate)
@@ -440,6 +516,9 @@ final class AudioService: NSObject, ObservableObject {
     private func applySilentMix() {
         buses.values.forEach { $0.outputVolume = 0 }
         continuousPlayers.forEach { $0.volume = 0 }
+        soundtrack?.pause()
+        soundtrack?.volume = 0
+        soundtrackTargetVolume = 0
     }
 
     private func resumeAfterSuspension() {

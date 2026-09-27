@@ -24,6 +24,7 @@
 		20000000000000000000000F /* RaceSimulationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 30000000000000000000000F /* RaceSimulationTests.swift */; };
 		200000000000000000000010 /* NeonRacerUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 300000000000000000000010 /* NeonRacerUITests.swift */; };
 		200000000000000000000011 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 300000000000000000000014 /* PrivacyInfo.xcprivacy */; };
+		200000000000000000000090 /* CyberpunkSpaceRace.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 300000000000000000000090 /* CyberpunkSpaceRace.mp3 */; };
 		D23000000000000000000001 /* CosmeticQuality.swift in Sources */ = {isa = PBXBuildFile; fileRef = E23000000000000000000001 /* CosmeticQuality.swift */; };
 		D23000000000000000000002 /* PerformanceInstrumentation.swift in Sources */ = {isa = PBXBuildFile; fileRef = E23000000000000000000002 /* PerformanceInstrumentation.swift */; };
 		D23000000000000000000003 /* DebugPerformanceMetrics.swift in Sources */ = {isa = PBXBuildFile; fileRef = E23000000000000000000003 /* DebugPerformanceMetrics.swift */; };
@@ -134,6 +135,7 @@
 		300000000000000000000012 /* NeonRacerTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = NeonRacerTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		300000000000000000000013 /* NeonRacerUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = NeonRacerUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		300000000000000000000014 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		300000000000000000000090 /* CyberpunkSpaceRace.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = CyberpunkSpaceRace.mp3; sourceTree = "<group>"; };
 		E23000000000000000000001 /* CosmeticQuality.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CosmeticQuality.swift; sourceTree = "<group>"; };
 		E23000000000000000000002 /* PerformanceInstrumentation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PerformanceInstrumentation.swift; sourceTree = "<group>"; };
 		E23000000000000000000003 /* DebugPerformanceMetrics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebugPerformanceMetrics.swift; sourceTree = "<group>"; };
@@ -462,6 +464,7 @@
 			children = (
 				30000000000000000000000E /* Assets.xcassets */,
 				300000000000000000000014 /* PrivacyInfo.xcprivacy */,
+				300000000000000000000090 /* CyberpunkSpaceRace.mp3 */,
 			);
 			path = Resources;
 			sourceTree = "<group>";
@@ -641,6 +644,7 @@
 			files = (
 				20000000000000000000000E /* Assets.xcassets in Resources */,
 				200000000000000000000011 /* PrivacyInfo.xcprivacy in Resources */,
+				200000000000000000000090 /* CyberpunkSpaceRace.mp3 in Resources */,
 				D11000000000000000000004 /* neon-harbor.json in Resources */,
 				D1100000000000000000000B /* solar-to-summit.json in Resources */,
 			);
