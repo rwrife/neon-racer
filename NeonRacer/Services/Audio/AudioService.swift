@@ -43,6 +43,8 @@ final class AudioService: NSObject, ObservableObject {
     private var isConfigured = false
     private var soundtrack: AVAudioPlayer?
     private var soundtrackTargetVolume: Float = 0
+    private var proceduralMusicVolume: Float = 0
+    private var musicTransitionTask: Task<Void, Never>?
     private let settingsStore: AudioSettingsStore
     private var eventHandler: ((Event) -> Void)?
 
@@ -90,6 +92,9 @@ final class AudioService: NSObject, ObservableObject {
         let previousSection = mixState.musicSection
         mixState.handle(event)
         restartSoundtrackIfNeeded(for: event, previousSection: previousSection)
+        if (previousSection == .menu) != (mixState.musicSection == .menu) {
+            transitionMusicSource(toProcedural: mixState.musicSection != .menu)
+        }
         do {
             try start()
         } catch {
@@ -201,8 +206,6 @@ final class AudioService: NSObject, ObservableObject {
     private func restartSoundtrackIfNeeded(for event: AudioEvent, previousSection: AdaptiveMusicSection) {
         guard let soundtrack else { return }
         switch event {
-        case .raceStarted, .raceRetried:
-            soundtrack.currentTime = 0
         case .showMenu, .raceExited:
             if previousSection != .menu {
                 soundtrack.currentTime = 0
@@ -217,14 +220,18 @@ final class AudioService: NSObject, ObservableObject {
             musicLayerMixer.outputVolume = 1
             return
         }
-        // The streamed soundtrack replaces the procedural stems whenever it is available.
-        musicLayerMixer.outputVolume = 0
-        let target = Float(min(1, musicGain * soundtrackSectionGain(for: mixState.musicSection)))
+        // The title uses the streamed track; races use the adaptive procedural stems.
+        musicLayerMixer.outputVolume = proceduralMusicVolume
+        let target = mixState.musicSection == .menu
+            ? Float(min(1, musicGain * soundtrackSectionGain(for: .menu)))
+            : 0
         guard target > 0.001 else {
-            if soundtrack.isPlaying {
+            if mixState.musicSection == .menu, soundtrack.isPlaying {
                 soundtrack.pause()
+                soundtrack.volume = 0
+            } else if soundtrackTargetVolume > 0.005 {
+                soundtrack.setVolume(0, fadeDuration: 0.6)
             }
-            soundtrack.volume = 0
             soundtrackTargetVolume = 0
             return
         }
@@ -236,6 +243,21 @@ final class AudioService: NSObject, ObservableObject {
         if abs(target - soundtrackTargetVolume) > 0.005 {
             soundtrack.setVolume(target, fadeDuration: soundtrackTargetVolume == 0 ? 0.8 : 0.5)
             soundtrackTargetVolume = target
+        }
+    }
+
+    private func transitionMusicSource(toProcedural: Bool) {
+        musicTransitionTask?.cancel()
+        let initialVolume = proceduralMusicVolume
+        let targetVolume: Float = toProcedural ? 1 : 0
+        musicTransitionTask = Task { @MainActor [weak self] in
+            for step in 1...15 {
+                try? await Task.sleep(for: .milliseconds(40))
+                guard !Task.isCancelled, let self else { return }
+                self.proceduralMusicVolume = initialVolume
+                    + (targetVolume - initialVolume) * Float(step) / 15
+                self.musicLayerMixer.outputVolume = self.proceduralMusicVolume
+            }
         }
     }
 

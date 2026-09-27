@@ -2,7 +2,7 @@
 
 ## Current behavior
 
-As of this review, Neon Racer:
+As of this review, CyberRun:
 
 - performs no tracking and does not request App Tracking Transparency authorization;
 - contains no advertising, analytics, third-party SDK, account, networking, cloud sync, or web-view code;
@@ -43,6 +43,6 @@ Local profile deletion currently follows normal app deletion.
 
 Publish an owner-approved policy at a stable HTTPS URL before submission:
 
-> Neon Racer does not collect, transmit, sell, or share personal data. Gameplay progress is stored only on your device and is removed when you delete the app. The app does not contain advertising or analytics and does not track you across apps or websites. For privacy questions, contact [SUPPORT EMAIL].
+> CyberRun does not collect, transmit, sell, or share personal data. Gameplay progress is stored only on your device and is removed when you delete the app. The app does not contain advertising or analytics and does not track you across apps or websites. For privacy questions, contact [SUPPORT EMAIL].
 
 Replace placeholders, add effective date/legal owner, and have the owner review the policy. This repository document is not itself a public privacy-policy URL.

@@ -4,8 +4,9 @@
 
 - Project: `NeonRacer.xcodeproj`
 - Shared scheme: `NeonRacer`
-- App bundle ID: `com.infinityball.neonracer`
-- Minimum OS: iOS 26.0; iPhone only; landscape left/right
+- App bundle ID: `com.infinityball.neon-racer`
+- Display name: `CyberRun`; marketing version: `1.0`
+- Minimum OS: iOS 26.0; iPhone and iPad; landscape left/right
 - CI runner/toolchain: GitHub Actions `macos-26`, Xcode 26.6 (`17F113`), iOS Simulator SDK 26.5
 - Version source: `MARKETING_VERSION` and `CURRENT_PROJECT_VERSION` in the app target
 
@@ -19,7 +20,7 @@ The committed project intentionally has an empty `DEVELOPMENT_TEAM`. Bundle IDs 
 
 ## Version and build numbering
 
-- `MARKETING_VERSION` is the user-visible semantic version, for example `1.0.0`.
+- `MARKETING_VERSION` is the user-visible version, currently `1.0`.
 - `CURRENT_PROJECT_VERSION` is the monotonically increasing App Store Connect build number.
 - Increment `CURRENT_PROJECT_VERSION` for every upload; never reuse a build number for the same marketing version.
 - Record the released commit, marketing version, build number, CI run, TestFlight status, and App Store status in the GitHub release or release issue.
@@ -28,7 +29,7 @@ The committed project intentionally has an empty `DEVELOPMENT_TEAM`. Bundle IDs 
 Example values used by the commands below:
 
 ```sh
-VERSION=1.0.0
+VERSION=1.0
 BUILD_NUMBER=42
 ```
 
@@ -40,7 +41,7 @@ From a clean clone with Xcode 26.6 installed and the owner-approved signing acco
 git status --short # must print nothing
 export DEVELOPER_DIR=/Applications/Xcode_26.6.app/Contents/Developer
 sudo xcode-select -s "$DEVELOPER_DIR"
-VERSION=1.0.0
+VERSION=1.0
 BUILD_NUMBER=42
 rm -rf build/NeonRacer.xcarchive build/AppStore
 xcodebuild archive \

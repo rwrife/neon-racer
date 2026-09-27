@@ -1,6 +1,6 @@
-# Neon Racer performance budgets
+# CyberRun performance budgets
 
-Neon Racer targets a sustained 60 FPS race on the minimum supported class: an A17 Pro-class iPhone with 8 GB RAM or better, running the current iOS deployment target. Simulator runs are useful for regressions, but final sign-off must be on a physical device because Simulator GPU, thermal, and MSAA behavior differ.
+CyberRun targets a sustained 60 FPS race on the minimum supported class: an A17 Pro-class iPhone with 8 GB RAM or better, running the current iOS deployment target. Simulator runs are useful for regressions, but final sign-off must be on a physical device because Simulator GPU, thermal, and MSAA behavior differ.
 
 ## Budgets
 

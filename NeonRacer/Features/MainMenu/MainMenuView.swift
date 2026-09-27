@@ -60,15 +60,16 @@ struct MainMenuView: View {
                     .accessibilityHint("Opens audio, haptics, accessibility, and reset options")
                     .focused($focusedButton, equals: .settings)
                 }
-                .font(.headline.bold().monospaced())
+                .font(.subheadline.bold().monospaced())
                 .lineLimit(1)
-                .controlSize(.large)
-                .frame(maxWidth: 720)
-                .padding(10)
+                .controlSize(.regular)
+                .frame(maxWidth: 620)
+                .padding(6)
                 .background(.black.opacity(accessibility.settings.highContrast ? 0.9 : 0.55), in: Capsule())
+                .offset(y: 16)
             }
             .padding(.horizontal, 24)
-            .padding(.bottom, 14)
+            .padding(.bottom, 0)
         }
         .sheet(isPresented: $isShowingSettings) {
             SettingsView(
@@ -281,7 +282,7 @@ struct ResultsView: View {
 /// and stays vertically centered so the logo remains in view while the excess is cropped.
 private struct TitleArtBackground: View {
     private static let artSize = CGSize(width: 2240, height: 1888)
-    private static let verticalLift: CGFloat = 0.10
+    private static let verticalLift: CGFloat = 0.20
 
     var body: some View {
         GeometryReader { proxy in

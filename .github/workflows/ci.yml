@@ -137,17 +137,19 @@ jobs:
             CODE_SIGNING_ALLOWED=NO \
             COMPILER_INDEX_STORE_ENABLE=NO
 
-      - name: Verify iPhone-only bundle identity
+      - name: Verify release bundle identity
         run: |
           set -euo pipefail
           APP=$(find "$HOME/Library/Developer/Xcode/DerivedData" -path '*Build/Products/Debug-iphonesimulator/NeonRacer.app' -print -quit)
           test -n "$APP"
-          test "$(plutil -extract CFBundleIdentifier raw "$APP/Info.plist")" = "com.infinityball.neonracer"
+          test "$(plutil -extract CFBundleIdentifier raw "$APP/Info.plist")" = "com.infinityball.neon-racer"
+          test "$(plutil -extract CFBundleDisplayName raw "$APP/Info.plist")" = "CyberRun"
+          test "$(plutil -extract CFBundleShortVersionString raw "$APP/Info.plist")" = "1.0"
           FAMILY=$(plutil -extract UIDeviceFamily json -o - "$APP/Info.plist")
-          test "$FAMILY" = '[1]'
+          test "$FAMILY" = '[1,2]'
           test -f "$APP/PrivacyInfo.xcprivacy"
           echo "Built bundle: $APP"
-          echo "CFBundleIdentifier: com.infinityball.neonracer"
+          echo "CFBundleIdentifier: com.infinityball.neon-racer"
           echo "UIDeviceFamily: $FAMILY"
           echo "Privacy manifest: present"
 

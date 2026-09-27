@@ -7,13 +7,14 @@ Every shipped visual, font, music, sound, copy, generated asset, and marketing c
 | Asset | Kind | Source/creator | Rights basis | Evidence | Status |
 | --- | --- | --- | --- | --- | --- |
 | `Assets.xcassets/AccentColor.colorset/Contents.json` | Color definition | Project authors | Original configuration | Git history | Cleared |
-| `Assets.xcassets/AppIcon.appiconset/AppIcon.png` and `Contents.json` | App icon | Project authors; procedurally generated 2026-09-26 with a Python generation command using only geometry, gradients, and math | Original generated neon road/monogram; no source images, logos, fonts, models, or traced references | Git history and this register | Cleared pending owner visual approval |
+| `Assets.xcassets/AppIcon.appiconset/AppIcon.png` and `Contents.json` | Current app icon | Owner to verify | Owner to provide creation or license record | Icon replaced in commit `5fa6fdd` | Review required before submission |
 | Procedural vehicle definitions and animation in app code | Runtime SceneKit/vector primitive art | Project authors | Original normalized primitive geometry; no source images, model imports, logos, or traced references | Git history, `Documentation/VehicleArtPipeline.md`, and code review | Cleared as placeholder; final trade-dress review still required |
 | Route, road, scenery, lighting, and effects rendering | Runtime SceneKit/procedural geometry and materials | Project authors | Original code-generated art and parameters | Git history and visual review | Provisional; final screenshot/marketing review required |
 | SwiftUI interface copy and styling | UI/copy | Project authors | Original | Git history | Provisional; final copy review required |
 | Procedural synthwave loop, engine tone, ambience/noise, and cues | Runtime-generated audio | Project authors | Original deterministic synthesis code; no recordings, samples, voices, or third-party assets | Git history and code review | Cleared |
 | Theme scenery instructions and route content | Runtime primitive specifications | Project authors | Original procedural content definitions; no external art or media | Git history and code review | Cleared as placeholders; rendered output requires visual review |
-| Future recorded music, SFX, images, videos, custom fonts, or licensed SDK assets | Media | None currently shipped | N/A | Resource audit | Add each file before shipping |
+| `Resources/Assets.xcassets/TitleScreen.imageset/TitleScreen.jpg` | Title art | Owner to verify | Owner to provide creation or license record | Git history only | Review required before submission |
+| `Resources/CyberpunkSpaceRace.mp3` | Menu soundtrack | Owner to verify | Owner to provide creation or license record and distribution rights | Introduced in commit `5fa6fdd` | Review required before submission |
 
 For generated assets, record the generator/model and version, prompt or source inputs, generation date, editor, post-processing, commercial-use terms, and evidence that inputs and outputs do not imitate protected characters, brands, vehicles, venues, logos, living artists, or copyrighted styles.
 
@@ -32,7 +33,7 @@ For generated assets, record the generator/model and version, prompt or source i
 
 ## Product IP checklist
 
-- [ ] Search “Neon Racer” and proposed subtitle in relevant trademark classes, app stores, game stores, domains, and social channels; owner/legal reviewer approves the name.
+- [ ] Search “CyberRun” and proposed subtitle in relevant trademark classes, app stores, game stores, domains, and social channels; owner/legal reviewer approves the name.
 - [ ] App icon, logo, typography, UI, vehicles, routes, teams, sponsors, signage, and liveries are original and not confusingly similar to real products or racing properties.
 - [ ] Fictional vehicle silhouettes do not reproduce distinctive protected designs.
 - [ ] Route names/layouts do not imply affiliation with real venues, roads, events, cities, teams, or sponsors.

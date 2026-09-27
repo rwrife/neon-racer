@@ -2,6 +2,34 @@ import XCTest
 
 final class NeonRacerUITests: XCTestCase {
     @MainActor
+    func testAppStoreScreenshots() {
+        let app = XCUIApplication()
+        app.launchArguments.append("UITestDisableRunRecovery")
+        app.launchArguments.append("UITestAppStoreScreenshots")
+        XCUIDevice.shared.orientation = .landscapeLeft
+        app.launch()
+        dismissRunRecoveryIfPresent(app)
+
+        XCTAssertTrue(app.buttons["RACE"].waitForExistence(timeout: 10))
+        let title = XCTAttachment(screenshot: XCUIScreen.main.screenshot())
+        title.name = "01-title"
+        title.lifetime = .keepAlways
+        add(title)
+
+        app.buttons["RACE"].tap()
+        XCTAssertTrue(app.buttons["Pause race"].waitForExistence(timeout: 10))
+        if app.buttons["RESUME"].exists {
+            app.buttons["RESUME"].tap()
+        }
+        sleep(4)
+        app.buttons.matching(identifier: "arrow.up").firstMatch.press(forDuration: 2)
+        let race = XCTAttachment(screenshot: XCUIScreen.main.screenshot())
+        race.name = "02-race"
+        race.lifetime = .keepAlways
+        add(race)
+    }
+
+    @MainActor
     func testLaunchesRaceFromMainMenu() {
         let app = XCUIApplication()
         app.launchArguments.append("UITestDisableRunRecovery")

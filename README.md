@@ -1,6 +1,6 @@
-# Neon Racer
+# CyberRun
 
-Neon Racer is an original native iOS arcade racing game with a retro-futurist neon visual style.
+CyberRun is an original native iOS arcade racing game with a retro-futurist neon visual style.
 
 ## Requirements
 
@@ -8,7 +8,7 @@ Neon Racer is an original native iOS arcade racing game with a retro-futurist ne
 - iOS 26 or later
 - Swift 6
 
-The app is iPhone-only and runs in landscape orientation.
+The app supports iPhone and iPad in landscape orientation.
 
 CI pins Xcode 26.6 (`17F113`) and the iOS 26.5 simulator SDK on GitHub's
 `macos-26` runner rather than following the runner's changing default Xcode.
@@ -26,9 +26,9 @@ The gameplay simulation uses a fixed timestep, seeded randomness, explicit playe
 
 Audio uses typed music, engine, tire, ambience, impact, UI, and voice buses. Its
 mixing/lifecycle reducer and smoothed vehicle parameters are platform-independent and
-unit tested; `AudioService` maps that state onto AVAudioEngine. The current soundscape is
-generated entirely in code, so missing future resources never block gameplay. Music and
-effects levels and mute choices persist independently in user defaults.
+unit tested; `AudioService` maps that state onto AVAudioEngine. The menu plays a bundled
+soundtrack and races transition to procedural music stems. Music and effects levels and
+mute choices persist independently in user defaults.
 
 ### Deterministic diagnostic replays
 
@@ -86,7 +86,7 @@ renderer integration gaps are documented in
 - [Privacy manifest review and App Store privacy answers](docs/privacy.md)
 - [Asset provenance and IP checklist](docs/provenance.md)
 - [TestFlight smoke and rollback checklist](docs/testflight.md)
-- [App Store metadata and screenshot draft](docs/app-store/metadata.md)
+- [App Store listing and screenshots](AppStoreAssets/README.md)
 
 The project intentionally contains no signing secrets or team identifier. Owner approval
 of the icon, public support/privacy URLs, legal-owner metadata, device testing, and

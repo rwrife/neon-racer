@@ -85,6 +85,7 @@ struct RootView: View {
             }
         }
         .preferredColorScheme(.dark)
+        .statusBarHidden()
         .persistentSystemOverlays(.hidden)
         .task {
 #if DEBUG

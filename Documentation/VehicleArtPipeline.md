@@ -4,7 +4,7 @@ The current vehicles are original code-generated vector placeholders. They estab
 
 ## Art direction and provenance
 
-- Source: `NeonRacer/Game/Rendering/VehicleArt.swift`, authored for Neon Racer on 2026-09-26.
+- Source: `NeonRacer/Game/Rendering/VehicleArt.swift`, authored for CyberRun on 2026-09-26.
 - Method: hand-authored normalized polygon points rendered with SpriteKit primitives. No source images, generative model, external vehicle files, logos, type treatments, or traced reference pixels were used.
 - Intent: broad fictional retro-future categories rather than identifiable makes or models. The player wedge, narrow coupe, tall hauler, and split-wing interceptor must remain distinguishable in a one-color silhouette.
 - Review requirement: final replacement art needs an originality/trade-dress review and its own provenance row in `AssetProvenance.md`.

@@ -1,19 +1,21 @@
-# App Store metadata draft
+# App Store metadata and release notes
+
+The version 1.0 listing and screenshots live in [`AppStoreAssets`](../../AppStoreAssets/README.md). Use that listing as the source for App Store Connect.
 
 All copy is draft text pending owner, product, IP, privacy, and App Review validation.
 
 ## Listing
 
-- **Name:** Neon Racer
-- **Subtitle (30 characters max):** Precision racing in neon
+- **Name:** CyberRun
+- **Subtitle (30 characters max):** Neon arcade racing
 - **Primary category:** Games
 - **Secondary category:** Racing
-- **Promotional text:** Master a glowing arcade circuit where smooth steering, precise timing, and one more run make the difference.
-- **Keywords (100 characters max):** racing,arcade,neon,retro,driving,speed,score,offline,reflex,indie
+- **Promotional text:** Race glowing routes, time your boosts, and chase a new personal best.
+- **Keywords (100 characters max):** racing,arcade,neon,driving,speed,boost,drift,score,offline,car
 
 ### Description
 
-Race through a vivid neon course built for quick starts and focused runs. Neon Racer combines responsive arcade handling with deterministic simulation, making every improvement yours to earn.
+See the final version 1.0 description in [`AppStoreAssets/listing.md`](../../AppStoreAssets/listing.md).
 
 **Features**
 
@@ -21,7 +23,7 @@ Race through a vivid neon course built for quick starts and focused runs. Neon R
 - Original retro-futurist 3D neon presentation
 - Fast restarts for score-chasing runs
 - Local progress with no account required
-- Procedural audio and effects
+- Adaptive race music and effects
 - No ads, analytics, tracking, or data collection
 - Offline play
 
@@ -41,7 +43,7 @@ Do not submit placeholder values.
 
 Complete Apple's current questionnaire against the final content. Expected current inputs are no realistic violence, fear, sexual content, profanity, gambling, contests, alcohol/drugs, medical content, user-generated content, messaging, unrestricted web access, advertising, loot boxes, or external purchases. Reassess flashing visuals, collision effects, and any future story/audio content before submission.
 
-- iPhone only; landscape left and right.
+- iPhone and iPad; landscape left and right.
 - Internet connection and account are not required.
 - Game controller: do not claim support until controller navigation and gameplay pass TestFlight testing.
 - Accessibility: do not claim App Store accessibility features until each claimed feature is tested in the release build.
@@ -52,7 +54,9 @@ Store metadata should say touch input is supported. Controller support remains u
 
 ## Screenshot and preview plan
 
-Capture final release UI on Apple's currently required iPhone display sizes:
+The current 6.5-inch iPhone and 13-inch iPad capture sets are in [`AppStoreAssets/screenshots`](../../AppStoreAssets/screenshots). Review the final signed build on both devices before upload.
+
+Further optional captures could show:
 
 1. Main menu/title and visual identity.
 2. Clear gameplay view showing the course and vehicle.

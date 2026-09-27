@@ -1,4 +1,4 @@
-# Neon Racer visual style guide
+# CyberRun visual style guide
 
 This guide is the visual contract for vehicles, environments, HUD, VFX, signage, and store captures. The direction is **electric dusk**: a dark, legible arcade road world built from broad silhouettes, sparse luminous edges, and warm/cool landmarks rather than a wall of glow.
 
@@ -15,7 +15,7 @@ Build mood boards from licensable references to general subjects (night roads, a
 3. **Glow has a source:** every halo surrounds a crisp luminous core; darkness separates accents.
 4. **One visual sentence:** each scene has one dominant landmark, one palette story, and one motion effect.
 5. **Shape plus color:** gameplay meaning never depends on hue alone.
-6. **Future through fiction:** brands, places, vehicles, and symbols belong to Neon Racer's own world.
+6. **Future through fiction:** brands, places, vehicles, and symbols belong to CyberRun's own world.
 
 ## Palette families
 

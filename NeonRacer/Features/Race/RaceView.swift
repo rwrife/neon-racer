@@ -146,24 +146,26 @@ struct RaceView: View {
             .zIndex(20_001)
 
 #if DEBUG
-            HStack {
-                if ProcessInfo.processInfo.arguments.contains("UITestFinishRace") {
-                    Button("COMPLETE TEST RACE") {
-                        forcedUITestResult = scene.completeForUITesting(succeeded: true)
+            if !ProcessInfo.processInfo.arguments.contains("UITestAppStoreScreenshots") {
+                HStack {
+                    if ProcessInfo.processInfo.arguments.contains("UITestFinishRace") {
+                        Button("COMPLETE TEST RACE") {
+                            forcedUITestResult = scene.completeForUITesting(succeeded: true)
+                        }
+                    }
+                    if !Self.debugStartsRace {
+                        Button("VEHICLE SHEET") {
+                            showsVehicleArtPreview = true
+                        }
                     }
                 }
-                if !Self.debugStartsRace {
-                    Button("VEHICLE SHEET") {
-                        showsVehicleArtPreview = true
-                    }
-                }
+                .buttonStyle(.bordered)
+                .tint(.white)
+                .padding()
+                .padding(.top, 52)
+                .frame(maxWidth: .infinity, alignment: .trailing)
+                .zIndex(20_000)
             }
-            .buttonStyle(.bordered)
-            .tint(.white)
-            .padding()
-            .padding(.top, 52)
-            .frame(maxWidth: .infinity, alignment: .trailing)
-            .zIndex(20_000)
 #endif
 
             if lifecycle.state == .running
