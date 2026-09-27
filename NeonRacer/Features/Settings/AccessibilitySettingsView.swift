@@ -50,28 +50,28 @@ struct SettingsView: View {
                         "Music",
                         value: Binding(
                             get: { audio.preferences.musicLevel },
-                            set: audio.setMusicLevel
+                            set: { audio.setMusicLevel($0) }
                         )
                     )
                     Toggle(
                         "Mute Music",
                         isOn: Binding(
                             get: { audio.preferences.isMusicMuted },
-                            set: audio.setMusicMuted
+                            set: { audio.setMusicMuted($0) }
                         )
                     )
                     audioSlider(
                         "Effects",
                         value: Binding(
                             get: { audio.preferences.effectsLevel },
-                            set: audio.setEffectsLevel
+                            set: { audio.setEffectsLevel($0) }
                         )
                     )
                     Toggle(
                         "Mute Effects",
                         isOn: Binding(
                             get: { audio.preferences.areEffectsMuted },
-                            set: audio.setEffectsMuted
+                            set: { audio.setEffectsMuted($0) }
                         )
                     )
                 }

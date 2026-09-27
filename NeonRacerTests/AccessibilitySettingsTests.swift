@@ -69,4 +69,39 @@ struct AccessibilitySettingsTests {
         #expect(palette.text.contrastRatio(with: palette.background) >= 7)
         #expect(palette.primary != palette.secondary)
     }
+
+    @Test
+    func audioBindingSettersUseExplicitClosuresNotBoundMethodReferences() throws {
+        let testFilePath = URL(fileURLWithPath: #filePath)
+        let repoRoot = testFilePath
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+        let targetPath = repoRoot
+            .appendingPathComponent("NeonRacer")
+            .appendingPathComponent("Features")
+            .appendingPathComponent("Settings")
+            .appendingPathComponent("AccessibilitySettingsView.swift")
+        let source = try String(contentsOf: targetPath, encoding: .utf8)
+
+        let boundMethodSetterPattern = try Regex(#"set:\s*audio\.set[A-Za-z]+"#)
+        let matches = source.matches(of: boundMethodSetterPattern)
+
+        #expect(
+            matches.isEmpty,
+            "Found \(matches.count) SwiftUI Binding `set:` argument(s) that pass a bound "
+                + "@MainActor AudioService method reference directly. This exact shape crashed "
+                + "the Xcode 26.6 Swift 6.3.3 compiler during IRGen "
+                + "(SIL function $sSbScA_pSgIeAghyg_SbIeAghn_TR). Use an explicit "
+                + "`{ audio.setXxx($0) }` closure instead."
+        )
+
+        for setterName in ["setMusicLevel", "setMusicMuted", "setEffectsLevel", "setEffectsMuted"] {
+            let explicitClosurePattern = "{ audio.\(setterName)($0) }"
+            #expect(
+                source.contains(explicitClosurePattern),
+                "Expected an explicit closure `\(explicitClosurePattern)` wiring \(setterName) "
+                    + "into its Binding setter."
+            )
+        }
+    }
 }
