@@ -122,6 +122,12 @@ struct RoadPosition: Codable, Equatable, Sendable {
 struct VehicleState: Codable, Equatable, Sendable {
     var roadPosition = RoadPosition()
     var speed: Double = 0
+    /// Visual/physical slide angle in radians; positive slides the tail to the left.
+    var slipAngle: Double = 0
+    var isDrifting = false
+    var isOffRoad = false
+    /// Remaining seconds of post-crash recovery (reduced control, invulnerability).
+    var crashRecoveryRemaining: TimeInterval = 0
 }
 
 struct ScoreInputs: Codable, Equatable, Sendable {
@@ -162,6 +168,8 @@ struct RaceState: Codable, Equatable, Sendable {
     var currentEnvironmentID: String = ""
     var completedStageIDs: [String] = []
     var committedBranchIDs: [String] = []
+    var traffic: [TrafficVehicleState] = []
+    var obstacles: [TrackObstacleState] = []
 
     var distance: Double {
         get { vehicle.roadPosition.distance }
@@ -233,6 +241,8 @@ struct RaceSimulation: Sendable {
     var boostCooldownRemaining: TimeInterval = 0
     let configuration: RaceConfiguration
     private let routeGraph: RouteGraph
+    /// Deterministic road shape (curves, hills, lanes, start/finish zones) for the active route.
+    let trackLayout: TrackLayout
     private let countdownDuration: TimeInterval
     private var stageStartDistance: Double = 0
     private var phaseBeforePause: RacePhase?
@@ -260,6 +270,7 @@ struct RaceSimulation: Sendable {
         precondition(countdownDuration.isFinite && countdownDuration >= 0)
         self.configuration = configuration
         self.routeGraph = resolvedRoute
+        self.trackLayout = TrackLayout.forRoute(resolvedRoute)
         self.countdownDuration = countdownDuration
         let startStage = resolvedRoute.stage(id: resolvedRoute.startStageID)!
         state = RaceState(

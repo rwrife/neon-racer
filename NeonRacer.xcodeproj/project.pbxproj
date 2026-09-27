@@ -54,6 +54,7 @@
 		E12000000000000000000001 /* EnvironmentRenderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = E12000000000000000000002 /* EnvironmentRenderer.swift */; };
 		E14000000000000000000001 /* NeonEffectsStack.swift in Sources */ = {isa = PBXBuildFile; fileRef = E14000000000000000000002 /* NeonEffectsStack.swift */; };
 		E14100000000000000000001 /* RaceScoring.swift in Sources */ = {isa = PBXBuildFile; fileRef = E14100000000000000000011 /* RaceScoring.swift */; };
+		C0DE0000000000000000A001 /* TrackGeometry.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0DE0000000000000000A002 /* TrackGeometry.swift */; };
 		E14100000000000000000002 /* RaceHUDSnapshot.swift in Sources */ = {isa = PBXBuildFile; fileRef = E14100000000000000000012 /* RaceHUDSnapshot.swift */; };
 		E14100000000000000000003 /* RaceHUDView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E14100000000000000000013 /* RaceHUDView.swift */; };
 		E14100000000000000000004 /* RaceScoringTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E14100000000000000000014 /* RaceScoringTests.swift */; };
@@ -140,6 +141,7 @@
 		D1100000000000000000000A /* solar-to-summit.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "solar-to-summit.json"; sourceTree = "<group>"; };
 		E12000000000000000000002 /* EnvironmentRenderer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EnvironmentRenderer.swift; sourceTree = "<group>"; };
 		E14000000000000000000002 /* NeonEffectsStack.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NeonEffectsStack.swift; sourceTree = "<group>"; };
+		C0DE0000000000000000A002 /* TrackGeometry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrackGeometry.swift; sourceTree = "<group>"; };
 		E14100000000000000000011 /* RaceScoring.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RaceScoring.swift; sourceTree = "<group>"; };
 		E14100000000000000000012 /* RaceHUDSnapshot.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RaceHUDSnapshot.swift; sourceTree = "<group>"; };
 		E14100000000000000000013 /* RaceHUDView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RaceHUDView.swift; sourceTree = "<group>"; };
@@ -278,6 +280,7 @@
 				B28000000000000000000003 /* RaceBalanceConfiguration.swift */,
 				300000000000000000000007 /* RaceSimulation.swift */,
 				E14100000000000000000011 /* RaceScoring.swift */,
+				C0DE0000000000000000A002 /* TrackGeometry.swift */,
 				E14100000000000000000012 /* RaceHUDSnapshot.swift */,
 				F19000000000000000000003 /* AudioMixState.swift */,
 				A24000000000000000000003 /* RaceReplay.swift */,
@@ -593,6 +596,7 @@
 				B28000000000000000000001 /* RaceBalanceConfiguration.swift in Sources */,
 				200000000000000000000007 /* RaceSimulation.swift in Sources */,
 				E14100000000000000000001 /* RaceScoring.swift in Sources */,
+				C0DE0000000000000000A001 /* TrackGeometry.swift in Sources */,
 				E14100000000000000000002 /* RaceHUDSnapshot.swift in Sources */,
 				A24000000000000000000001 /* RaceReplay.swift in Sources */,
 				A24000000000000000000002 /* RaceDebugDiagnostics.swift in Sources */,
