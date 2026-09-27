@@ -41,10 +41,6 @@ struct SettingsView: View {
     var body: some View {
         NavigationStack {
             Form {
-                Section {
-                    MenuInputPrompt(inputMethod: inputService.currentInputSource)
-                }
-
                 Section("Audio") {
                     audioSlider(
                         "Music",
@@ -166,7 +162,7 @@ struct SettingsView: View {
                 }
                 Button("Cancel", role: .cancel) {}
             } message: {
-                Text("This clears the best score, tutorial progress, controls, and haptic settings. Audio and accessibility preferences are preserved.")
+                Text("This clears the best score, controls, and haptic settings. Audio and accessibility preferences are preserved.")
             }
         }
         .onAppear {
@@ -344,34 +340,6 @@ struct AccessibilitySettingsView: View {
         .environmentObject(AccessibilitySettingsStore())
 }
 
-struct MenuInputPrompt: View {
-    let inputMethod: DrivingInputMethod
-
-    var body: some View {
-        let glyphs = inputMethod.menuPromptGlyphs
-        HStack(spacing: 12) {
-            Label(inputMethod.displayName, systemImage: glyphs.sourceSystemImage)
-            Divider()
-                .frame(height: 16)
-            Text("\(glyphs.navigate) Navigate")
-            Text("\(glyphs.confirm) Confirm")
-            Text("\(glyphs.cancel) Back")
-        }
-        .font(.caption.bold().monospaced())
-        .foregroundStyle(.secondary)
-        .padding(.horizontal, 12)
-        .padding(.vertical, 8)
-        .background(.white.opacity(0.06), in: Capsule())
-        .accessibilityElement(children: .combine)
-        .accessibilityLabel(
-            "\(inputMethod.displayName) controls. "
-                + "\(glyphs.navigate) to navigate. "
-                + "\(glyphs.confirm) to confirm. "
-                + "\(glyphs.cancel) to go back."
-        )
-    }
-}
-
 private extension PlayerAction {
     var settingsTitle: String {
         switch self {
@@ -405,6 +373,7 @@ private extension KeyboardKey {
         case .d: "D"
         case .w: "W"
         case .s: "S"
+        case .p: "P"
         }
     }
 }

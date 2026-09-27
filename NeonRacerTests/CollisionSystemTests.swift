@@ -169,6 +169,75 @@ struct CollisionSystemTests {
         #expect(cueFeedback == .crashTimePenalty(seconds: 2))
     }
 
+    @Test
+    func crashStartsWipeoutThenRespawnsStationaryAtRoadCenter() {
+        var state = runningState()
+        state.speed = 100
+        state.lateralPosition = 0.5
+        state.traffic = [TrafficVehicleState(
+            id: 7,
+            kind: .commuter,
+            distance: state.distance,
+            lateralPosition: 0.45,
+            speed: 40,
+            halfWidth: 0.18
+        )]
+        var system = CollisionSystem()
+        _ = system.update(
+            state: &state,
+            configuration: .standard,
+            trackLayout: .initialContent(),
+            deltaTime: 1.0 / 120.0
+        )
+
+        #expect(state.vehicle.isWipingOut)
+        #expect(state.vehicle.wipeoutDirection == 1)
+        #expect(state.vehicle.wipeoutDuration >= 1.7)
+
+        var runtime = DrivingModel.RuntimeState()
+        var vehicle = state.vehicle
+        var elapsed: TimeInterval = 0
+        while vehicle.isWipingOut && elapsed < 5 {
+            vehicle = DrivingModel.updateWipeout(
+                vehicle: vehicle,
+                configuration: .standard,
+                deltaTime: 1.0 / 60.0,
+                runtime: &runtime
+            ).vehicle
+            elapsed += 1.0 / 60.0
+        }
+
+        #expect(!vehicle.isWipingOut)
+        #expect(vehicle.speed == 0)
+        #expect(vehicle.roadPosition.lateralOffset == 0)
+        #expect(vehicle.roadPosition.heading == 0)
+        #expect(vehicle.respawnShieldRemaining == DrivingModel.respawnShieldDuration)
+    }
+
+    @Test
+    func respawnShieldBlocksCollisions() {
+        var shielded = runningState()
+        shielded.speed = 80
+        shielded.vehicle.respawnShieldRemaining = 1
+        shielded.traffic = [TrafficVehicleState(
+            id: 9,
+            kind: .commuter,
+            distance: shielded.distance,
+            lateralPosition: shielded.lateralPosition,
+            speed: 30,
+            halfWidth: 0.18
+        )]
+        var system = CollisionSystem()
+        let result = system.update(
+            state: &shielded,
+            configuration: .standard,
+            trackLayout: .initialContent(),
+            deltaTime: 1.0 / 120.0
+        )
+        #expect(result.scoringSignals.allSatisfy { !$0.cues.contains(.crash) })
+        #expect(!shielded.vehicle.isWipingOut)
+    }
+
     private func runningState() -> RaceState {
         var state = RaceState(
             elapsedTime: 12,

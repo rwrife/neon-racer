@@ -10,7 +10,6 @@ struct RaceView: View {
     let selectedPaletteID: String
     let audioService: AudioService
     @ObservedObject var gameplaySettings: GameplaySettingsStore
-    let updateTutorialProgress: (TutorialProgress) -> Void
     let restartRace: () -> Void
     let exitRace: () -> Void
     let completed: (RaceResult) -> Void
@@ -26,7 +25,6 @@ struct RaceView: View {
     @StateObject private var sceneHolder: RaceSceneHolder
     private var scene: RaceScene3D { sceneHolder.scene }
     @StateObject private var inputService: InputService
-    @State private var tutorialSession: TutorialSession
     @State private var lifecycle = RunInterruptionCoordinator()
     @State private var hapticsService = HapticsService()
     @State private var feedbackError: String?
@@ -52,7 +50,6 @@ struct RaceView: View {
 #endif
 
     init(
-        tutorialProgress: TutorialProgress,
         inputMethod: DrivingInputMethod,
         selectedVehicleID: String,
         configuration: RaceConfiguration,
@@ -60,7 +57,6 @@ struct RaceView: View {
         garagePalette: GaragePaletteDefinition,
         audioService: AudioService,
         gameplaySettings: GameplaySettingsStore,
-        updateTutorialProgress: @escaping (TutorialProgress) -> Void,
         restartRace: @escaping () -> Void,
         exitRace: @escaping () -> Void,
         completed: @escaping (RaceResult) -> Void
@@ -71,7 +67,6 @@ struct RaceView: View {
         self.selectedPaletteID = garagePalette.id
         self.audioService = audioService
         self.gameplaySettings = gameplaySettings
-        self.updateTutorialProgress = updateTutorialProgress
         self.restartRace = restartRace
         self.exitRace = exitRace
         self.completed = completed
@@ -93,9 +88,6 @@ struct RaceView: View {
                 )
             )
         )
-        _tutorialSession = State(
-            initialValue: TutorialSession(progress: Self.debugTutorialProgress(tutorialProgress))
-        )
         _inputService = StateObject(
             wrappedValue: InputService(initialInputMethod: inputMethod)
         )
@@ -104,18 +96,16 @@ struct RaceView: View {
 #if DEBUG
     private static let debugHidesHUD = ProcessInfo.processInfo.arguments.contains("UITestHideHUD")
     private static let debugStartsRace = ProcessInfo.processInfo.arguments.contains("UITestStartRace")
-    private static let debugSkipsTutorial = ProcessInfo.processInfo.arguments.contains("UITestSkipTutorial")
-    private static let debugForcesTutorial = ProcessInfo.processInfo.arguments.contains("UITestForceTutorial")
 #else
     private static let debugHidesHUD = false
     private static let debugStartsRace = false
-    private static let debugSkipsTutorial = false
-    private static let debugForcesTutorial = false
 #endif
 
     var body: some View {
         ZStack(alignment: .topLeading) {
-            RaceScene3DView(scene: scene)
+            RaceScene3DView(scene: scene) { key, isPressed in
+                inputService.handleKeyboardKey(key, isPressed: isPressed)
+            }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .ignoresSafeArea()
                 .accessibilityElement(children: .ignore)
@@ -176,16 +166,6 @@ struct RaceView: View {
             .zIndex(20_000)
 #endif
 
-            if !Self.debugStartsRace {
-                inputSourcePrompt
-            }
-
-#if targetEnvironment(simulator)
-            if !Self.debugStartsRace {
-                simulatorKeyboardLegend
-            }
-#endif
-
             if lifecycle.state == .running
                 && !Self.debugStartsRace {
                 touchControls
@@ -193,20 +173,6 @@ struct RaceView: View {
 
             if lifecycle.state == .pausedForRecovery {
                 recoveryOverlay
-            }
-
-            if let step = tutorialSession.currentStep,
-               lifecycle.state != .pausedForRecovery {
-                TutorialPromptView(
-                    step: step,
-                    inputMethod: inputService.inputMethod,
-                    skip: skipTutorial
-                )
-                .padding(.top, 108)
-                .padding(.trailing, 22)
-                .padding(.bottom, 108)
-                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .trailing)
-                .zIndex(20_002)
             }
 
 #if DEBUG
@@ -246,8 +212,6 @@ struct RaceView: View {
             inputService.updateRemapping(gameplaySettings.settings.inputRemapping)
             hapticsService.configure(gameplaySettings.settings.haptics)
             configureSceneAccessibility()
-            tutorialSession.startIfNeeded()
-            updateTutorialProgress(tutorialSession.progress)
             saveRunRecoverySnapshot(force: true)
             audioService.beginObserving(handleAudioEvent)
             audioService.setApplicationActive(scenePhase == .active)
@@ -344,39 +308,6 @@ struct RaceView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .onAppear { focusedPauseAction = .resume }
     }
-
-    private var inputSourcePrompt: some View {
-        Label(
-            inputService.inputMethod.displayName.uppercased(),
-            systemImage: inputService.inputMethod.promptSystemImage
-        )
-        .font(.caption.bold().monospaced())
-        .padding(.horizontal, 12)
-        .padding(.vertical, 8)
-        .background(.black.opacity(0.65), in: Capsule())
-        .padding(.top, 78)
-        .padding(.leading)
-        .accessibilityLabel("Current input: \(inputService.inputMethod.displayName)")
-    }
-
-#if targetEnvironment(simulator)
-    private var simulatorKeyboardLegend: some View {
-        Text("A/D or \u{2190}/\u{2192} STEER   W or \u{2191} GO   S or \u{2193} BRAKE   SPACE BOOST   ESC PAUSE")
-            .font(.caption2.bold().monospaced())
-            .foregroundStyle(.white)
-            .padding(.horizontal, 12)
-            .padding(.vertical, 8)
-            .background(.black.opacity(0.72), in: Capsule())
-            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-            .padding(.top, 18)
-            .allowsHitTesting(false)
-            .accessibilityLabel(
-                "Keyboard controls: A and D or left and right arrows steer. "
-                    + "W or up arrow accelerates. S or down arrow brakes. "
-                    + "Space boosts. Escape pauses."
-            )
-    }
-#endif
 
     private var touchControls: some View {
         TouchDrivingControls(
@@ -545,26 +476,6 @@ struct RaceView: View {
         )
     }
 
-    private func skipTutorial() {
-        updateTutorial {
-            tutorialSession.skip()
-        }
-        updateTutorialProgress(tutorialSession.progress)
-    }
-
-    private func updateTutorial(_ update: () -> Void) {
-        let reduceMotion = accessibility.settings.resolvedReduceMotion(
-            systemReduceMotion: systemReduceMotion
-        )
-        if reduceMotion {
-            update()
-        } else {
-            withAnimation {
-                update()
-            }
-        }
-    }
-
     private func configureSceneAccessibility() {
         scene.apply(
             settings: accessibility.settings,
@@ -605,7 +516,6 @@ struct RaceView: View {
 
     private func handleHUDUpdate(_ update: RaceHUDUpdate) {
         hudSnapshot = update.snapshot
-        observeTutorial(snapshot: update.snapshot, feedback: update.feedback)
         saveRunRecoverySnapshot()
         guard let feedback = update.feedback else {
             return
@@ -640,30 +550,6 @@ struct RaceView: View {
         }
     }
 
-    private func observeTutorial(snapshot: RaceHUDSnapshot, feedback: RaceHUDFeedback?) {
-        let observation = TutorialDrivingObservation(
-            snapshot: snapshot,
-            command: inputService.currentCommand,
-            feedback: feedback
-        )
-        let didAdvance: Bool
-        let reduceMotion = accessibility.settings.resolvedReduceMotion(
-            systemReduceMotion: systemReduceMotion
-        )
-        if reduceMotion {
-            didAdvance = tutorialSession.observe(observation)
-        } else {
-            var changed = false
-            withAnimation {
-                changed = tutorialSession.observe(observation)
-            }
-            didAdvance = changed
-        }
-        if didAdvance {
-            updateTutorialProgress(tutorialSession.progress)
-        }
-    }
-
     private func movePauseFocus(_ offset: Int) {
         let actions: [PauseAction] = [.resume, .restart, .title]
         let current = focusedPauseAction.flatMap(actions.firstIndex) ?? 0
@@ -680,18 +566,6 @@ struct RaceView: View {
             set: { if !$0 { confirmation = nil } }
         )
     }
-
-    private static func debugTutorialProgress(_ progress: TutorialProgress) -> TutorialProgress {
-#if DEBUG
-        if debugSkipsTutorial || debugStartsRace {
-            return .completed
-        }
-        if debugForcesTutorial {
-            return .notStarted
-        }
-#endif
-        return progress
-    }
 }
 
 @MainActor
@@ -702,17 +576,103 @@ private final class RaceSceneHolder: ObservableObject {
 
 private struct RaceScene3DView: UIViewRepresentable {
     let scene: RaceScene3D
+    let keyHandler: (KeyboardKey, Bool) -> Void
 
-    func makeUIView(context: Context) -> SCNView {
-        let view = SCNView(frame: .zero, options: nil)
+    func makeUIView(context: Context) -> KeyboardCaptureSCNView {
+        let view = KeyboardCaptureSCNView(frame: .zero, options: nil)
         view.isJitteringEnabled = true
+        view.keyHandler = keyHandler
         scene.attach(to: view)
         return view
     }
 
-    func updateUIView(_ uiView: SCNView, context: Context) {
+    func updateUIView(_ uiView: KeyboardCaptureSCNView, context: Context) {
+        uiView.keyHandler = keyHandler
         if uiView.scene !== scene.scene {
             scene.attach(to: uiView)
+        }
+        uiView.claimKeyboardFocusIfNeeded()
+    }
+}
+
+/// Receives hardware keyboard presses through the UIKit responder chain, which works for the
+/// Mac keyboard in the iOS Simulator even when GameController's GCKeyboard never connects.
+final class KeyboardCaptureSCNView: SCNView {
+    var keyHandler: (KeyboardKey, Bool) -> Void = { _, _ in }
+
+    override var canBecomeFirstResponder: Bool { true }
+
+    // UIKit consumes Escape as a system key command before `pressesBegan`, so claim it explicitly.
+    private lazy var escapeCommand: UIKeyCommand = {
+        let command = UIKeyCommand(input: UIKeyCommand.inputEscape, modifierFlags: [], action: #selector(escapePressed))
+        command.wantsPriorityOverSystemBehavior = true
+        return command
+    }()
+
+    override var keyCommands: [UIKeyCommand]? { [escapeCommand] }
+
+    @objc private func escapePressed() {
+        keyHandler(.escape, true)
+        keyHandler(.escape, false)
+    }
+
+    override func didMoveToWindow() {
+        super.didMoveToWindow()
+        claimKeyboardFocusIfNeeded()
+    }
+
+    func claimKeyboardFocusIfNeeded() {
+        guard window != nil, !isFirstResponder else { return }
+        becomeFirstResponder()
+    }
+
+    override func pressesBegan(_ presses: Set<UIPress>, with event: UIPressesEvent?) {
+        if !forward(presses, isPressed: true) {
+            super.pressesBegan(presses, with: event)
+        }
+    }
+
+    override func pressesEnded(_ presses: Set<UIPress>, with event: UIPressesEvent?) {
+        if !forward(presses, isPressed: false) {
+            super.pressesEnded(presses, with: event)
+        }
+    }
+
+    override func pressesCancelled(_ presses: Set<UIPress>, with event: UIPressesEvent?) {
+        if !forward(presses, isPressed: false) {
+            super.pressesCancelled(presses, with: event)
+        }
+    }
+
+    private func forward(_ presses: Set<UIPress>, isPressed: Bool) -> Bool {
+        var handled = false
+        for press in presses {
+            guard let usage = press.key?.keyCode,
+                  let key = KeyboardKey(hidUsage: usage),
+                  key != .escape else { continue }
+            keyHandler(key, isPressed)
+            handled = true
+        }
+        return handled
+    }
+}
+
+extension KeyboardKey {
+    init?(hidUsage: UIKeyboardHIDUsage) {
+        switch hidUsage {
+        case .keyboardLeftArrow: self = .leftArrow
+        case .keyboardRightArrow: self = .rightArrow
+        case .keyboardUpArrow: self = .upArrow
+        case .keyboardDownArrow: self = .downArrow
+        case .keyboardSpacebar: self = .space
+        case .keyboardEscape: self = .escape
+        case .keyboardReturnOrEnter, .keypadEnter: self = .returnKey
+        case .keyboardA: self = .a
+        case .keyboardD: self = .d
+        case .keyboardW: self = .w
+        case .keyboardS: self = .s
+        case .keyboardP: self = .p
+        default: return nil
         }
     }
 }
@@ -763,23 +723,12 @@ private struct HoldButton: View {
     }
 }
 
-private extension DrivingInputMethod {
-    var promptSystemImage: String {
-        switch self {
-        case .touch: "hand.tap"
-        case .controller: "gamecontroller"
-        case .keyboard: "keyboard"
-        }
-    }
-}
-
 private extension Logger {
     static let lifecycle = Logger(subsystem: "com.neonracer.app", category: "Lifecycle")
 }
 
 #Preview {
     RaceView(
-        tutorialProgress: .notStarted,
         inputMethod: .touch,
         selectedVehicleID: "prototype-zero",
         configuration: .standard,
@@ -787,7 +736,6 @@ private extension Logger {
         garagePalette: ProgressionCatalog.palettes[0],
         audioService: AudioService(),
         gameplaySettings: GameplaySettingsStore(),
-        updateTutorialProgress: { _ in },
         restartRace: {},
         exitRace: {},
         completed: { _ in }

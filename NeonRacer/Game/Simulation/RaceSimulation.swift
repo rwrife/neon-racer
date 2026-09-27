@@ -130,6 +130,16 @@ struct VehicleState: Codable, Equatable, Sendable {
     var isOffRoad = false
     /// Remaining seconds of post-crash recovery (reduced control, invulnerability).
     var crashRecoveryRemaining: TimeInterval = 0
+    /// Remaining seconds of an uncontrollable crash tumble; the car respawns at the road center when it ends.
+    var wipeoutRemaining: TimeInterval = 0
+    var wipeoutDuration: TimeInterval = 0
+    /// +1 tumbles toward the right edge, -1 toward the left.
+    var wipeoutDirection: Double = 0
+    var wipeoutSeverity: Double = 0
+    /// Remaining seconds of post-respawn invulnerability.
+    var respawnShieldRemaining: TimeInterval = 0
+
+    var isWipingOut: Bool { wipeoutRemaining > 0 }
 }
 
 struct ScoreInputs: Codable, Equatable, Sendable {
@@ -473,6 +483,8 @@ struct RaceSimulation: Sendable {
             return
         }
 
+        let isWipingOut = state.vehicle.isWipingOut
+        let command = isWipingOut ? PlayerCommand.idle : command
         let throttle = command.throttle.clamped(to: 0...1)
         let brake = command.brake.clamped(to: 0...1)
         let steering = command.steering.clamped(to: -1...1)
@@ -507,7 +519,12 @@ struct RaceSimulation: Sendable {
             stageID: state.currentStageID,
             distanceInStage: currentStageDistanceBeforeMove
         )
-        let drivingUpdate = DrivingModel.update(
+        let drivingUpdate = isWipingOut ? DrivingModel.updateWipeout(
+            vehicle: state.vehicle,
+            configuration: configuration,
+            deltaTime: deltaTime,
+            runtime: &drivingRuntime
+        ) : DrivingModel.update(
             vehicle: state.vehicle,
             command: PlayerCommand(
                 steering: steering,

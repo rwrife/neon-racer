@@ -19,7 +19,6 @@ struct GarageView: View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 24) {
-                    MenuInputPrompt(inputMethod: inputService.currentInputSource)
                     selectedVehiclePreview
                     vehicleSection
                     paletteSection

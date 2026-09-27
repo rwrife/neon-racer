@@ -145,11 +145,61 @@ struct DrivingModel: Sendable {
         updatedVehicle.isDrifting = driftUpdate.isDrifting
         updatedVehicle.isOffRoad = finalOffRoad
         updatedVehicle.crashRecoveryRemaining = crashRecoveryRemaining
+        updatedVehicle.respawnShieldRemaining = max(0, vehicle.respawnShieldRemaining - deltaTime)
 
         return Update(
             vehicle: updatedVehicle,
             distanceDelta: speed * deltaTime,
             completedDrift: driftUpdate.completedDrift
+        )
+    }
+
+    static let respawnShieldDuration: TimeInterval = 1.8
+
+    /// Uncontrollable crash tumble: the car slides to a stop, then respawns stationary at the road
+    /// center with a short invulnerability shield so the player can pull away again.
+    static func updateWipeout(
+        vehicle: VehicleState,
+        configuration: RaceConfiguration,
+        deltaTime: TimeInterval,
+        runtime: inout RuntimeState
+    ) -> Update {
+        let deltaTime = deltaTime.finiteOrZero.clamped(to: 0...configuration.maximumFrameDelta)
+        guard deltaTime > 0 else {
+            return Update(vehicle: vehicle, distanceDelta: 0, completedDrift: nil)
+        }
+        var updated = vehicle
+        let deceleration = max(configuration.braking * 1.25, vehicle.speed * 1.8)
+        updated.speed = max(0, vehicle.speed - deceleration * deltaTime)
+        let slideFade = vehicle.wipeoutDuration > 0
+            ? (vehicle.wipeoutRemaining / vehicle.wipeoutDuration).clamped(to: 0...1)
+            : 0
+        updated.roadPosition.lateralOffset = (vehicle.roadPosition.lateralOffset
+            + vehicle.wipeoutDirection * 0.55 * slideFade * deltaTime)
+            .clamped(to: -configuration.driving.lateralLimit...configuration.driving.lateralLimit)
+        updated.crashRecoveryRemaining = max(0, vehicle.crashRecoveryRemaining - deltaTime)
+        updated.wipeoutRemaining = max(0, vehicle.wipeoutRemaining - deltaTime)
+        updated.isDrifting = false
+        updated.slipAngle = 0
+        runtime.activeDriftID = nil
+        runtime.driftDuration = 0
+        runtime.driftPeakIntensity = 0
+
+        if updated.wipeoutRemaining == 0 {
+            updated.speed = 0
+            updated.roadPosition.lateralOffset = 0
+            updated.roadPosition.heading = 0
+            updated.isOffRoad = false
+            updated.crashRecoveryRemaining = 0
+            updated.wipeoutDuration = 0
+            updated.wipeoutDirection = 0
+            updated.wipeoutSeverity = 0
+            updated.respawnShieldRemaining = respawnShieldDuration
+        }
+        return Update(
+            vehicle: updated,
+            distanceDelta: updated.speed * deltaTime,
+            completedDrift: nil
         )
     }
 

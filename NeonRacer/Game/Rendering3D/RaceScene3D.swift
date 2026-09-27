@@ -24,6 +24,7 @@ final class RaceScene3D: NSObject {
     private let renderQualityPreference: RenderQualityPreference
     private var renderQuality: RenderQualityConfiguration
     private let mapper: TrackWorldMapper3D
+    private let terrain = NeonTerrain3D()
     private let roadBuilder = RoadMeshBuilder3D()
     private let markerBuilder = TrackMarkers3D()
     private let chaseCamera = ChaseCamera3D()
@@ -47,6 +48,9 @@ final class RaceScene3D: NSObject {
     private var observedFeedbackEventCount = 0
     private var observedRunEventCount = 0
     private var lastEnvironmentID = ""
+    private var heroCenterHeight: Float = 0.6
+    private var wasWipingOut = false
+    private var previousWipeoutElapsed: Double = 0
 #if DEBUG
     private let performanceMetrics = DebugPerformanceMetrics()
     private(set) var debugPerformanceSnapshot: DebugPerformanceSnapshot?
@@ -241,11 +245,13 @@ final class RaceScene3D: NSObject {
 
     private func buildScene() {
         scene.rootNode.name = "race-3d-root"
+        scene.rootNode.addChildNode(terrain.rootNode)
         scene.rootNode.addChildNode(roadBuilder.rootNode)
         scene.rootNode.addChildNode(markerBuilder.rootNode)
         scene.rootNode.addChildNode(roadsideProps.rootNode)
         normalizeHeroCarScaleIfNeeded()
         let heroBounds = heroCarBounds()
+        heroCenterHeight = max(0.3, (heroBounds.minimum.y + heroBounds.maximum.y) * 0.5)
         chaseCamera.configureSubject(
             length: heroBounds.dimensions.z,
             height: heroBounds.dimensions.y,
@@ -377,10 +383,13 @@ final class RaceScene3D: NSObject {
     ) {
         let roadInterval = PerformanceInstrumentation.begin(.roadProjection)
         let alpha = snapshot.interpolationAlpha
-        let distance = interpolate(snapshot.previous.distance, snapshot.current.distance, alpha)
-        let lateral = interpolate(snapshot.previous.lateralPosition, snapshot.current.lateralPosition, alpha)
-        let speed = interpolate(snapshot.previous.speed, snapshot.current.speed, alpha)
         let state = snapshot.current
+        // Respawn teleports the car to the road center; don't interpolate across the jump.
+        let didRespawn = snapshot.previous.vehicle.isWipingOut && !state.vehicle.isWipingOut
+        let lateralAlpha = didRespawn ? 1 : alpha
+        let distance = interpolate(snapshot.previous.distance, snapshot.current.distance, alpha)
+        let lateral = interpolate(snapshot.previous.lateralPosition, snapshot.current.lateralPosition, lateralAlpha)
+        let speed = interpolate(snapshot.previous.speed, snapshot.current.speed, alpha)
         let carFrame = mapper.frame(atRunDistance: distance, lateralPosition: lateral)
         carNode.position = carFrame.position
         carNode.eulerAngles = SCNVector3(
@@ -388,8 +397,9 @@ final class RaceScene3D: NSObject {
             carFrame.yaw - Float(state.vehicle.roadPosition.heading * 0.35),
             0
         )
+        applyWipeoutPose(snapshot: snapshot, alpha: alpha, carFrame: carFrame, currentTime: currentTime)
         carNode.update(
-            steering: command.steering,
+            steering: state.vehicle.isWipingOut ? 0 : command.steering,
             speed: speed,
             isBoosting: state.isBoostActive,
             isBraking: command.brake > 0.2,
@@ -397,6 +407,7 @@ final class RaceScene3D: NSObject {
             time: currentTime
         )
         roadBuilder.update(playerDistance: distance, mapper: mapper)
+        terrain.update(playerDistance: distance, mapper: mapper, renderQuality: renderQuality)
         roadsideProps.update(
             playerDistance: distance,
             mapper: mapper,
@@ -449,6 +460,83 @@ final class RaceScene3D: NSObject {
             pooledNodeCapacity: trafficNodes.count + obstacleNodes.count + roadsideProps.activeNodeCount
         )
 #endif
+    }
+
+    /// Crash tumble: the car is launched, barrel-rolls and spins, lands with sparks, then
+    /// dissolves and rematerializes at the road center, blinking while the respawn shield is up.
+    private func applyWipeoutPose(
+        snapshot: RaceRenderSnapshot,
+        alpha: Double,
+        carFrame: TrackWorldFrame3D,
+        currentTime: TimeInterval
+    ) {
+        let vehicle = snapshot.current.vehicle
+        guard vehicle.isWipingOut else {
+            if wasWipingOut {
+                wasWipingOut = false
+                previousWipeoutElapsed = 0
+                effects.trigger(.checkpoint)
+            }
+            carNode.opacity = vehicle.respawnShieldRemaining > 0
+                ? (sin(currentTime * 28) > 0 ? 1 : 0.3)
+                : 1
+            return
+        }
+        wasWipingOut = true
+
+        let duration = max(vehicle.wipeoutDuration, 0.001)
+        let previousRemaining = snapshot.previous.vehicle.isWipingOut
+            ? snapshot.previous.vehicle.wipeoutRemaining
+            : duration
+        let remaining = interpolate(previousRemaining, vehicle.wipeoutRemaining, alpha)
+        let elapsed = min(max(duration - remaining, 0), duration)
+        let direction = vehicle.wipeoutDirection == 0 ? 1.0 : vehicle.wipeoutDirection
+        let severity = min(max(vehicle.wipeoutSeverity, 0), 1)
+        let reduceMotion = accessibilitySettings.resolvedReduceMotion(systemReduceMotion: systemReduceMotion)
+
+        let airTime = 0.85 + 0.35 * severity
+        let peakHeight = reduceMotion ? 0.35 : 1.0 + 1.1 * severity
+        var lift = 0.0
+        if elapsed < airTime {
+            let u = elapsed / airTime
+            lift = 4 * peakHeight * u * (1 - u)
+        } else if elapsed < airTime + 0.4 {
+            let u = (elapsed - airTime) / 0.4
+            lift = 4 * peakHeight * 0.18 * u * (1 - u)
+        }
+        if previousWipeoutElapsed < airTime, elapsed >= airTime {
+            effects.trigger(.collision(intensity: 0.55 + 0.35 * severity))
+        }
+        previousWipeoutElapsed = elapsed
+
+        let flips = reduceMotion ? 0.0 : (severity > 0.6 ? 2.0 : 1.0)
+        let rollProgress = smoothStep(min(max(elapsed / (airTime + 0.15), 0), 1))
+        let roll = direction * 2 * .pi * flips * rollProgress
+        let spinTurns = reduceMotion ? 0.25 : 1.0 + severity
+        let spinProgress = 1 - pow(1 - elapsed / duration, 3)
+        let spin = -direction * 2 * .pi * spinTurns * spinProgress
+        let pitchWobble = reduceMotion ? 0 : sin(elapsed * 9) * 0.35 * (1 - elapsed / duration)
+
+        let base = carNode.simdOrientation
+        let local = simd_quatf(angle: Float(spin), axis: SIMD3<Float>(0, 1, 0))
+            * simd_quatf(angle: Float(roll), axis: SIMD3<Float>(0, 0, -1))
+            * simd_quatf(angle: Float(pitchWobble), axis: SIMD3<Float>(1, 0, 0))
+        let orientation = base * local
+        let center = SIMD3<Float>(0, heroCenterHeight, 0)
+        carNode.simdOrientation = orientation
+        carNode.simdPosition = carNode.simdPosition
+            + SIMD3<Float>(0, Float(lift), 0)
+            + base.act(center)
+            - orientation.act(center)
+
+        let dissolveStart = duration - 0.3
+        carNode.opacity = elapsed > dissolveStart
+            ? CGFloat(max(0, 1 - (elapsed - dissolveStart) / 0.3))
+            : 1
+    }
+
+    private func smoothStep(_ value: Double) -> Double {
+        value * value * (3 - 2 * value)
     }
 
     private func updateTraffic(snapshot: RaceRenderSnapshot, alpha: Double) {
@@ -811,5 +899,11 @@ private final class DisplayLinkProxy: NSObject {
             return
         }
         owner.displayLinkDidTick(link)
+    }
+}
+
+private extension Comparable {
+    func clamped(to limits: ClosedRange<Self>) -> Self {
+        min(max(self, limits.lowerBound), limits.upperBound)
     }
 }

@@ -30,6 +30,8 @@ struct CollisionSystem: Equatable, Sendable {
         static let nearMissMinimumSpeedRatio = 0.58
         static let nearMissMinimumRelativeSpeed = 4.0
         static let obstacleCollisionIDMask: UInt64 = 0x0B57_0000_0000_0000
+        static let wipeoutBaseDuration: TimeInterval = 1.7
+        static let wipeoutSeverityDuration: TimeInterval = 0.6
     }
 
     mutating func update(
@@ -40,6 +42,8 @@ struct CollisionSystem: Equatable, Sendable {
     ) -> StepResult {
         var result = StepResult()
         let wasRecovering = state.vehicle.crashRecoveryRemaining > 0
+            || state.vehicle.isWipingOut
+            || state.vehicle.respawnShieldRemaining > 0
 
         let sample = trackLayout.sample(
             stageID: state.currentStageID,
@@ -108,7 +112,8 @@ struct CollisionSystem: Equatable, Sendable {
             state: &state,
             obstacleLateral: vehicle.lateralPosition,
             slowdownRatio: 0.60,
-            recoveryDuration: Tuning.crashRecoveryDuration
+            recoveryDuration: Tuning.crashRecoveryDuration,
+            severity: severity
         )
         state.speed = min(state.speed, max(vehicle.speed * 0.92, configuration.maximumSpeed * 0.18))
         state.traffic[index].speed = max(0, min(vehicle.speed * 0.72, state.speed * 0.86))
@@ -159,7 +164,8 @@ struct CollisionSystem: Equatable, Sendable {
             state: &state,
             obstacleLateral: obstacle.lateralPosition,
             slowdownRatio: 0.44,
-            recoveryDuration: Tuning.obstacleRecoveryDuration
+            recoveryDuration: Tuning.obstacleRecoveryDuration,
+            severity: severity
         )
         state.obstacles[index].isHit = true
         let timePenalty = applyTimePenalty(
@@ -223,7 +229,8 @@ struct CollisionSystem: Equatable, Sendable {
         state: inout RaceState,
         obstacleLateral: Double,
         slowdownRatio: Double,
-        recoveryDuration: TimeInterval
+        recoveryDuration: TimeInterval,
+        severity: Double
     ) {
         let direction = bumpDirection(
             playerLateral: state.lateralPosition,
@@ -235,6 +242,12 @@ struct CollisionSystem: Equatable, Sendable {
             .clamped(to: -1...1)
         state.vehicle.crashRecoveryRemaining = recoveryDuration
         state.vehicle.isDrifting = false
+        let wipeoutDuration = Tuning.wipeoutBaseDuration + Tuning.wipeoutSeverityDuration * severity
+        state.vehicle.wipeoutDuration = wipeoutDuration
+        state.vehicle.wipeoutRemaining = wipeoutDuration
+        state.vehicle.wipeoutDirection = direction
+        state.vehicle.wipeoutSeverity = severity.clamped(to: 0...1)
+        state.vehicle.respawnShieldRemaining = 0
     }
 
     private func intersects(

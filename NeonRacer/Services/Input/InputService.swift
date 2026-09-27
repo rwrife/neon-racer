@@ -15,6 +15,7 @@ final class InputService: NSObject, ObservableObject {
         .keyboard: InputState()
     ]
     private var activeController: GCController?
+    private var pressedKeys: Set<KeyboardKey> = []
     private var remapping: InputRemapping
     private var isStarted = false
 
@@ -27,8 +28,21 @@ final class InputService: NSObject, ObservableObject {
         super.init()
     }
 
+    /// Merges every source so a stray event from one device (e.g. the Simulator's virtual
+    /// gamepad) can't mask input that is being held on another.
     var currentCommand: PlayerCommand {
-        states[inputMethod, default: InputState()].command
+        let preferred = states[inputMethod, default: InputState()].command
+        let commands = DrivingInputMethod.allCases.map { states[$0, default: InputState()].command }
+        let deadzone = 0.08
+        let steering = abs(preferred.steering) > deadzone
+            ? preferred.steering
+            : commands.first { abs($0.steering) > deadzone }?.steering ?? 0
+        return PlayerCommand(
+            steering: steering,
+            throttle: commands.map(\.throttle).max() ?? 0,
+            brake: commands.map(\.brake).max() ?? 0,
+            isBoosting: commands.contains { $0.isBoosting }
+        )
     }
 
     var currentInputSource: DrivingInputMethod {
@@ -87,11 +101,13 @@ final class InputService: NSObject, ObservableObject {
             .keyboard: InputState()
         ]
         inputMethod = .touch
+        pressedKeys.removeAll()
         GCKeyboard.coalesced?.keyboardInput?.keyChangedHandler = nil
         isStarted = false
     }
 
     func resetDrivingState() {
+        pressedKeys.removeAll()
         for method in DrivingInputMethod.allCases {
             states[method] = InputState()
         }
@@ -99,6 +115,7 @@ final class InputService: NSObject, ObservableObject {
 
     func updateRemapping(_ remapping: InputRemapping) {
         self.remapping = remapping
+        pressedKeys.removeAll()
         states[.keyboard] = InputState()
     }
 
@@ -134,6 +151,7 @@ final class InputService: NSObject, ObservableObject {
     @objc
     private func keyboardDisconnectedNotification(_ notification: Notification) {
         (notification.object as? GCKeyboard)?.keyboardInput?.keyChangedHandler = nil
+        pressedKeys.removeAll()
         states[.keyboard] = InputState()
         if inputMethod == .keyboard {
             inputMethod = .touch
@@ -271,14 +289,36 @@ final class InputService: NSObject, ObservableObject {
                 guard let self, let key = KeyboardKey(keyCode) else {
                     return
                 }
-                for action in self.remapping.actions(for: key) {
-                    self.updateDigitalAction(action, isPressed: pressed, source: .keyboard)
-                    if pressed && action.isDiscrete {
-                        self.actionHandler(action)
-                    }
-                }
+                self.handleKeyboardKey(key, isPressed: pressed)
             }
         }
+    }
+
+    /// Single entry point for hardware keys. UIKit presses (reliable in the Simulator) and
+    /// GCKeyboard can both report the same key, so transitions are de-duplicated here.
+    func handleKeyboardKey(_ key: KeyboardKey, isPressed: Bool) {
+        if isPressed {
+            guard pressedKeys.insert(key).inserted else { return }
+        } else {
+            guard pressedKeys.remove(key) != nil else { return }
+        }
+        let actions = remapping.actions(for: key)
+        for action in actions {
+            let stillHeld = !isPressed && pressedKeys.contains { remapping.actions(for: $0).contains(action) }
+            updateDigitalAction(action, isPressed: isPressed || stillHeld, source: .keyboard)
+        }
+        guard isPressed else { return }
+        // Esc maps to both pause and cancel; dispatching both would pause and immediately undo it.
+        let discrete = actions.filter(\.isDiscrete)
+        let dispatched = discrete.contains(.pause) ? discrete.subtracting([.cancel]) : discrete
+        for action in PlayerAction.allCases where dispatched.contains(action) {
+            actionHandler(action)
+        }
+    }
+
+    func releaseAllKeyboardKeys() {
+        pressedKeys.removeAll()
+        states[.keyboard] = InputState()
     }
 
     private func updateDigitalAction(
@@ -337,12 +377,7 @@ final class InputService: NSObject, ObservableObject {
 #if DEBUG
 extension InputService {
     func simulateKeyboard(_ key: KeyboardKey, isPressed: Bool) {
-        for action in remapping.actions(for: key) {
-            updateDigitalAction(action, isPressed: isPressed, source: .keyboard)
-            if isPressed && action.isDiscrete {
-                actionHandler(action)
-            }
-        }
+        handleKeyboardKey(key, isPressed: isPressed)
     }
 
     func simulateController(
@@ -463,6 +498,7 @@ private extension KeyboardKey {
         case .keyD: self = .d
         case .keyW: self = .w
         case .keyS: self = .s
+        case .keyP: self = .p
         default: return nil
         }
     }

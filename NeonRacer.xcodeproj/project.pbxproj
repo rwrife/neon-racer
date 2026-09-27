@@ -34,7 +34,6 @@
 		22C000000000000000000001 /* RunInterruptionCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 22C000000000000000000002 /* RunInterruptionCoordinator.swift */; };
 		200000000000000000000025 /* TutorialState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 300000000000000000000025 /* TutorialState.swift */; };
 		200000000000000000000026 /* TutorialPromptContent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 300000000000000000000026 /* TutorialPromptContent.swift */; };
-		200000000000000000000027 /* TutorialViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 300000000000000000000027 /* TutorialViews.swift */; };
 		200000000000000000000028 /* TutorialStateTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 300000000000000000000028 /* TutorialStateTests.swift */; };
 		F20000000000000000000001 /* InputService.swift in Sources */ = {isa = PBXBuildFile; fileRef = F20000000000000000000002 /* InputService.swift */; };
 		B28000000000000000000001 /* RaceBalanceConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = B28000000000000000000003 /* RaceBalanceConfiguration.swift */; };
@@ -74,6 +73,7 @@
 		C0DE0000000000000000B001 /* RaceScene3D.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0DE0000000000000000B002 /* RaceScene3D.swift */; };
 		C0DE0000000000000000B003 /* TrackWorldMapper3D.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0DE0000000000000000B004 /* TrackWorldMapper3D.swift */; };
 		C0DE0000000000000000B005 /* RoadMeshBuilder3D.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0DE0000000000000000B006 /* RoadMeshBuilder3D.swift */; };
+		C0DE0000000000000000B021 /* NeonTerrain3D.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0DE0000000000000000B020 /* NeonTerrain3D.swift */; };
 		C0DE0000000000000000B007 /* ChaseCamera3D.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0DE0000000000000000B008 /* ChaseCamera3D.swift */; };
 		C0DE0000000000000000B009 /* TrackMarkers3D.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0DE0000000000000000B00A /* TrackMarkers3D.swift */; };
 		C0DE0000000000000000B00B /* NeonEnvironment3D.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0DE0000000000000000B00C /* NeonEnvironment3D.swift */; };
@@ -144,7 +144,6 @@
 		22C000000000000000000002 /* RunInterruptionCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RunInterruptionCoordinator.swift; sourceTree = "<group>"; };
 		300000000000000000000025 /* TutorialState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TutorialState.swift; sourceTree = "<group>"; };
 		300000000000000000000026 /* TutorialPromptContent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TutorialPromptContent.swift; sourceTree = "<group>"; };
-		300000000000000000000027 /* TutorialViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TutorialViews.swift; sourceTree = "<group>"; };
 		300000000000000000000028 /* TutorialStateTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TutorialStateTests.swift; sourceTree = "<group>"; };
 		F20000000000000000000002 /* InputService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InputService.swift; sourceTree = "<group>"; };
 		B28000000000000000000003 /* RaceBalanceConfiguration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RaceBalanceConfiguration.swift; sourceTree = "<group>"; };
@@ -185,6 +184,7 @@
 		C0DE0000000000000000B002 /* RaceScene3D.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RaceScene3D.swift; sourceTree = "<group>"; };
 		C0DE0000000000000000B004 /* TrackWorldMapper3D.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrackWorldMapper3D.swift; sourceTree = "<group>"; };
 		C0DE0000000000000000B006 /* RoadMeshBuilder3D.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RoadMeshBuilder3D.swift; sourceTree = "<group>"; };
+		C0DE0000000000000000B020 /* NeonTerrain3D.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NeonTerrain3D.swift; sourceTree = "<group>"; };
 		C0DE0000000000000000B008 /* ChaseCamera3D.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChaseCamera3D.swift; sourceTree = "<group>"; };
 		C0DE0000000000000000B00A /* TrackMarkers3D.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrackMarkers3D.swift; sourceTree = "<group>"; };
 		C0DE0000000000000000B00C /* NeonEnvironment3D.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NeonEnvironment3D.swift; sourceTree = "<group>"; };
@@ -269,7 +269,6 @@
 			children = (
 				700000000000000000000005 /* MainMenu */,
 				700000000000000000000006 /* Race */,
-				700000000000000000000025 /* Tutorial */,
 				A21000000000000000000024 /* Settings */,
 				C18000000000000000000021 /* Garage */,
 			);
@@ -297,14 +296,6 @@
 				C0DE00000000000000001002 /* TouchDrivingControls.swift */,
 			);
 			path = Race;
-			sourceTree = "<group>";
-		};
-		700000000000000000000025 /* Tutorial */ = {
-			isa = PBXGroup;
-			children = (
-				300000000000000000000027 /* TutorialViews.swift */,
-			);
-			path = Tutorial;
 			sourceTree = "<group>";
 		};
 		A21000000000000000000024 /* Settings */ = {
@@ -525,6 +516,7 @@
 				C0DE0000000000000000B002 /* RaceScene3D.swift */,
 				C0DE0000000000000000B004 /* TrackWorldMapper3D.swift */,
 				C0DE0000000000000000B006 /* RoadMeshBuilder3D.swift */,
+				C0DE0000000000000000B020 /* NeonTerrain3D.swift */,
 				C0DE0000000000000000B008 /* ChaseCamera3D.swift */,
 				C0DE0000000000000000B00A /* TrackMarkers3D.swift */,
 				C0DE0000000000000000B00C /* NeonEnvironment3D.swift */,
@@ -711,7 +703,6 @@
 				20000000000000000000000B /* HapticsService.swift in Sources */,
 				20000000000000000000000C /* ProfileStore.swift in Sources */,
 				20000000000000000000000D /* NeonPalette.swift in Sources */,
-				200000000000000000000027 /* TutorialViews.swift in Sources */,
 				F20000000000000000000001 /* InputService.swift in Sources */,
 				D23000000000000000000001 /* CosmeticQuality.swift in Sources */,
 				F23000000000000000000001 /* RenderQualityTier.swift in Sources */,
@@ -731,6 +722,7 @@
 				C0DE0000000000000000B001 /* RaceScene3D.swift in Sources */,
 				C0DE0000000000000000B003 /* TrackWorldMapper3D.swift in Sources */,
 				C0DE0000000000000000B005 /* RoadMeshBuilder3D.swift in Sources */,
+				C0DE0000000000000000B021 /* NeonTerrain3D.swift in Sources */,
 				C0DE0000000000000000B007 /* ChaseCamera3D.swift in Sources */,
 				C0DE0000000000000000B009 /* TrackMarkers3D.swift in Sources */,
 				C0DE0000000000000000B00B /* NeonEnvironment3D.swift in Sources */,

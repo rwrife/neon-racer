@@ -61,6 +61,7 @@ enum KeyboardKey: String, Codable, CaseIterable, Sendable {
     case d
     case w
     case s
+    case p
 }
 
 struct InputRemapping: Codable, Equatable, Sendable {
@@ -103,6 +104,8 @@ struct InputRemapping: Codable, Equatable, Sendable {
             actions.insert(.throttle)
         case .s:
             actions.insert(.brake)
+        case .p:
+            actions.insert(.pause)
         case .leftArrow, .rightArrow, .upArrow, .downArrow, .space, .escape, .returnKey:
             break
         }

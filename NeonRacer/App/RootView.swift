@@ -54,7 +54,6 @@ struct RootView: View {
                     )
                 case .race(let runID):
                     RaceView(
-                        tutorialProgress: Self.raceTutorialProgress(profile.tutorialProgress),
                         inputMethod: profile.preferredInputMethod,
                         selectedVehicleID: profile.selectedVehicleID,
                         configuration: ProgressionCatalog.vehicle(
@@ -66,10 +65,6 @@ struct RootView: View {
                         ),
                         audioService: audio,
                         gameplaySettings: gameplaySettings,
-                        updateTutorialProgress: { progress in
-                            profile.tutorialProgress = progress
-                            saveProfile()
-                        },
                         restartRace: startRace,
                         exitRace: { returnToMenu() },
                         completed: showResults
@@ -234,15 +229,6 @@ struct RootView: View {
             || ProcessInfo.processInfo.environment["NEON_RACER_AUTOSTART_RACE"] == "1"
     }
 #endif
-
-    private static func raceTutorialProgress(_ progress: TutorialProgress) -> TutorialProgress {
-#if DEBUG
-        if ProcessInfo.processInfo.arguments.contains("UITestStartRace") {
-            return .completed
-        }
-#endif
-        return progress
-    }
 
     private func profileRecoveryView(_ recovery: ProfileRecovery) -> some View {
         VStack(spacing: 20) {

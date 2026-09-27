@@ -267,74 +267,10 @@ final class NeonEnvironment3D {
 
     private func buildGrid() {
         groundNode.name = "opaque-deep-violet-grid-ground"
-        let extent: Float = quality == .efficiency ? 780 : 980
-        let groundMaterial = Self.opaqueConstantMaterial(
-            UIColor(red: 0.070, green: 0.030, blue: 0.175, alpha: 1),
-            emission: Self.groundGradientImage()
-        )
-        groundMaterial.diffuse.contents = Self.groundGradientImage()
-        // The ground is painted (not depth-tested against) so road sections below the car on
-        // descents stay visible; horizon layers render earlier so the ground still covers their bases.
-        groundMaterial.writesToDepthBuffer = false
-        groundMaterials.append(groundMaterial)
-        let ground = SCNNode(geometry: SCNPlane(width: CGFloat(extent * 2.4), height: CGFloat(extent * 1.7)))
-        ground.name = "dark-indigio-opaque-ground-plane"
-        ground.geometry?.materials = [groundMaterial]
-        ground.eulerAngles.x = -.pi / 2
-        ground.position = SCNVector3(0, -0.08, -260)
-        groundNode.addChildNode(ground)
-        rootNode.addChildNode(groundNode)
-
-        gridNode.name = "infinite-cyan-neon-grid"
-        magentaGridNode.name = "secondary-magenta-neon-grid"
-        let cell = gridCellSize
-        let cyan = Self.constantMaterial(UIColor.cyan, emission: UIColor.cyan, transparency: 0.92)
-        let magenta = Self.constantMaterial(UIColor.magenta, emission: UIColor.magenta, transparency: 0.62)
-        // Fade grid lines with view distance so the far field doesn't alias into a noisy band.
-        let distanceFade = SCNShaderModifierEntryPoint.fragment
-        let fadeShader = """
-        #pragma body
-        float nrGridFade = 1.0 - smoothstep(70.0, 360.0, length(_surface.position));
-        _output.color *= nrGridFade;
-        """
-        cyan.shaderModifiers = [distanceFade: fadeShader]
-        magenta.shaderModifiers = [distanceFade: fadeShader]
-        cyan.writesToDepthBuffer = false
-        magenta.writesToDepthBuffer = false
-        gridMaterials.append(cyan)
-        magentaGridMaterials.append(magenta)
-
-        for x in stride(from: -extent, through: extent, by: cell) {
-            let node = Self.cylinderLine(
-                from: SCNVector3(x, 0, 320),
-                to: SCNVector3(x, 0, -extent),
-                radius: 0.045,
-                material: cyan
-            )
-            gridNode.addChildNode(node)
-        }
-        for z in stride(from: -extent, through: 320, by: cell) {
-            let material = Int(abs(z / cell)).isMultiple(of: 3) ? magenta : cyan
-            let node = Self.cylinderLine(
-                from: SCNVector3(-extent, 0, z),
-                to: SCNVector3(extent, 0, z),
-                radius: material === magenta ? 0.052 : 0.04,
-                material: material
-            )
-            if material === magenta {
-                magentaGridNode.addChildNode(node)
-            } else {
-                gridNode.addChildNode(node)
-            }
-        }
-        Self.flattenChildren(of: gridNode)
-        Self.flattenChildren(of: magentaGridNode)
-        for node in [gridNode, magentaGridNode] {
-            node.enumerateHierarchy { child, _ in child.renderingOrder = -1_000 }
-        }
-        groundNode.enumerateHierarchy { child, _ in child.renderingOrder = -1_010 }
-        rootNode.addChildNode(gridNode)
-        rootNode.addChildNode(magentaGridNode)
+        gridNode.name = "legacy-flat-cyan-grid-disabled"
+        magentaGridNode.name = "legacy-flat-magenta-grid-disabled"
+        // Track-mapped low-poly terrain now owns the ground plane and neon edge grid.
+        // Keep these nodes for theme/update compatibility, but do not attach flat geometry.
     }
 
     /// Merges many static child nodes into one draw call per material.

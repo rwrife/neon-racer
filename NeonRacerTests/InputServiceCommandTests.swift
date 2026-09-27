@@ -1,6 +1,7 @@
 import Testing
 
 #if !canImport(NeonRacerCore)
+import UIKit
 @testable import NeonRacer
 
 @MainActor
@@ -70,6 +71,44 @@ struct InputServiceCommandTests {
         service.simulateKeyboard(.returnKey, isPressed: true)
 
         #expect(service.currentCommand == touch)
+    }
+
+    @Test
+    func duplicateKeyReportsAndAliasReleaseKeepDrivingState() {
+        let service = InputService()
+
+        service.handleKeyboardKey(.leftArrow, isPressed: true)
+        service.handleKeyboardKey(.leftArrow, isPressed: true)
+        service.handleKeyboardKey(.a, isPressed: true)
+        service.handleKeyboardKey(.leftArrow, isPressed: false)
+        #expect(service.currentCommand.steering == -1)
+
+        service.handleKeyboardKey(.a, isPressed: false)
+        service.handleKeyboardKey(.a, isPressed: false)
+        #expect(service.currentCommand.steering == 0)
+    }
+
+    @Test
+    func escapeDispatchesPauseOnceWithoutCancel() {
+        let service = InputService()
+        var actions: [PlayerAction] = []
+        service.actionHandler = { actions.append($0) }
+
+        service.handleKeyboardKey(.escape, isPressed: true)
+        service.handleKeyboardKey(.escape, isPressed: true)
+        service.handleKeyboardKey(.escape, isPressed: false)
+
+        #expect(actions == [.pause])
+    }
+
+    @Test
+    func hardwareKeyUsagesMapToDrivingKeys() {
+        #expect(KeyboardKey(hidUsage: .keyboardLeftArrow) == .leftArrow)
+        #expect(KeyboardKey(hidUsage: .keyboardW) == .w)
+        #expect(KeyboardKey(hidUsage: .keyboardSpacebar) == .space)
+        #expect(KeyboardKey(hidUsage: .keyboardEscape) == .escape)
+        #expect(KeyboardKey(hidUsage: .keyboardReturnOrEnter) == .returnKey)
+        #expect(KeyboardKey(hidUsage: .keyboardQ) == nil)
     }
 }
 #endif
