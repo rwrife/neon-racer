@@ -23,6 +23,28 @@
 		20000000000000000000000E /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 30000000000000000000000E /* Assets.xcassets */; };
 		20000000000000000000000F /* RaceSimulationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 30000000000000000000000F /* RaceSimulationTests.swift */; };
 		200000000000000000000010 /* NeonRacerUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 300000000000000000000010 /* NeonRacerUITests.swift */; };
+		200000000000000000000011 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 300000000000000000000014 /* PrivacyInfo.xcprivacy */; };
+		D23000000000000000000001 /* CosmeticQuality.swift in Sources */ = {isa = PBXBuildFile; fileRef = E23000000000000000000001 /* CosmeticQuality.swift */; };
+		D23000000000000000000002 /* PerformanceInstrumentation.swift in Sources */ = {isa = PBXBuildFile; fileRef = E23000000000000000000002 /* PerformanceInstrumentation.swift */; };
+		D23000000000000000000003 /* DebugPerformanceMetrics.swift in Sources */ = {isa = PBXBuildFile; fileRef = E23000000000000000000003 /* DebugPerformanceMetrics.swift */; };
+		D23000000000000000000004 /* CosmeticQualityTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E23000000000000000000004 /* CosmeticQualityTests.swift */; };
+		22C000000000000000000001 /* RunInterruptionCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 22C000000000000000000002 /* RunInterruptionCoordinator.swift */; };
+		200000000000000000000025 /* TutorialState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 300000000000000000000025 /* TutorialState.swift */; };
+		200000000000000000000026 /* TutorialPromptContent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 300000000000000000000026 /* TutorialPromptContent.swift */; };
+		200000000000000000000027 /* TutorialViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 300000000000000000000027 /* TutorialViews.swift */; };
+		200000000000000000000028 /* TutorialStateTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 300000000000000000000028 /* TutorialStateTests.swift */; };
+		F20000000000000000000001 /* InputService.swift in Sources */ = {isa = PBXBuildFile; fileRef = F20000000000000000000002 /* InputService.swift */; };
+		B28000000000000000000001 /* RaceBalanceConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = B28000000000000000000003 /* RaceBalanceConfiguration.swift */; };
+		B28000000000000000000002 /* RaceBalanceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B28000000000000000000004 /* RaceBalanceTests.swift */; };
+		A21000000000000000000001 /* AccessibilitySettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = A21000000000000000000011 /* AccessibilitySettings.swift */; };
+		A21000000000000000000002 /* AccessibilitySettingsStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A21000000000000000000012 /* AccessibilitySettingsStore.swift */; };
+		A21000000000000000000003 /* AccessiblePalette.swift in Sources */ = {isa = PBXBuildFile; fileRef = A21000000000000000000013 /* AccessiblePalette.swift */; };
+		A21000000000000000000004 /* AccessibilitySettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A21000000000000000000014 /* AccessibilitySettingsView.swift */; };
+		A21000000000000000000005 /* AccessibilitySettingsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A21000000000000000000015 /* AccessibilitySettingsTests.swift */; };
+		A24000000000000000000001 /* RaceReplay.swift in Sources */ = {isa = PBXBuildFile; fileRef = A24000000000000000000003 /* RaceReplay.swift */; };
+		A24000000000000000000002 /* RaceDebugDiagnostics.swift in Sources */ = {isa = PBXBuildFile; fileRef = A24000000000000000000004 /* RaceDebugDiagnostics.swift */; };
+		F19000000000000000000001 /* AudioMixState.swift in Sources */ = {isa = PBXBuildFile; fileRef = F19000000000000000000003 /* AudioMixState.swift */; };
+		F19000000000000000000002 /* AudioMixStateTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F19000000000000000000004 /* AudioMixStateTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -62,6 +84,28 @@
 		300000000000000000000011 /* NeonRacer.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = NeonRacer.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		300000000000000000000012 /* NeonRacerTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = NeonRacerTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		300000000000000000000013 /* NeonRacerUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = NeonRacerUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		300000000000000000000014 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		E23000000000000000000001 /* CosmeticQuality.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CosmeticQuality.swift; sourceTree = "<group>"; };
+		E23000000000000000000002 /* PerformanceInstrumentation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PerformanceInstrumentation.swift; sourceTree = "<group>"; };
+		E23000000000000000000003 /* DebugPerformanceMetrics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebugPerformanceMetrics.swift; sourceTree = "<group>"; };
+		E23000000000000000000004 /* CosmeticQualityTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CosmeticQualityTests.swift; sourceTree = "<group>"; };
+		22C000000000000000000002 /* RunInterruptionCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RunInterruptionCoordinator.swift; sourceTree = "<group>"; };
+		300000000000000000000025 /* TutorialState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TutorialState.swift; sourceTree = "<group>"; };
+		300000000000000000000026 /* TutorialPromptContent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TutorialPromptContent.swift; sourceTree = "<group>"; };
+		300000000000000000000027 /* TutorialViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TutorialViews.swift; sourceTree = "<group>"; };
+		300000000000000000000028 /* TutorialStateTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TutorialStateTests.swift; sourceTree = "<group>"; };
+		F20000000000000000000002 /* InputService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InputService.swift; sourceTree = "<group>"; };
+		B28000000000000000000003 /* RaceBalanceConfiguration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RaceBalanceConfiguration.swift; sourceTree = "<group>"; };
+		B28000000000000000000004 /* RaceBalanceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RaceBalanceTests.swift; sourceTree = "<group>"; };
+		A21000000000000000000011 /* AccessibilitySettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccessibilitySettings.swift; sourceTree = "<group>"; };
+		A21000000000000000000012 /* AccessibilitySettingsStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccessibilitySettingsStore.swift; sourceTree = "<group>"; };
+		A21000000000000000000013 /* AccessiblePalette.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccessiblePalette.swift; sourceTree = "<group>"; };
+		A21000000000000000000014 /* AccessibilitySettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccessibilitySettingsView.swift; sourceTree = "<group>"; };
+		A21000000000000000000015 /* AccessibilitySettingsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccessibilitySettingsTests.swift; sourceTree = "<group>"; };
+		A24000000000000000000003 /* RaceReplay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RaceReplay.swift; sourceTree = "<group>"; };
+		A24000000000000000000004 /* RaceDebugDiagnostics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RaceDebugDiagnostics.swift; sourceTree = "<group>"; };
+		F19000000000000000000003 /* AudioMixState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioMixState.swift; sourceTree = "<group>"; };
+		F19000000000000000000004 /* AudioMixStateTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioMixStateTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -127,6 +171,8 @@
 			children = (
 				700000000000000000000005 /* MainMenu */,
 				700000000000000000000006 /* Race */,
+				700000000000000000000025 /* Tutorial */,
+				A21000000000000000000024 /* Settings */,
 			);
 			path = Features;
 			sourceTree = "<group>";
@@ -147,6 +193,22 @@
 			path = Race;
 			sourceTree = "<group>";
 		};
+		700000000000000000000025 /* Tutorial */ = {
+			isa = PBXGroup;
+			children = (
+				300000000000000000000027 /* TutorialViews.swift */,
+			);
+			path = Tutorial;
+			sourceTree = "<group>";
+		};
+		A21000000000000000000024 /* Settings */ = {
+			isa = PBXGroup;
+			children = (
+				A21000000000000000000014 /* AccessibilitySettingsView.swift */,
+			);
+			path = Settings;
+			sourceTree = "<group>";
+		};
 		700000000000000000000007 /* Game */ = {
 			isa = PBXGroup;
 			children = (
@@ -161,7 +223,16 @@
 			children = (
 				300000000000000000000005 /* PlayerCommand.swift */,
 				300000000000000000000006 /* RaceConfiguration.swift */,
+				B28000000000000000000003 /* RaceBalanceConfiguration.swift */,
 				300000000000000000000007 /* RaceSimulation.swift */,
+				F19000000000000000000003 /* AudioMixState.swift */,
+				A24000000000000000000003 /* RaceReplay.swift */,
+				A24000000000000000000004 /* RaceDebugDiagnostics.swift */,
+				E23000000000000000000001 /* CosmeticQuality.swift */,
+				E23000000000000000000002 /* PerformanceInstrumentation.swift */,
+				22C000000000000000000002 /* RunInterruptionCoordinator.swift */,
+				300000000000000000000025 /* TutorialState.swift */,
+				300000000000000000000026 /* TutorialPromptContent.swift */,
 			);
 			path = Simulation;
 			sourceTree = "<group>";
@@ -170,6 +241,7 @@
 			isa = PBXGroup;
 			children = (
 				300000000000000000000008 /* RaceScene.swift */,
+				E23000000000000000000003 /* DebugPerformanceMetrics.swift */,
 			);
 			path = Rendering;
 			sourceTree = "<group>";
@@ -188,6 +260,7 @@
 				70000000000000000000000C /* Audio */,
 				700000000000000000000012 /* Haptics */,
 				700000000000000000000013 /* Persistence */,
+				F20000000000000000000003 /* Input */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -216,18 +289,37 @@
 			path = Persistence;
 			sourceTree = "<group>";
 		};
+		F20000000000000000000003 /* Input */ = {
+			isa = PBXGroup;
+			children = (
+				F20000000000000000000002 /* InputService.swift */,
+			);
+			path = Input;
+			sourceTree = "<group>";
+		};
 		70000000000000000000000D /* Shared */ = {
 			isa = PBXGroup;
 			children = (
+				A21000000000000000000023 /* Accessibility */,
 				700000000000000000000014 /* Design */,
 			);
 			path = Shared;
+			sourceTree = "<group>";
+		};
+		A21000000000000000000023 /* Accessibility */ = {
+			isa = PBXGroup;
+			children = (
+				A21000000000000000000011 /* AccessibilitySettings.swift */,
+				A21000000000000000000012 /* AccessibilitySettingsStore.swift */,
+			);
+			path = Accessibility;
 			sourceTree = "<group>";
 		};
 		700000000000000000000014 /* Design */ = {
 			isa = PBXGroup;
 			children = (
 				30000000000000000000000D /* NeonPalette.swift */,
+				A21000000000000000000013 /* AccessiblePalette.swift */,
 			);
 			path = Design;
 			sourceTree = "<group>";
@@ -236,6 +328,7 @@
 			isa = PBXGroup;
 			children = (
 				30000000000000000000000E /* Assets.xcassets */,
+				300000000000000000000014 /* PrivacyInfo.xcprivacy */,
 			);
 			path = Resources;
 			sourceTree = "<group>";
@@ -244,6 +337,11 @@
 			isa = PBXGroup;
 			children = (
 				30000000000000000000000F /* RaceSimulationTests.swift */,
+				B28000000000000000000004 /* RaceBalanceTests.swift */,
+				300000000000000000000028 /* TutorialStateTests.swift */,
+				E23000000000000000000004 /* CosmeticQualityTests.swift */,
+				A21000000000000000000015 /* AccessibilitySettingsTests.swift */,
+				F19000000000000000000004 /* AudioMixStateTests.swift */,
 			);
 			path = NeonRacerTests;
 			sourceTree = "<group>";
@@ -379,6 +477,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				20000000000000000000000E /* Assets.xcassets in Resources */,
+				200000000000000000000011 /* PrivacyInfo.xcprivacy in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -409,13 +508,29 @@
 				200000000000000000000004 /* RaceView.swift in Sources */,
 				200000000000000000000005 /* PlayerCommand.swift in Sources */,
 				200000000000000000000006 /* RaceConfiguration.swift in Sources */,
+				B28000000000000000000001 /* RaceBalanceConfiguration.swift in Sources */,
 				200000000000000000000007 /* RaceSimulation.swift in Sources */,
+				A24000000000000000000001 /* RaceReplay.swift in Sources */,
+				A24000000000000000000002 /* RaceDebugDiagnostics.swift in Sources */,
+				22C000000000000000000001 /* RunInterruptionCoordinator.swift in Sources */,
+				200000000000000000000025 /* TutorialState.swift in Sources */,
+				200000000000000000000026 /* TutorialPromptContent.swift in Sources */,
 				200000000000000000000008 /* RaceScene.swift in Sources */,
 				200000000000000000000009 /* StageDefinition.swift in Sources */,
 				20000000000000000000000A /* AudioService.swift in Sources */,
 				20000000000000000000000B /* HapticsService.swift in Sources */,
 				20000000000000000000000C /* ProfileStore.swift in Sources */,
 				20000000000000000000000D /* NeonPalette.swift in Sources */,
+				200000000000000000000027 /* TutorialViews.swift in Sources */,
+				F20000000000000000000001 /* InputService.swift in Sources */,
+				D23000000000000000000001 /* CosmeticQuality.swift in Sources */,
+				D23000000000000000000002 /* PerformanceInstrumentation.swift in Sources */,
+				D23000000000000000000003 /* DebugPerformanceMetrics.swift in Sources */,
+				A21000000000000000000001 /* AccessibilitySettings.swift in Sources */,
+				A21000000000000000000002 /* AccessibilitySettingsStore.swift in Sources */,
+				A21000000000000000000003 /* AccessiblePalette.swift in Sources */,
+				A21000000000000000000004 /* AccessibilitySettingsView.swift in Sources */,
+				F19000000000000000000001 /* AudioMixState.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -424,6 +539,11 @@
 			buildActionMask = 2147483647;
 			files = (
 				20000000000000000000000F /* RaceSimulationTests.swift in Sources */,
+				B28000000000000000000002 /* RaceBalanceTests.swift in Sources */,
+				200000000000000000000028 /* TutorialStateTests.swift in Sources */,
+				D23000000000000000000004 /* CosmeticQualityTests.swift in Sources */,
+				A21000000000000000000005 /* AccessibilitySettingsTests.swift in Sources */,
+				F19000000000000000000002 /* AudioMixStateTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

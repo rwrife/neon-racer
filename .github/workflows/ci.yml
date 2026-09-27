@@ -5,6 +5,9 @@ on:
     branches: [main]
   pull_request:
 
+permissions:
+  contents: read
+
 concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
@@ -27,9 +30,9 @@ jobs:
         run: swift test
 
   ios-build:
-    name: iOS 26 build contract (Xcode 26.0.1)
+    name: iOS build, tests, and analysis (Xcode 26.0.1)
     runs-on: macos-15
-    timeout-minutes: 30
+    timeout-minutes: 45
     env:
       DEVELOPER_DIR: /Applications/Xcode_26.0.1.app/Contents/Developer
       TARGET_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
@@ -44,10 +47,43 @@ jobs:
       - name: Verify pinned Xcode and iOS simulator SDK
         run: |
           set -euo pipefail
+          test -d "$DEVELOPER_DIR"
           test "$(git rev-parse HEAD)" = "$TARGET_SHA"
           test "$(xcodebuild -version | sed -n '1s/^Xcode //p')" = "26.0.1"
           test "$(xcodebuild -version | sed -n '2s/^Build version //p')" = "17A400"
           xcodebuild -showsdks | grep -F 'iphonesimulator26.0'
+
+      - name: Validate repository configuration
+        run: |
+          set -euo pipefail
+          plutil -lint NeonRacer/Resources/PrivacyInfo.xcprivacy
+          plutil -lint Config/ExportOptions-AppStore.plist
+          find NeonRacer/Resources/Assets.xcassets -name Contents.json -print0 \
+            | xargs -0 python3 -c \
+              'import json, sys; [json.load(open(path)) for path in sys.argv[1:]]'
+          xcodebuild -list -json -project NeonRacer.xcodeproj \
+            | python3 -m json.tool >/dev/null
+
+      - name: Select pinned iOS simulator runtime
+        run: |
+          set -euo pipefail
+          DEVICE_UDID="$(
+            xcrun simctl list devices available --json \
+              | python3 -c '
+          import json, sys
+          devices = json.load(sys.stdin)["devices"]
+          runtime = next((key for key in devices if key.endswith("iOS-26-0")), None)
+          if runtime is None:
+              raise SystemExit("The pinned iOS 26.0 simulator runtime is unavailable")
+          iphone = next((device for device in devices[runtime] if device["name"].startswith("iPhone")), None)
+          if iphone is None:
+              raise SystemExit("No available iPhone exists in the iOS 26.0 runtime")
+          print(iphone["udid"])
+          '
+          )"
+          echo "DEVICE_UDID=$DEVICE_UDID" >> "$GITHUB_ENV"
+          xcrun simctl boot "$DEVICE_UDID" || true
+          xcrun simctl bootstatus "$DEVICE_UDID" -b
 
       - name: Build app and tests for iOS Simulator
         run: |
@@ -55,8 +91,30 @@ jobs:
           xcodebuild build-for-testing \
             -project NeonRacer.xcodeproj \
             -scheme NeonRacer \
+            -destination "platform=iOS Simulator,id=$DEVICE_UDID" \
+            COMPILER_INDEX_STORE_ENABLE=NO
+
+      - name: Run unit and selected UI tests
+        run: |
+          set -euo pipefail
+          xcodebuild test-without-building \
+            -project NeonRacer.xcodeproj \
+            -scheme NeonRacer \
+            -destination "platform=iOS Simulator,id=$DEVICE_UDID" \
+            -only-testing:NeonRacerTests \
+            -only-testing:NeonRacerUITests/NeonRacerUITests/testLaunchesRaceFromMainMenu \
+            COMPILER_INDEX_STORE_ENABLE=NO
+
+      - name: Run static analyzer
+        run: |
+          set -euo pipefail
+          xcodebuild analyze \
+            -project NeonRacer.xcodeproj \
+            -scheme NeonRacer \
+            -configuration Release \
             -destination 'generic/platform=iOS Simulator' \
-            CODE_SIGNING_ALLOWED=NO
+            CODE_SIGNING_ALLOWED=NO \
+            COMPILER_INDEX_STORE_ENABLE=NO
 
       - name: Verify iPhone-only bundle identity
         run: |

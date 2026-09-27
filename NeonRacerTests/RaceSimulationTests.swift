@@ -9,6 +9,92 @@ import Testing
 
 struct RaceSimulationTests {
     @Test
+    func playerCommandsNormalizeAnalogRanges() {
+        let command = PlayerCommand(
+            steering: 4,
+            throttle: -1,
+            brake: 3,
+            isBoosting: true
+        )
+
+        #expect(command.steering == 1)
+        #expect(command.throttle == 0)
+        #expect(command.brake == 1)
+        #expect(command.isBoosting)
+    }
+
+    @Test
+    func standardInputRemappingCoversEveryAction() {
+        #expect(InputRemapping.standard.keyboard.keys.count == PlayerAction.allCases.count)
+    }
+
+    @Test
+    func standardKeyboardSupportsWASDAndArrowDrivingAliases() {
+        let mapping = InputRemapping.standard
+
+        #expect(mapping.actions(for: .a).contains(.steerLeft))
+        #expect(mapping.actions(for: .leftArrow).contains(.steerLeft))
+        #expect(mapping.actions(for: .d).contains(.steerRight))
+        #expect(mapping.actions(for: .rightArrow).contains(.steerRight))
+        #expect(mapping.actions(for: .w).contains(.throttle))
+        #expect(mapping.actions(for: .upArrow).contains(.throttle))
+        #expect(mapping.actions(for: .s).contains(.brake))
+        #expect(mapping.actions(for: .downArrow).contains(.brake))
+        #expect(mapping.actions(for: .space).contains(.boost))
+        #expect(mapping.actions(for: .escape).contains(.pause))
+    }
+
+    @Test
+    func lifecycleRequiresExplicitResumeAfterReturningActive() {
+        var lifecycle = RunInterruptionCoordinator()
+
+        #expect(lifecycle.handle(.sceneBecameInactive) == [.pauseGameplay, .stopFeedback])
+        #expect(lifecycle.state == .suspended([.appInactive]))
+        #expect(lifecycle.handle(.sceneEnteredBackground).isEmpty)
+        #expect(lifecycle.state == .suspended([.appInactive, .appBackground]))
+        #expect(lifecycle.handle(.sceneBecameActive).isEmpty)
+        #expect(lifecycle.state == .pausedForRecovery)
+        #expect(lifecycle.handle(.resumeRequested) == [.startFeedback, .resumeGameplay])
+        #expect(lifecycle.state == .running)
+    }
+
+    @Test
+    func overlappingInterruptionsRecoverOnlyAfterEveryBlockerEnds() {
+        var lifecycle = RunInterruptionCoordinator()
+
+        #expect(lifecycle.handle(.sceneBecameInactive) == [.pauseGameplay, .stopFeedback])
+        #expect(lifecycle.handle(.audioInterruptionBegan).isEmpty)
+        #expect(lifecycle.handle(.sceneBecameActive).isEmpty)
+        #expect(lifecycle.state == .suspended([.audioInterruption]))
+        #expect(lifecycle.handle(.resumeRequested).isEmpty)
+        #expect(lifecycle.handle(.audioInterruptionEnded).isEmpty)
+        #expect(lifecycle.state == .pausedForRecovery)
+    }
+
+    @Test
+    func repeatedLifecycleEventsDoNotDuplicateSideEffects() {
+        var lifecycle = RunInterruptionCoordinator()
+
+        #expect(lifecycle.handle(.audioInterruptionBegan) == [.pauseGameplay, .stopFeedback])
+        #expect(lifecycle.handle(.audioInterruptionBegan).isEmpty)
+        #expect(lifecycle.handle(.audioInterruptionEnded).isEmpty)
+        #expect(lifecycle.handle(.audioInterruptionEnded).isEmpty)
+        #expect(lifecycle.handle(.resumeRequested) == [.startFeedback, .resumeGameplay])
+        #expect(lifecycle.handle(.resumeRequested).isEmpty)
+    }
+
+    @Test
+    func manualPauseUsesTheSameDeterministicRecoveryPath() {
+        var lifecycle = RunInterruptionCoordinator()
+
+        #expect(lifecycle.handle(.pauseRequested) == [.pauseGameplay, .stopFeedback])
+        #expect(lifecycle.state == .pausedForRecovery)
+        #expect(lifecycle.handle(.pauseRequested).isEmpty)
+        #expect(lifecycle.handle(.resumeRequested) == [.startFeedback, .resumeGameplay])
+        #expect(lifecycle.state == .running)
+    }
+
+    @Test
     func identicalSeedsAndCommandsProduceIdenticalState() {
         var first = RaceSimulation(seed: 0xBEEF)
         var second = RaceSimulation(seed: 0xBEEF)
@@ -71,7 +157,7 @@ struct RaceSimulationTests {
     @Test
     func timerExpirationFailsAndStopsFurtherUpdates() {
         let configuration = RaceConfiguration.testConfiguration(
-            stageLength: 10_000,
+            stageLength: 0.5,
             raceDuration: 1.0 / 120.0
         )
         var simulation = RaceSimulation(configuration: configuration, seed: 5)
@@ -108,11 +194,125 @@ struct RaceSimulationTests {
 
         runSimulation(&firstRun, commands: commands, frameRate: 120)
         let expected = firstRun.state
+        let expectedEvents = firstRun.events
 
         firstRun.restart(seed: 1234)
         runSimulation(&firstRun, commands: commands, frameRate: 120)
 
         #expect(firstRun.state == expected)
+        #expect(firstRun.events == expectedEvents)
+    }
+
+    @Test
+    func compactRecordedReplayReproducesFinalStateAndEvents() throws {
+        let seed: UInt64 = 0xCAFE
+        let commands = scriptedCommands(totalDuration: 12)
+        let frameDelta = 1.0 / 60.0
+        var simulation = RaceSimulation(seed: seed)
+        var recorder = RaceReplayRecorder(seed: seed)
+        var elapsed = 0.0
+
+        while elapsed < 12 {
+            let command = command(at: elapsed, segments: commands)
+            try recorder.record(frameDelta: frameDelta, command: command)
+            simulation.advance(frameDelta: frameDelta, command: command)
+            elapsed += frameDelta
+        }
+
+        let replay = recorder.finish(events: simulation.events)
+        let data = try JSONEncoder().encode(replay)
+        let decoded = try JSONDecoder().decode(RaceReplay.self, from: data)
+        let result = try RaceReplayExecutor.run(decoded)
+
+        #expect(decoded == replay)
+        #expect(
+            result.finalState == simulation.state,
+            "Replay seed \(seed), expected \(simulation.state), got \(result.finalState)"
+        )
+        #expect(
+            result.events == simulation.events,
+            "Replay seed \(seed), expected \(simulation.events), got \(result.events)"
+        )
+        #expect(result.frameCount == 720)
+        #expect(replay.commandRuns.count == commands.count)
+
+        let json = try #require(String(data: data, encoding: .utf8))
+        #expect(json.contains("\"v\":1"))
+        #expect(json.contains("\"r\""))
+        #expect(!json.contains("frameDelta"))
+        #expect(data.count < 600)
+    }
+
+    @Test
+    func replayDetectsEventSequenceMismatch() throws {
+        let run = try RaceCommandRun(
+            frameDelta: 1.0 / 120.0,
+            repeatCount: 1,
+            command: .idle
+        )
+        let replay = RaceReplay(
+            seed: 1,
+            commandRuns: [run],
+            events: [.finished(time: 0)]
+        )
+
+        #expect(throws: RaceReplayError.self) {
+            try RaceReplayExecutor.run(replay)
+        }
+    }
+
+    @Test(arguments: [
+        #"{"v":2,"s":1,"r":[]}"#,
+        #"{"v":1,"s":1,"r":[{"d":-0.1,"n":1,"c":{"s":0,"t":0,"b":0,"x":false}}]}"#,
+        #"{"v":1,"s":1,"r":[{"d":0.016,"n":0,"c":{"s":0,"t":0,"b":0,"x":false}}]}"#
+    ])
+    func malformedReplayFixturesAreRejected(fixture: String) {
+        #expect(throws: (any Error).self) {
+            try JSONDecoder().decode(RaceReplay.self, from: Data(fixture.utf8))
+        }
+    }
+
+    @Test
+    func recorderRejectsNonfiniteInputs() {
+        var recorder = RaceReplayRecorder(seed: 1)
+
+        #expect(throws: RaceReplayError.invalidFrameDelta) {
+            try recorder.record(frameDelta: .nan, command: .idle)
+        }
+        #expect(throws: RaceReplayError.invalidCommand) {
+            try recorder.record(
+                frameDelta: 1.0 / 60.0,
+                command: PlayerCommand(
+                    steering: .nan,
+                    throttle: 1,
+                    brake: 0,
+                    isBoosting: false
+                )
+            )
+        }
+        #expect(recorder.commandRuns.isEmpty)
+    }
+
+    @Test
+    func commandsAreClampedToSimulationInvariants() {
+        var simulation = RaceSimulation(seed: 31)
+        let extreme = PlayerCommand(
+            steering: 100,
+            throttle: 100,
+            brake: -100,
+            isBoosting: false
+        )
+
+        for _ in 0..<10_000 {
+            simulation.advance(frameDelta: 1.0 / 120.0, command: extreme)
+        }
+
+        #expect(simulation.state.speed >= 0)
+        #expect(simulation.state.speed <= RaceConfiguration.standard.maximumSpeed)
+        #expect(simulation.state.lateralPosition == 1)
+        #expect(simulation.state.stageProgress >= 0)
+        #expect(simulation.state.stageProgress <= 1)
+        #expect(simulation.state.timerRemaining >= 0)
     }
 
     @Test
@@ -184,7 +384,23 @@ private extension RaceConfiguration {
         stageLength: Double,
         raceDuration: TimeInterval
     ) -> RaceConfiguration {
-        RaceConfiguration(
+        let theoreticalBoostTime = min(
+            raceDuration,
+            (standard.boost.initialCharge + standard.boost.rechargePerSecond * raceDuration)
+                / (standard.boost.consumptionPerSecond + standard.boost.rechargePerSecond)
+        )
+        let maximumScore =
+            stageLength * standard.scoring.pointsPerDistance
+            + theoreticalBoostTime * standard.scoring.pointsPerBoostSecond
+        let scoring = ScoringBalance(
+            pointsPerDistance: standard.scoring.pointsPerDistance,
+            pointsPerBoostSecond: standard.scoring.pointsPerBoostSecond,
+            bronzeThreshold: maximumScore * 0.5,
+            silverThreshold: maximumScore * 0.7,
+            goldThreshold: maximumScore * 0.9
+        )
+
+        return RaceConfiguration(
             fixedTimeStep: standard.fixedTimeStep,
             maximumFrameDelta: standard.maximumFrameDelta,
             maximumSimulationStepsPerFrame: standard.maximumSimulationStepsPerFrame,
@@ -194,8 +410,11 @@ private extension RaceConfiguration {
             maximumSpeed: standard.maximumSpeed,
             steeringRate: standard.steeringRate,
             stageLength: stageLength,
-            raceDuration: raceDuration
+            raceDuration: raceDuration,
+            profile: standard.profile,
+            traffic: standard.traffic,
+            boost: standard.boost,
+            scoring: scoring
         )
     }
 }
-

@@ -10,6 +10,9 @@ Neon Racer is an original native iOS arcade racing game with a retro-futurist ne
 
 The app is iPhone-only and runs in landscape orientation.
 
+CI pins Xcode 26.0.1 (`17A400`) and the iOS 26.0 SDK on GitHub's
+`macos-15` runner rather than following the runner's changing default Xcode.
+
 ## Architecture
 
 - `App`: SwiftUI application lifecycle and top-level navigation.
@@ -21,6 +24,18 @@ The app is iPhone-only and runs in landscape orientation.
 
 The gameplay simulation uses a fixed timestep, seeded randomness, explicit player commands, bounded catch-up, pause/restart semantics, and immutable interpolated render snapshots. Rendering is handled separately by `RaceScene`, so core tests run without SpriteKit.
 
+Audio uses typed music, engine, tire, ambience, impact, UI, and voice buses. Its
+mixing/lifecycle reducer and smoothed vehicle parameters are platform-independent and
+unit tested; `AudioService` maps that state onto AVAudioEngine. The current soundscape is
+generated entirely in code, so missing future resources never block gameplay. Music and
+effects levels and mute choices persist independently in user defaults.
+
+### Deterministic diagnostic replays
+
+`RaceReplayRecorder` records the seed plus frame deltas and player commands. Adjacent identical frames are run-length encoded, and the `Codable` JSON representation uses compact keys (`v`, `s`, `r`, and optional `e`) so fixtures remain small. `RaceReplayExecutor` feeds that stream back through `RaceSimulation` and can verify the recorded deterministic event sequence.
+
+This is a developer diagnostic format, not a user-facing or cinematic replay feature. The format is versioned; unsupported versions and malformed run data fail decoding. Debug reporting protocols and snapshots are compiled only under `#if DEBUG`, while recording and execution remain platform-independent so `swift test` can exercise them.
+
 ## Build and run
 
 1. Open `NeonRacer.xcodeproj` in Xcode 26 or later.
@@ -29,6 +44,23 @@ The gameplay simulation uses a fixed timestep, seeded randomness, explicit playe
 4. Build and run.
 
 The placeholder main menu launches an animated SpriteKit scene that validates the app shell, fixed-step simulation, and native rendering integration.
+
+When running in the iOS Simulator on macOS, enable **I/O > Keyboard > Connect
+Hardware Keyboard**. Drive with **A/D** or the left/right arrows, accelerate
+with **W** or the up arrow, brake with **S** or the down arrow, boost with
+**Space**, and pause with **Escape**.
+
+## Accessibility
+
+The main menu includes persistent options for reduced motion, reduced flashes, high
+contrast, a larger race display, and color-vision-safe palettes. The race renderer honors
+both the in-game Reduce Motion choice and the system Reduce Motion setting. Text, symbols,
+and lane markings supplement color cues, and SwiftUI interface text continues to scale
+with Dynamic Type.
+
+VoiceOver supports the current menus, settings, pause flow, and labeled race controls.
+Real-time high-speed steering is not guaranteed with VoiceOver; the race screen provides
+an equivalent overview, while pre-race guidance and pause controls remain accessible.
 
 ## Tests
 
@@ -41,9 +73,25 @@ xcodebuild test \
   -destination 'platform=iOS Simulator,name=iPhone 17 Pro'
 ```
 
+Performance budgets, quality tiers, and the physical-device Instruments procedure are
+documented in [`Documentation/Performance.md`](Documentation/Performance.md).
+
+## Release readiness
+
+- [Release/archive and signing runbook](Documentation/Release.md)
+- [Privacy manifest review and App Store privacy answers](Documentation/Privacy.md)
+- [Asset provenance and IP checklist](Documentation/AssetProvenance.md)
+- [TestFlight smoke and rollback checklist](Documentation/TestFlight.md)
+- [App Store metadata and screenshot draft](Documentation/AppStoreMetadata.md)
+
+The project intentionally contains no signing secrets or team identifier. The final app
+icon, public support/privacy URLs, legal-owner metadata, device testing, and owner-approved
+signing remain release gates.
+
 ## Adding content
 
 Add stage definitions under `NeonRacer/Content` and visual assets under `NeonRacer/Resources/Assets.xcassets`. Stage content should be decoded into typed `Codable` models and validated before a race begins. Avoid raw dictionaries and runtime string lookups in gameplay systems.
 
 All shipped art, fonts, music, and sound effects must be original or have documented redistribution rights.
 
+See the [visual style guide](Documentation/VisualStyleGuide.md) for the original-art policy, palette and readability rules, world language, accessibility constraints, target scene specifications, and screenshot review criteria used by vehicle, environment, HUD, VFX, and App Store asset work.

@@ -13,7 +13,22 @@ let package = Package(
     targets: [
         .target(
             name: "NeonRacerCore",
-            path: "NeonRacer/Game/Simulation"
+            path: "NeonRacer",
+            exclude: [
+                "App",
+                "Content",
+                "Features",
+                "Game/Rendering",
+                "Resources",
+                "Services",
+                "Shared/Accessibility/AccessibilitySettingsStore.swift",
+                "Shared/Design/NeonPalette.swift"
+            ],
+            sources: [
+                "Game/Simulation",
+                "Shared/Accessibility/AccessibilitySettings.swift",
+                "Shared/Design/AccessiblePalette.swift"
+            ]
         ),
         .testTarget(
             name: "NeonRacerCoreTests",
