@@ -124,6 +124,7 @@ jobs:
             -destination "platform=iOS Simulator,id=$DEVICE_UDID" \
             -only-testing:NeonRacerTests \
             -only-testing:NeonRacerUITests/NeonRacerUITests/testLaunchesRaceFromMainMenu \
+            -only-testing:NeonRacerUITests/NeonRacerUITests/testGarageShowsVehicleComparisonAndCustomizationScreen \
             COMPILER_INDEX_STORE_ENABLE=NO
 
       - name: Run static analyzer

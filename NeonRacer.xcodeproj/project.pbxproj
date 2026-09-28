@@ -44,6 +44,7 @@
 		A21000000000000000000003 /* AccessiblePalette.swift in Sources */ = {isa = PBXBuildFile; fileRef = A21000000000000000000013 /* AccessiblePalette.swift */; };
 		A21000000000000000000004 /* AccessibilitySettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A21000000000000000000014 /* AccessibilitySettingsView.swift */; };
 		A21000000000000000000005 /* AccessibilitySettingsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A21000000000000000000015 /* AccessibilitySettingsTests.swift */; };
+		G33000000000000000000001 /* GarageLayoutContractTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = G33000000000000000000002 /* GarageLayoutContractTests.swift */; };
 		I20000000000000000000001 /* InputServiceCommandTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = I20000000000000000000002 /* InputServiceCommandTests.swift */; };
 		A24000000000000000000001 /* RaceReplay.swift in Sources */ = {isa = PBXBuildFile; fileRef = A24000000000000000000003 /* RaceReplay.swift */; };
 		A24000000000000000000002 /* RaceDebugDiagnostics.swift in Sources */ = {isa = PBXBuildFile; fileRef = A24000000000000000000004 /* RaceDebugDiagnostics.swift */; };
@@ -155,6 +156,7 @@
 		A21000000000000000000013 /* AccessiblePalette.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccessiblePalette.swift; sourceTree = "<group>"; };
 		A21000000000000000000014 /* AccessibilitySettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccessibilitySettingsView.swift; sourceTree = "<group>"; };
 		A21000000000000000000015 /* AccessibilitySettingsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccessibilitySettingsTests.swift; sourceTree = "<group>"; };
+		G33000000000000000000002 /* GarageLayoutContractTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GarageLayoutContractTests.swift; sourceTree = "<group>"; };
 		I20000000000000000000002 /* InputServiceCommandTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InputServiceCommandTests.swift; sourceTree = "<group>"; };
 		A24000000000000000000003 /* RaceReplay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RaceReplay.swift; sourceTree = "<group>"; };
 		A24000000000000000000004 /* RaceDebugDiagnostics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RaceDebugDiagnostics.swift; sourceTree = "<group>"; };
@@ -477,6 +479,7 @@
 				300000000000000000000028 /* TutorialStateTests.swift */,
 				E23000000000000000000004 /* CosmeticQualityTests.swift */,
 				A21000000000000000000015 /* AccessibilitySettingsTests.swift */,
+				G33000000000000000000002 /* GarageLayoutContractTests.swift */,
 				I20000000000000000000002 /* InputServiceCommandTests.swift */,
 				F19000000000000000000004 /* AudioMixStateTests.swift */,
 				V13000000000000000000006 /* VehicleArtTests.swift */,
@@ -746,6 +749,7 @@
 				200000000000000000000028 /* TutorialStateTests.swift in Sources */,
 				D23000000000000000000004 /* CosmeticQualityTests.swift in Sources */,
 				A21000000000000000000005 /* AccessibilitySettingsTests.swift in Sources */,
+				G33000000000000000000001 /* GarageLayoutContractTests.swift in Sources */,
 				I20000000000000000000001 /* InputServiceCommandTests.swift in Sources */,
 				F19000000000000000000002 /* AudioMixStateTests.swift in Sources */,
 				C18000000000000000000003 /* ProfileStoreTests.swift in Sources */,

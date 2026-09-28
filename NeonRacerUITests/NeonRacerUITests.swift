@@ -169,6 +169,41 @@ final class NeonRacerUITests: XCTestCase {
     }
 
     @MainActor
+    func testGarageShowsVehicleComparisonAndCustomizationScreen() {
+        let app = XCUIApplication()
+        app.launchArguments.append("UITestDisableRunRecovery")
+        app.launch()
+        dismissRunRecoveryIfPresent(app)
+
+        XCTAssertTrue(app.buttons["GARAGE"].waitForExistence(timeout: 5))
+        app.buttons["GARAGE"].tap()
+
+        let prototype = app.buttons.matching(NSPredicate(format: "label BEGINSWITH %@", "Prototype Zero,")).firstMatch
+        let vector = app.buttons.matching(NSPredicate(format: "label BEGINSWITH %@", "Vector Sprint,")).firstMatch
+        let apex = app.buttons.matching(NSPredicate(format: "label BEGINSWITH %@", "Apex Phantom,")).firstMatch
+        XCTAssertTrue(prototype.waitForExistence(timeout: 5))
+        XCTAssertTrue(vector.exists)
+        XCTAssertTrue(apex.exists)
+        XCTAssertTrue(prototype.isHittable)
+        XCTAssertTrue(vector.isHittable)
+        XCTAssertTrue(apex.isHittable)
+        XCTAssertTrue((prototype.label).contains("top speed"))
+        XCTAssertTrue((vector.label).contains("acceleration"))
+        XCTAssertTrue((apex.label).contains("boost"))
+        XCTAssertTrue(app.buttons["MODIFY SELECTED CAR"].exists)
+
+        app.buttons["MODIFY SELECTED CAR"].tap()
+        XCTAssertTrue(app.staticTexts["Modifications"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts["PALETTE & NEON TRIM"].exists)
+        XCTAssertTrue(app.staticTexts["RACE ROUTE"].exists)
+
+        let customizationDone = app.navigationBars["Modifications"].buttons["Done"]
+        XCTAssertTrue(customizationDone.waitForExistence(timeout: 5))
+        customizationDone.tap()
+        XCTAssertTrue(app.buttons["MODIFY SELECTED CAR"].waitForExistence(timeout: 5))
+    }
+
+    @MainActor
     private func dismissRunRecoveryIfPresent(_ app: XCUIApplication) {
         let discardRun = app.buttons["DISCARD RUN"]
         if discardRun.waitForExistence(timeout: 1) {
