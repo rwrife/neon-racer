@@ -740,7 +740,7 @@ private extension Logger {
         gameplaySettings: GameplaySettingsStore(),
         restartRace: {},
         exitRace: {},
-        completed: { _ in }
+        completed: { _ in RaceResultsSummary(previousBest: 0, unlocks: []) }
     )
     .environmentObject(AccessibilitySettingsStore())
 }
