@@ -5,6 +5,30 @@ enum RaceOutcome: String, Codable, Equatable, Sendable {
     case failed
 }
 
+/// Presentation-only motion after a successful finish. Scoring and race time stay frozen while
+/// the hero car coasts down the obstacle-free road behind the results overlay.
+struct FinishCruiseState: Equatable, Sendable {
+    private(set) var isActive = false
+    private(set) var presentationDistance: Double = 0
+    private(set) var presentationSpeed: Double = 0
+
+    mutating func begin(outcome: RaceOutcome, currentSpeed: Double, routeDistance: Double) {
+        presentationDistance = routeDistance.isFinite ? max(0, routeDistance) : 0
+        guard outcome == .finished else {
+            isActive = false
+            presentationSpeed = 0
+            return
+        }
+        isActive = true
+        presentationSpeed = max(38, currentSpeed.isFinite ? currentSpeed : 0)
+    }
+
+    mutating func advance(deltaTime: TimeInterval) {
+        guard isActive, deltaTime.isFinite, deltaTime > 0 else { return }
+        presentationDistance += presentationSpeed * min(deltaTime, 0.1)
+    }
+}
+
 struct RaceResult: Codable, Equatable, Sendable {
     let outcome: RaceOutcome
     let score: Int
@@ -50,6 +74,11 @@ struct RaceResult: Codable, Equatable, Sendable {
             ? state.scoreInputs.scoreBreakdownEntries()
             : scoreBreakdown
     }
+}
+
+struct RaceResultsSummary: Equatable, Sendable {
+    let previousBest: Int
+    let unlocks: [String]
 }
 
 enum RaceEvent: Codable, Equatable, Sendable {

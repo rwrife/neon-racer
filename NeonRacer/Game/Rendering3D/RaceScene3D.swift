@@ -40,6 +40,7 @@ final class RaceScene3D: NSObject {
     private var previousPhase = RacePhase.loading
     private var wasBoostActive = false
     private var didReportResult = false
+    private var finishCruise = FinishCruiseState()
     private var accessibilitySettings = AccessibilitySettings.defaults
     private var systemReduceMotion = false
     private var lastHUDPublishTime: TimeInterval = -.infinity
@@ -335,7 +336,18 @@ final class RaceScene3D: NSObject {
         }
 #endif
         simulation.advance(frameDelta: frameDelta, command: command)
-        mapper.updateRoute(for: simulation.state)
+        if simulation.state.phase == .finished, !finishCruise.isActive {
+            finishCruise.begin(
+                outcome: .finished,
+                currentSpeed: simulation.state.speed,
+                routeDistance: simulation.state.distance
+            )
+        }
+        finishCruise.advance(deltaTime: frameDelta)
+        mapper.updateRoute(
+            for: simulation.state,
+            presentationDistance: finishCruise.isActive ? finishCruise.presentationDistance : nil
+        )
         driveFeedbackFromSimulation()
         publishHUDIfNeeded(currentTime: currentTime)
         render(snapshot: simulation.renderSnapshot, command: command, frameDelta: frameDelta, currentTime: currentTime)
@@ -392,9 +404,13 @@ final class RaceScene3D: NSObject {
         // Respawn teleports the car to the road center; don't interpolate across the jump.
         let didRespawn = snapshot.previous.vehicle.isWipingOut && !state.vehicle.isWipingOut
         let lateralAlpha = didRespawn ? 1 : alpha
-        let distance = interpolate(snapshot.previous.distance, snapshot.current.distance, alpha)
+        let distance = finishCruise.isActive
+            ? finishCruise.presentationDistance
+            : interpolate(snapshot.previous.distance, snapshot.current.distance, alpha)
         let lateral = interpolate(snapshot.previous.lateralPosition, snapshot.current.lateralPosition, lateralAlpha)
-        let speed = interpolate(snapshot.previous.speed, snapshot.current.speed, alpha)
+        let speed = finishCruise.isActive
+            ? finishCruise.presentationSpeed
+            : interpolate(snapshot.previous.speed, snapshot.current.speed, alpha)
         let carFrame = mapper.frame(atRunDistance: distance, lateralPosition: lateral)
         carNode.position = carFrame.position
         carNode.eulerAngles = SCNVector3(
@@ -420,8 +436,12 @@ final class RaceScene3D: NSObject {
             drawDistance: renderQuality.drawDistanceMeters
         )
         markerBuilder.update(state: state, mapper: mapper)
-        updateTraffic(snapshot: snapshot, alpha: alpha)
-        updateObstacles(snapshot: snapshot, alpha: alpha)
+        if finishCruise.isActive {
+            removeCourseHazards()
+        } else {
+            updateTraffic(snapshot: snapshot, alpha: alpha)
+            updateObstacles(snapshot: snapshot, alpha: alpha)
+        }
         PerformanceInstrumentation.end(.roadProjection, roadInterval)
 
         let effectsInterval = PerformanceInstrumentation.begin(.effects)
@@ -592,6 +612,13 @@ final class RaceScene3D: NSObject {
             node.removeFromParentNode()
             obstacleNodes[id] = nil
         }
+    }
+
+    private func removeCourseHazards() {
+        for node in trafficNodes.values { node.removeFromParentNode() }
+        trafficNodes.removeAll(keepingCapacity: true)
+        for node in obstacleNodes.values { node.removeFromParentNode() }
+        obstacleNodes.removeAll(keepingCapacity: true)
     }
 
     private func driveFeedbackFromSimulation() {

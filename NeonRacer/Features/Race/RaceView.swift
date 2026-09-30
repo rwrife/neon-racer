@@ -12,7 +12,7 @@ struct RaceView: View {
     @ObservedObject var gameplaySettings: GameplaySettingsStore
     let restartRace: () -> Void
     let exitRace: () -> Void
-    let completed: (RaceResult) -> Void
+    let completed: (RaceResult) -> RaceResultsSummary
 
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.accessibilityReduceMotion) private var systemReduceMotion
@@ -34,6 +34,8 @@ struct RaceView: View {
     @State private var hudFeedbackTask: Task<Void, Never>?
     @State private var lastRecoveryPersistTime: TimeInterval = -.infinity
     @State private var confirmation: Confirmation?
+    @State private var endingResult: RaceResult?
+    @State private var endingSummary: RaceResultsSummary?
     @FocusState private var focusedPauseAction: PauseAction?
 
     private enum Confirmation: String, Identifiable {
@@ -46,7 +48,6 @@ struct RaceView: View {
     }
 #if DEBUG
     @State private var showsVehicleArtPreview = false
-    @State private var forcedUITestResult: RaceResult?
 #endif
 
     init(
@@ -59,7 +60,7 @@ struct RaceView: View {
         gameplaySettings: GameplaySettingsStore,
         restartRace: @escaping () -> Void,
         exitRace: @escaping () -> Void,
-        completed: @escaping (RaceResult) -> Void
+        completed: @escaping (RaceResult) -> RaceResultsSummary
     ) {
         self.inputMethod = inputMethod
         self.selectedVehicleID = selectedVehicleID
@@ -150,7 +151,7 @@ struct RaceView: View {
                 HStack {
                     if ProcessInfo.processInfo.arguments.contains("UITestFinishRace") {
                         Button("COMPLETE TEST RACE") {
-                            forcedUITestResult = scene.completeForUITesting(succeeded: true)
+                            handleRaceCompleted(scene.completeForUITesting(succeeded: true))
                         }
                     }
                     if !Self.debugStartsRace {
@@ -177,18 +178,20 @@ struct RaceView: View {
                 recoveryOverlay
             }
 
-#if DEBUG
-            if let forcedUITestResult {
+            if let endingResult {
                 ResultsView(
-                    result: forcedUITestResult,
-                    previousBest: 0,
-                    unlocks: [],
+                    result: endingResult,
+                    previousBest: endingSummary?.previousBest ?? 0,
+                    unlocks: endingSummary?.unlocks ?? [],
                     retry: restartRace,
-                    returnToTitle: exitRace
+                    returnToTitle: exitRace,
+                    overlaysRaceScene: true
                 )
-                .zIndex(10_000)
+                .background(.black.opacity(0.58))
+                .accessibilityElement(children: .contain)
+                .accessibilityLabel("Race results")
+                .zIndex(30_000)
             }
-#endif
         }
         .onAppear {
             scene.audioFrameHandler = { input, deltaTime in
@@ -422,10 +425,8 @@ struct RaceView: View {
         audioService.stop()
         hapticsService.stop()
         clearRunRecoverySnapshot()
-        let completion = completed
-        Task { @MainActor in
-            completion(result)
-        }
+        endingSummary = completed(result)
+        endingResult = result
     }
 
     private func apply(_ actions: [RunLifecycleAction]) {

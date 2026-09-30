@@ -4,7 +4,6 @@ struct RootView: View {
     private enum Destination: Equatable {
         case menu
         case race(UUID)
-        case results(RaceResult, previousBest: Int, unlocks: [String])
     }
 
     @State private var destination = Destination.menu
@@ -70,14 +69,6 @@ struct RootView: View {
                         completed: showResults
                     )
                     .id(runID)
-                case .results(let result, let previousBest, let unlocks):
-                    ResultsView(
-                        result: result,
-                        previousBest: previousBest,
-                        unlocks: unlocks,
-                        retry: startRace,
-                        returnToTitle: returnToMenu
-                    )
                 }
             } else {
                 ProgressView("Loading profile")
@@ -152,7 +143,8 @@ struct RootView: View {
         setDestination(.menu)
     }
 
-    private func showResults(_ result: RaceResult) {
+    @discardableResult
+    private func showResults(_ result: RaceResult) -> RaceResultsSummary {
         audio.handle(.showMenu)
         let previousBest = profile.bestScore
         let previousUnlocks = profile.unlockedVehicleIDs
@@ -163,12 +155,8 @@ struct RootView: View {
         let currentUnlocks = profile.unlockedVehicleIDs
             .union(profile.unlockedPaletteIDs)
             .union(profile.unlockedRouteIDs)
-        let resultDestination = Destination.results(
-            result,
-            previousBest: previousBest,
-            unlocks: Array(currentUnlocks.subtracting(previousUnlocks)).sorted()
-        )
-        setDestination(resultDestination)
+        let newUnlocks = Array(currentUnlocks.subtracting(previousUnlocks)).sorted()
+        return RaceResultsSummary(previousBest: previousBest, unlocks: newUnlocks)
     }
 
     private var profileSaveErrorIsPresented: Binding<Bool> {
