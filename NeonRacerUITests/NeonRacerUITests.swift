@@ -95,7 +95,9 @@ final class NeonRacerUITests: XCTestCase {
         XCTAssertTrue(app.buttons["COMPLETE TEST RACE"].waitForExistence(timeout: 5))
         app.buttons["COMPLETE TEST RACE"].tap()
         XCTAssertTrue(app.staticTexts["FINISH!"].waitForExistence(timeout: 5))
-        app.buttons["RETRY"].tap()
+        XCTAssertTrue(app.buttons["RACE AGAIN"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.buttons["RETURN TO TITLE"].waitForExistence(timeout: 5))
+        app.buttons["RACE AGAIN"].tap()
         XCTAssertTrue(app.buttons["Pause race"].waitForExistence(timeout: 5))
     }
 

@@ -179,15 +179,19 @@ struct ResultsView: View {
 
     private enum Action: Hashable { case retry, title }
 
+    var overlaysRaceScene = false
+
     var body: some View {
         let palette = NeonPalette.colors(for: accessibility.settings)
         ZStack {
-            LinearGradient(
-                colors: [palette.background.color, palette.panel.color],
-                startPoint: .top,
-                endPoint: .bottom
-            )
-            .ignoresSafeArea()
+            if !overlaysRaceScene {
+                LinearGradient(
+                    colors: [palette.background.color, palette.panel.color],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+                .ignoresSafeArea()
+            }
             ScrollView {
                 VStack(spacing: 22) {
                 Text(result.outcome == .finished ? "FINISH!" : "RUN OVER")
@@ -240,10 +244,10 @@ struct ResultsView: View {
                         .multilineTextAlignment(.center)
                 }
                 HStack(spacing: 18) {
-                    Button("RETRY", action: retry)
+                    Button("RACE AGAIN", action: retry)
                         .buttonStyle(.borderedProminent)
                         .focused($focusedAction, equals: .retry)
-                    Button("TITLE", action: returnToTitle)
+                    Button("RETURN TO TITLE", action: returnToTitle)
                         .buttonStyle(.bordered)
                         .focused($focusedAction, equals: .title)
                 }

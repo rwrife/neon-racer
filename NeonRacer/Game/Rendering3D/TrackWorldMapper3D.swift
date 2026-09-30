@@ -69,14 +69,14 @@ final class TrackWorldMapper3D {
         self.layout = layout
     }
 
-    func updateRoute(for state: RaceState) {
+    func updateRoute(for state: RaceState, presentationDistance: Double? = nil) {
         let key = state.committedBranchIDs.joined(separator: "|")
         if key != branchKey || placements.isEmpty {
             branchKey = key
             rebuildRoute(committedBranchIDs: state.committedBranchIDs)
             routeVersion += 1
         }
-        rebase(around: state.distance)
+        rebase(around: presentationDistance ?? state.distance)
     }
 
     func frame(atRunDistance runDistance: Double, lateralPosition: Double = 0) -> TrackWorldFrame3D {
@@ -92,6 +92,29 @@ final class TrackWorldMapper3D {
                 shoulderWidth: 1,
                 laneCount: 3,
                 laneWidth: 4
+            )
+        }
+
+        // Past the last authored sample (e.g. the finish-line cruise), extrapolate a straight,
+        // level extension of the final heading so the road keeps going to the horizon.
+        if let last = centerSamples.last, runDistance > last.runDistance {
+            let extraDistance = runDistance - last.runDistance
+            let forward = SCNVector3(sin(last.heading), 0, -cos(last.heading))
+            let worldCenter = last.worldPosition + forward * Float(extraDistance)
+            let right = SCNVector3(cos(last.heading), 0, sin(last.heading))
+            let scenePosition = worldCenter - originWorldPosition
+                + right * (Float(lateralPosition) * last.roadHalfWidth)
+            return TrackWorldFrame3D(
+                runDistance: runDistance,
+                stageID: last.stageID,
+                distanceInStage: last.distanceInStage + extraDistance,
+                position: scenePosition,
+                heading: last.heading,
+                pitch: 0,
+                roadHalfWidth: last.roadHalfWidth,
+                shoulderWidth: last.shoulderWidth,
+                laneCount: last.laneCount,
+                laneWidth: last.laneWidth
             )
         }
 
@@ -207,6 +230,10 @@ final class TrackWorldMapper3D {
 
     private func worldCenter(atRunDistance runDistance: Double) -> SCNVector3 {
         guard !centerSamples.isEmpty else { return SCNVector3Zero }
+        if let last = centerSamples.last, runDistance > last.runDistance {
+            let forward = SCNVector3(sin(last.heading), 0, -cos(last.heading))
+            return last.worldPosition + forward * Float(runDistance - last.runDistance)
+        }
         let distance = runDistance.clamped(to: centerSamples[0].runDistance...centerSamples.last!.runDistance)
         let upperIndex = centerSamples.partitioningIndex { $0.runDistance >= distance }
         let lowerIndex = max(0, min(centerSamples.count - 1, upperIndex - 1))
