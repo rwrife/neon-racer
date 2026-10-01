@@ -36,10 +36,15 @@ Procedure and thresholds: see [Performance device sign-off](performance-device-s
 
 When the owner device run completes: set `Sign-off status` to `RECORDED`,
 replace the four marker placeholders above (using a valid ISO `YYYY-MM-DD`
-date for `SIGN_OFF_DATE`), and fill every `Measured` cell and set every
-`Result` cell to `PASS` in the table. The gate passes only when all four
-markers are present with real values, the date is a valid calendar date, no
-placeholder token remains anywhere in this file, and every required metric
-row appears exactly once with a non-empty measurement and an exact `PASS`
-verdict. Deleting a row, blanking a measurement, recording a non-`PASS`
-verdict, or adding rows outside the required set keeps the gate closed.
+date for `SIGN_OFF_DATE`; each marker must appear exactly once), and fill
+every `Measured` cell with the real measurement (numeric with its unit,
+e.g. `58.4 fps` or `480 MB`; `none`/`stable` for retry-loop growth;
+`nominal`/`fair` for thermal) and set every `Result` cell to `PASS`.
+The gate passes only when all four markers are unique and filled, the date
+is a valid calendar date, no placeholder token remains anywhere in this
+file, and every required metric row appears exactly once with the checklist
+threshold intact, a plausible measurement inside its budget, and an exact
+`PASS` verdict. Editing a threshold, blanking a measurement, recording a
+non-`PASS` verdict, or adding/removing rows keeps the gate closed. The
+gate validates the record's completeness and consistency; the authenticity
+of the underlying device run remains the signatory's accountability.

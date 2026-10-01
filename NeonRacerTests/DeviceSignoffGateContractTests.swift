@@ -106,10 +106,10 @@ final class DeviceSignoffGateContractTests: XCTestCase {
     func testGateRejectsMalformedSignOffDate() throws {
         let staged = try stagedRepoRoot(suffix: "malformed")
         let evidenceURL = staged.appendingPathComponent("docs/performance-device-evidence.md")
-        var evidence = try read(evidenceURL)
-        evidence = evidence
-            .replacingOccurrences(of: "SIGN_OFF_DATE: PENDING", with: "SIGN_OFF_DATE: 01-10-2026")
-            .replacingOccurrences(of: "PENDING", with: "measured")
+        let evidence = completeRecord().replacingOccurrences(
+            of: "SIGN_OFF_DATE: 2026-10-01", with: "SIGN_OFF_DATE: 01-10-2026"
+        )
+        XCTAssertFalse(evidence.contains("PENDING"))
         try evidence.write(to: evidenceURL, atomically: true, encoding: .utf8)
 
         let result = try runGate(in: staged)
@@ -124,11 +124,10 @@ final class DeviceSignoffGateContractTests: XCTestCase {
         // release readiness (regression fixture from independent review).
         let staged = try stagedRepoRoot(suffix: "invalid-date")
         let evidenceURL = staged.appendingPathComponent("docs/performance-device-evidence.md")
-        var evidence = try read(evidenceURL)
-        evidence = evidence
-            .replacingOccurrences(of: "SIGN_OFF_DATE: PENDING", with: "SIGN_OFF_DATE: 2026-02-30")
-            .replacingOccurrences(of: "PENDING", with: "60 | PASS")
-        evidence = evidence.replacingOccurrences(of: "| 60 | PASS | PASS |", with: "| 60 | PASS |")
+        let evidence = completeRecord().replacingOccurrences(
+            of: "SIGN_OFF_DATE: 2026-10-01", with: "SIGN_OFF_DATE: 2026-02-30"
+        )
+        XCTAssertFalse(evidence.contains("PENDING"))
         try evidence.write(to: evidenceURL, atomically: true, encoding: .utf8)
 
         let result = try runGate(in: staged)
@@ -143,17 +142,11 @@ final class DeviceSignoffGateContractTests: XCTestCase {
         // non-PASS verdict) must keep the gate closed.
         let staged = try stagedRepoRoot(suffix: "fail-row")
         let evidenceURL = staged.appendingPathComponent("docs/performance-device-evidence.md")
-        var evidence = try read(evidenceURL)
-        evidence = evidence
-            .replacingOccurrences(of: "SIGN_OFF_DATE: PENDING", with: "SIGN_OFF_DATE: 2026-10-01")
-            .replacingOccurrences(of: "DEVICE_MODEL: PENDING", with: "DEVICE_MODEL: iPhone 16 Pro")
-            .replacingOccurrences(of: "IOS_VERSION: PENDING", with: "IOS_VERSION: 26.5")
-            .replacingOccurrences(of: "BUILD_COMMIT: PENDING", with: "BUILD_COMMIT: 0123456")
-            .replacingOccurrences(of: "Sign-off status: PENDING", with: "Sign-off status: RECORDED")
-            .replacingOccurrences(of: "| PENDING | PENDING |", with: "| 60.2 | PASS |")
+        let fpsRow = "| Sustained FPS (full race) | >= 55 | 58.4 fps | PASS |"
+        var evidence = completeRecord()
+        XCTAssertTrue(evidence.contains(fpsRow), "Fixture precondition: FPS row exists")
         evidence = evidence.replacingOccurrences(
-            of: "| Sustained FPS (full race) | >= 55 | 60.2 | PASS |",
-            with: "| Sustained FPS (full race) | >= 55 | 41.0 | FAIL |"
+            of: fpsRow, with: "| Sustained FPS (full race) | >= 55 | 41.0 fps | FAIL |"
         )
         XCTAssertFalse(evidence.contains("PENDING"))
         try evidence.write(to: evidenceURL, atomically: true, encoding: .utf8)
@@ -169,15 +162,8 @@ final class DeviceSignoffGateContractTests: XCTestCase {
         // Deleting a required row must not shrink the acceptance surface.
         let staged = try stagedRepoRoot(suffix: "deleted-row")
         let evidenceURL = staged.appendingPathComponent("docs/performance-device-evidence.md")
-        var evidence = try read(evidenceURL)
-        evidence = evidence
-            .replacingOccurrences(of: "SIGN_OFF_DATE: PENDING", with: "SIGN_OFF_DATE: 2026-10-01")
-            .replacingOccurrences(of: "DEVICE_MODEL: PENDING", with: "DEVICE_MODEL: iPhone 16 Pro")
-            .replacingOccurrences(of: "IOS_VERSION: PENDING", with: "IOS_VERSION: 26.5")
-            .replacingOccurrences(of: "BUILD_COMMIT: PENDING", with: "BUILD_COMMIT: 0123456")
-            .replacingOccurrences(of: "Sign-off status: PENDING", with: "Sign-off status: RECORDED")
-            .replacingOccurrences(of: "| PENDING | PENDING |", with: "| 60.2 | PASS |")
-        let gpuLine = "| GPU p95 | <= 8 ms/frame | 60.2 | PASS |\n"
+        let gpuLine = "| GPU p95 | <= 8 ms/frame | 6.1 ms/frame | PASS |\n"
+        var evidence = completeRecord()
         XCTAssertTrue(evidence.contains(gpuLine), "Fixture precondition: GPU row exists")
         evidence = evidence.replacingOccurrences(of: gpuLine, with: "")
         XCTAssertFalse(evidence.contains("PENDING"))
@@ -187,6 +173,100 @@ final class DeviceSignoffGateContractTests: XCTestCase {
         XCTAssertNotEqual(
             result.status, 0,
             "Gate must reject a record with a deleted required metric row. Output: \(result.output)"
+        )
+    }
+
+    func testGateRejectsNonNumericMeasurements() throws {
+        // Review regression: arbitrary prose in Measured cells with PASS
+        // verdicts must not pass — measurements must be plausible values.
+        let staged = try stagedRepoRoot(suffix: "prose-measure")
+        let evidenceURL = staged.appendingPathComponent("docs/performance-device-evidence.md")
+        let gpuRow = "| GPU p95 | <= 8 ms/frame | 6.1 ms/frame | PASS |"
+        var evidence = completeRecord()
+        XCTAssertTrue(evidence.contains(gpuRow))
+        evidence = evidence.replacingOccurrences(
+            of: gpuRow, with: "| GPU p95 | <= 8 ms/frame | made up | PASS |"
+        )
+        try evidence.write(to: evidenceURL, atomically: true, encoding: .utf8)
+
+        let result = try runGate(in: staged)
+        XCTAssertNotEqual(
+            result.status, 0,
+            "Gate must reject non-numeric measurements on numeric rows. Output: \(result.output)"
+        )
+    }
+
+    func testGateRejectsBudgetViolatingMeasurement() throws {
+        // A PASS verdict on a measurement that itself violates the budget
+        // (GPU 12 ms/frame > 8) is internally inconsistent -> block.
+        let staged = try stagedRepoRoot(suffix: "over-budget")
+        let evidenceURL = staged.appendingPathComponent("docs/performance-device-evidence.md")
+        let gpuRow = "| GPU p95 | <= 8 ms/frame | 6.1 ms/frame | PASS |"
+        var evidence = completeRecord()
+        XCTAssertTrue(evidence.contains(gpuRow))
+        evidence = evidence.replacingOccurrences(
+            of: gpuRow, with: "| GPU p95 | <= 8 ms/frame | 12 ms/frame | PASS |"
+        )
+        try evidence.write(to: evidenceURL, atomically: true, encoding: .utf8)
+
+        let result = try runGate(in: staged)
+        XCTAssertNotEqual(
+            result.status, 0,
+            "Gate must reject measurements that violate their own budget. Output: \(result.output)"
+        )
+    }
+
+    func testGateRejectsWeakenedThreshold() throws {
+        // Editing a Threshold cell to a weaker limit must not pass — the
+        // checklist budgets are fixed.
+        let staged = try stagedRepoRoot(suffix: "weak-threshold")
+        let evidenceURL = staged.appendingPathComponent("docs/performance-device-evidence.md")
+        let gpuRow = "| GPU p95 | <= 8 ms/frame | 6.1 ms/frame | PASS |"
+        var evidence = completeRecord()
+        XCTAssertTrue(evidence.contains(gpuRow))
+        evidence = evidence.replacingOccurrences(
+            of: gpuRow, with: "| GPU p95 | <= 999 ms/frame | 6.1 ms/frame | PASS |"
+        )
+        try evidence.write(to: evidenceURL, atomically: true, encoding: .utf8)
+
+        let result = try runGate(in: staged)
+        XCTAssertNotEqual(
+            result.status, 0,
+            "Gate must reject weakened threshold cells. Output: \(result.output)"
+        )
+    }
+
+    func testGateRejectsDuplicateMetadataMarker() throws {
+        let staged = try stagedRepoRoot(suffix: "dup-marker")
+        let evidenceURL = staged.appendingPathComponent("docs/performance-device-evidence.md")
+        let marker = "<!-- DEVICE_MODEL: iPhone 16 Pro -->"
+        var evidence = completeRecord()
+        XCTAssertTrue(evidence.contains(marker))
+        evidence = evidence.replacingOccurrences(of: marker, with: marker + "\n" + marker)
+        try evidence.write(to: evidenceURL, atomically: true, encoding: .utf8)
+
+        let result = try runGate(in: staged)
+        XCTAssertNotEqual(
+            result.status, 0,
+            "Gate must reject duplicate metadata markers. Output: \(result.output)"
+        )
+    }
+
+    func testGateRejectsVerdictOutsideVocabulary() throws {
+        let staged = try stagedRepoRoot(suffix: "bad-vocab")
+        let evidenceURL = staged.appendingPathComponent("docs/performance-device-evidence.md")
+        let thermalRow = "| Thermal state | <= `.fair` | nominal | PASS |"
+        var evidence = completeRecord()
+        XCTAssertTrue(evidence.contains(thermalRow))
+        evidence = evidence.replacingOccurrences(
+            of: thermalRow, with: "| Thermal state | <= `.fair` | serious | PASS |"
+        )
+        try evidence.write(to: evidenceURL, atomically: true, encoding: .utf8)
+
+        let result = try runGate(in: staged)
+        XCTAssertNotEqual(
+            result.status, 0,
+            "Gate must reject word-valued measurements outside the vocabulary. Output: \(result.output)"
         )
     }
 
@@ -212,7 +292,7 @@ final class DeviceSignoffGateContractTests: XCTestCase {
         let staged = try stagedRepoRoot(suffix: "empty-measured")
         let evidenceURL = staged.appendingPathComponent("docs/performance-device-evidence.md")
         var evidence = completeRecord()
-        let gpuRow = "| GPU p95 | <= 8 ms/frame | 60.2 | PASS |"
+        let gpuRow = "| GPU p95 | <= 8 ms/frame | 6.1 ms/frame | PASS |"
         XCTAssertTrue(evidence.contains(gpuRow))
         evidence = evidence.replacingOccurrences(
             of: gpuRow, with: "| GPU p95 | <= 8 ms/frame | | PASS |"
@@ -232,7 +312,7 @@ final class DeviceSignoffGateContractTests: XCTestCase {
         let evidenceURL = staged.appendingPathComponent("docs/performance-device-evidence.md")
         var evidence = completeRecord()
         evidence = evidence.replacingOccurrences(
-            of: "| GPU p95 | <= 8 ms/frame | 60.2 | PASS |",
+            of: "| GPU p95 | <= 8 ms/frame | 6.1 ms/frame | PASS |",
             with: "| GPU p95 | <= 8 ms/frame | 60.2 | FAILPASS |"
         )
         try evidence.write(to: evidenceURL, atomically: true, encoding: .utf8)
@@ -250,7 +330,7 @@ final class DeviceSignoffGateContractTests: XCTestCase {
         let staged = try stagedRepoRoot(suffix: "duplicate-mask")
         let evidenceURL = staged.appendingPathComponent("docs/performance-device-evidence.md")
         var evidence = completeRecord()
-        let gpuRow = "| GPU p95 | <= 8 ms/frame | 60.2 | PASS |"
+        let gpuRow = "| GPU p95 | <= 8 ms/frame | 6.1 ms/frame | PASS |"
         XCTAssertTrue(evidence.contains(gpuRow))
         evidence = evidence.replacingOccurrences(
             of: gpuRow,
@@ -271,7 +351,7 @@ final class DeviceSignoffGateContractTests: XCTestCase {
         let staged = try stagedRepoRoot(suffix: "extra-row")
         let evidenceURL = staged.appendingPathComponent("docs/performance-device-evidence.md")
         var evidence = completeRecord()
-        let gpuRow = "| GPU p95 | <= 8 ms/frame | 60.2 | PASS |"
+        let gpuRow = "| GPU p95 | <= 8 ms/frame | 6.1 ms/frame | PASS |"
         XCTAssertTrue(evidence.contains(gpuRow))
         evidence = evidence.replacingOccurrences(
             of: gpuRow,
@@ -309,7 +389,7 @@ final class DeviceSignoffGateContractTests: XCTestCase {
         let staged = try stagedRepoRoot(suffix: "indented-row")
         let evidenceURL = staged.appendingPathComponent("docs/performance-device-evidence.md")
         var evidence = completeRecord()
-        let gpuRow = "| GPU p95 | <= 8 ms/frame | 60.2 | PASS |"
+        let gpuRow = "| GPU p95 | <= 8 ms/frame | 6.1 ms/frame | PASS |"
         XCTAssertTrue(evidence.contains(gpuRow))
         evidence = evidence.replacingOccurrences(
             of: gpuRow, with: gpuRow + "\n  | sneaky | row | 1 | PASS |"
@@ -327,7 +407,7 @@ final class DeviceSignoffGateContractTests: XCTestCase {
         let staged = try stagedRepoRoot(suffix: "empty-name-row")
         let evidenceURL = staged.appendingPathComponent("docs/performance-device-evidence.md")
         var evidence = completeRecord()
-        let gpuRow = "| GPU p95 | <= 8 ms/frame | 60.2 | PASS |"
+        let gpuRow = "| GPU p95 | <= 8 ms/frame | 6.1 ms/frame | PASS |"
         XCTAssertTrue(evidence.contains(gpuRow))
         evidence = evidence.replacingOccurrences(
             of: gpuRow, with: gpuRow + "\n| | x | y | PASS |"
@@ -407,19 +487,36 @@ final class DeviceSignoffGateContractTests: XCTestCase {
     }
 
     /// The pending evidence record with every placeholder replaced by a
-    /// dated, all-PASS measurement — the only shape the gate may accept.
+    /// dated, all-PASS measurement with per-metric values inside their
+    /// checklist budgets — the only shape the gate may accept.
     private func completeRecord() -> String {
-        (try? read(repoRoot.appendingPathComponent("docs/performance-device-evidence.md")))
-            .map { evidence in
-                evidence
-                    .replacingOccurrences(of: "SIGN_OFF_DATE: PENDING", with: "SIGN_OFF_DATE: 2026-10-01")
-                    .replacingOccurrences(of: "DEVICE_MODEL: PENDING", with: "DEVICE_MODEL: iPhone 16 Pro")
-                    .replacingOccurrences(of: "IOS_VERSION: PENDING", with: "IOS_VERSION: 26.5")
-                    .replacingOccurrences(of: "BUILD_COMMIT: PENDING", with: "BUILD_COMMIT: 0123456")
-                    .replacingOccurrences(of: "Sign-off status: PENDING", with: "Sign-off status: RECORDED")
-                    .replacingOccurrences(of: "| PENDING | PENDING |", with: "| 60.2 | PASS |")
-            }
-            ?? ""
+        guard var evidence = try? read(repoRoot.appendingPathComponent("docs/performance-device-evidence.md")) else {
+            return ""
+        }
+        let replacements: [(String, String)] = [
+            ("SIGN_OFF_DATE: PENDING", "SIGN_OFF_DATE: 2026-10-01"),
+            ("DEVICE_MODEL: PENDING", "DEVICE_MODEL: iPhone 16 Pro"),
+            ("IOS_VERSION: PENDING", "IOS_VERSION: 26.5"),
+            ("BUILD_COMMIT: PENDING", "BUILD_COMMIT: 0123456"),
+            ("Sign-off status: PENDING", "Sign-off status: RECORDED"),
+            (">= 55 | PENDING | PENDING |", ">= 55 | 58.4 fps | PASS |"),
+            ("<= 16.67 ms | PENDING | PENDING |", "<= 16.67 ms | 15.9 ms | PASS |"),
+            ("<= 2 ms/frame | PENDING | PENDING |", "<= 2 ms/frame | 1.4 ms/frame | PASS |"),
+            ("<= 5 ms/frame | PENDING | PENDING |", "<= 5 ms/frame | 3.2 ms/frame | PASS |"),
+            ("<= 8 ms/frame | PENDING | PENDING |", "<= 8 ms/frame | 6.1 ms/frame | PASS |"),
+            ("<= 650 | PENDING | PENDING |", "<= 650 | 612 | PASS |"),
+            ("<= 420 | PENDING | PENDING |", "<= 420 | 388 | PASS |"),
+            ("| 14 | PENDING | PENDING |", "| 14 | 14 | PASS |"),
+            ("< 650 MB | PENDING | PENDING |", "< 650 MB | 480 MB | PASS |"),
+            ("no sustained growth | PENDING | PENDING |", "no sustained growth | none | PASS |"),
+            ("< 5 MB/s | PENDING | PENDING |", "< 5 MB/s | 2.1 MB/s | PASS |"),
+            ("< 3 s | PENDING | PENDING |", "< 3 s | 1.8 s | PASS |"),
+            ("<= `.fair` | PENDING | PENDING |", "<= `.fair` | nominal | PASS |"),
+        ]
+        for (needle, value) in replacements {
+            evidence = evidence.replacingOccurrences(of: needle, with: value)
+        }
+        return evidence
     }
 
     #if os(macOS) || os(Linux)
