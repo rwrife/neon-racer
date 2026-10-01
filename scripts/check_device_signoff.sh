@@ -10,8 +10,11 @@
 #   * the measurement table has exactly its header + separator and every
 #     required metric row exactly once — no extras, no malformed rows;
 #   * each row's Threshold cell matches the checklist budget verbatim;
-#   * each Measured cell is a plausible measurement (numeric within the
-#     bound, or the allowed verdict vocabulary) for that metric.
+#   * each Measured cell is a plausible measurement for that metric: a
+#     decimal with the metric's exact unit inside its budget bound, or a
+#     value from the allowed verdict vocabulary for word-valued rows;
+#   * the record contains no code fences (the table must be rendered
+#     content, not fenced text).
 #
 # Trust model: this gate proves the RECORD is complete, consistent, and
 # dated. The authenticity of the underlying device run remains a human
@@ -85,42 +88,44 @@ if [[ "$pending_cells" -ne 0 ]]; then
 fi
 
 if ! awk -F'|' '
-function unitnum(v,  t) {
+function unitnum(v, unit,  t) {
+    # Returns the numeric part of "<number>[unit]", or -1 unless the cell
+    # holds a plain decimal with EXACTLY the expected unit suffix for
+    # (no extra or substituted units, no concatenated suffixes).
     t = v
-    gsub(/[[:space:]]+/, " ", t)
-    sub(/ ?fps$/, "", t)
-    sub(/ ?ms\/frame$/, "", t)
-    sub(/ ?ms$/, "", t)
-    sub(/ ?MB\/s$/, "", t)
-    sub(/ ?MB$/, "", t)
-    sub(/ ?s$/, "", t)
-    gsub(/ /, "", t)
-    if (t !~ /^[0-9]+(\.[0-9]+)?$/) return -1
+    gsub(/^[ \t]+|[ \t]+$/, "", t)
+    if (unit != "") {
+        if (t !~ ("^[0-9]+([.][0-9]+)? ?" unit "$")) return -1
+        sub((" ?" unit "$"), "", t)
+    } else {
+        if (t !~ /^[0-9]+([.][0-9]+)?$/) return -1
+    }
     return t + 0
 }
 BEGIN {
     count = 0
-    add("Sustained FPS (full race)", ">= 55", "num", 55, "", 1, 1)
-    add("Frame time p95", "<= 16.67 ms", "num", "", 16.67, 1, 1)
-    add("CPU simulation p95", "<= 2 ms/frame", "num", "", 2, 1, 1)
-    add("Render submission p95", "<= 5 ms/frame", "num", "", 5, 1, 1)
-    add("GPU p95", "<= 8 ms/frame", "num", "", 8, 1, 1)
-    add("Recursive nodes (medium tier)", "<= 650", "num", "", 650, 1, 1)
-    add("Geometry/draw-ish nodes (medium tier)", "<= 420", "num", "", 420, 1, 1)
-    add("Road chunks (medium tier)", "14", "num", 14, 14, 1, 1)
-    add("Resident memory", "< 650 MB", "num", "", 650, 0, 1)
-    add("Transient allocation", "< 5 MB/s", "num", "", 5, 0, 1)
-    add("Title-to-race load time", "< 3 s", "num", "", 3, 0, 1)
+    add("Sustained FPS (full race)", ">= 55", "num", 55, "", 1, 1, "fps")
+    add("Frame time p95", "<= 16.67 ms", "num", "", 16.67, 1, 1, "ms")
+    add("CPU simulation p95", "<= 2 ms/frame", "num", "", 2, 1, 1, "ms/frame")
+    add("Render submission p95", "<= 5 ms/frame", "num", "", 5, 1, 1, "ms/frame")
+    add("GPU p95", "<= 8 ms/frame", "num", "", 8, 1, 1, "ms/frame")
+    add("Recursive nodes (medium tier)", "<= 650", "num", "", 650, 1, 1, "")
+    add("Geometry/draw-ish nodes (medium tier)", "<= 420", "num", "", 420, 1, 1, "")
+    add("Road chunks (medium tier)", "14", "num", 14, 14, 1, 1, "")
+    add("Resident memory", "< 650 MB", "num", "", 650, 0, 0, "MB")
+    add("Transient allocation", "< 5 MB/s", "num", "", 5, 0, 0, "MB/s")
+    add("Title-to-race load time", "< 3 s", "num", "", 3, 0, 0, "s")
     add("Retry-loop memory growth", "no sustained growth", "word", "", "", 0, 0)
     words["Retry-loop memory growth"] = "|none|stable|no growth|no sustained growth|"
     add("Thermal state", "<= `.fair`", "word", "", "", 0, 0)
     words["Thermal state"] = "|nominal|fair|"
 }
-function add(name, threshold, kind, lo, hi, loinc, hinc) {
+function add(name, threshold, kind, lo, hi, loinc, hinc, unit) {
     order[++count] = name
     want[name] = 0
     th[name] = threshold
     k[name] = kind
+    u[name] = unit
     low[name] = lo
     high[name] = hi
     lowInc[name] = loinc
@@ -128,6 +133,7 @@ function add(name, threshold, kind, lo, hi, loinc, hinc) {
 }
 function trim(s) { gsub(/^[ \t]+|[ \t]+$/, "", s); return s }
 { sub(/\r$/, "") }
+/^```/ { fences++ }
 /^[ \t]*\|/ {
     f2 = trim($2); f3 = trim($3); f4 = trim($4); f5 = trim($5)
     if (f2 == "Metric" && f3 == "Threshold" && f4 == "Measured" && f5 == "Result") {
@@ -151,7 +157,7 @@ function trim(s) { gsub(/^[ \t]+|[ \t]+$/, "", s); return s }
     if (f3 != th[f2]) { print "row \"" f2 "\" threshold \"" f3 "\" does not match the checklist budget \"" th[f2] "\""; bad = 1 }
     if (f4 == "") { print "row \"" f2 "\" has an empty Measured cell"; bad = 1 }
     else if (k[f2] == "num") {
-        v = unitnum(f4)
+        v = unitnum(f4, u[f2])
         if (v < 0) { print "row \"" f2 "\" measured value \"" f4 "\" is not a numeric measurement"; bad = 1 }
         else {
             if (low[f2] != "" && (v < low[f2] || (v == low[f2] && !lowInc[f2]))) {
@@ -170,6 +176,7 @@ function trim(s) { gsub(/^[ \t]+|[ \t]+$/, "", s); return s }
     }
 }
 END {
+    if (fences > 0) { print "code fences are not allowed in the evidence record"; exit 1 }
     if (header != 1) { print "measurement table must have exactly one header row"; exit 1 }
     if (separator != 1) { print "measurement table must have exactly one separator row"; exit 1 }
     if (rows == 0) { print "measurement table has no data rows"; exit 1 }

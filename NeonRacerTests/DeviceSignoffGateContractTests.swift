@@ -421,6 +421,65 @@ final class DeviceSignoffGateContractTests: XCTestCase {
         )
     }
 
+    func testGateRejectsWrongUnitMeasurement() throws {
+        // Units are per-metric: an FPS cell carrying "58.4 MB" is not a
+        // frame-rate measurement even though the number passes a bound.
+        let staged = try stagedRepoRoot(suffix: "wrong-unit")
+        let evidenceURL = staged.appendingPathComponent("docs/performance-device-evidence.md")
+        let fpsRow = "| Sustained FPS (full race) | >= 55 | 58.4 fps | PASS |"
+        var evidence = completeRecord()
+        XCTAssertTrue(evidence.contains(fpsRow))
+        evidence = evidence.replacingOccurrences(
+            of: fpsRow, with: "| Sustained FPS (full race) | >= 55 | 58.4 MB | PASS |"
+        )
+        try evidence.write(to: evidenceURL, atomically: true, encoding: .utf8)
+
+        let result = try runGate(in: staged)
+        XCTAssertNotEqual(
+            result.status, 0,
+            "Gate must reject measurements carrying the wrong unit. Output: \(result.output)"
+        )
+    }
+
+    func testGateRejectsConcatenatedUnits() throws {
+        let staged = try stagedRepoRoot(suffix: "concat-unit")
+        let evidenceURL = staged.appendingPathComponent("docs/performance-device-evidence.md")
+        let fpsRow = "| Sustained FPS (full race) | >= 55 | 58.4 fps | PASS |"
+        var evidence = completeRecord()
+        XCTAssertTrue(evidence.contains(fpsRow))
+        evidence = evidence.replacingOccurrences(
+            of: fpsRow, with: "| Sustained FPS (full race) | >= 55 | 58.4 msfps | PASS |"
+        )
+        try evidence.write(to: evidenceURL, atomically: true, encoding: .utf8)
+
+        let result = try runGate(in: staged)
+        XCTAssertNotEqual(
+            result.status, 0,
+            "Gate must reject concatenated unit suffixes. Output: \(result.output)"
+        )
+    }
+
+    func testGateRejectsCodeFencedTable() throws {
+        // A fenced (non-rendered) table is not a record.
+        let staged = try stagedRepoRoot(suffix: "fenced")
+        let evidenceURL = staged.appendingPathComponent("docs/performance-device-evidence.md")
+        var evidence = completeRecord()
+        let header = "| Metric | Threshold | Measured | Result |"
+        XCTAssertTrue(evidence.contains(header))
+        evidence = evidence.replacingOccurrences(of: header, with: "```\n" + header)
+        evidence = evidence.replacingOccurrences(
+            of: "| Thermal state | <= `.fair` | nominal | PASS |",
+            with: "| Thermal state | <= `.fair` | nominal | PASS |\n```"
+        )
+        try evidence.write(to: evidenceURL, atomically: true, encoding: .utf8)
+
+        let result = try runGate(in: staged)
+        XCTAssertNotEqual(
+            result.status, 0,
+            "Gate must reject measurement tables hidden in code fences. Output: \(result.output)"
+        )
+    }
+
     func testGateFailsClosedWhenEvidenceFileIsMissing() throws {
         let staged = try stagedRepoRoot(suffix: "missing")
         try FileManager.default.removeItem(
