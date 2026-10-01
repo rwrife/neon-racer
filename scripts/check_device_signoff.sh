@@ -78,18 +78,36 @@ BEGIN {
     n = split(required, req, ";")
     for (i = 1; i <= n; i++) want[req[i]] = 0
 }
-/^\|/ {
-    f2 = $2; f4 = $4; f5 = $5
+/^[ \t]*\|/ {
+    tables++
+    f2 = $2; f3 = $3; f4 = $4; f5 = $5
     gsub(/^[ \t]+|[ \t]+$/, "", f2)
+    gsub(/^[ \t]+|[ \t]+$/, "", f3)
     gsub(/^[ \t]+|[ \t]+$/, "", f4)
     gsub(/^[ \t]+|[ \t]+$/, "", f5)
-    if (f2 == "Metric" || f2 ~ /^-*$/ || f2 == "") next
+    if (f2 == "Metric" && f3 == "Threshold" && f4 == "Measured" && f5 == "Result") {
+        header++
+        if (NF != 6) { print "header row is malformed"; bad = 1 }
+        next
+    }
+    if (f2 != "" && f2 ~ /^:?-+:?$/ && f3 ~ /^:?-+:?$/ && f4 ~ /^:?-+:?$/ && f5 ~ /^:?-+:?$/) {
+        separator++
+        if (NF != 6) { print "separator row is malformed"; bad = 1 }
+        next
+    }
+    # Any other pipe row — including indented rows, empty-name rows, and
+    # rows with the wrong column count — is a data row and must satisfy
+    # the acceptance surface exactly.
     rows++
+    if (NF != 6) { print "table row has wrong column count: \"" f2 "\""; bad = 1 }
+    if (f2 == "") { print "table row with empty metric name"; bad = 1 }
     if (f4 == "") { print "row \"" f2 "\" has an empty Measured cell"; bad = 1 }
     if (f5 != "PASS") { print "row \"" f2 "\" verdict is not an exact PASS"; bad = 1 }
     if (f2 in want) { want[f2]++ } else { print "unexpected metric row \"" f2 "\""; bad = 1 }
 }
 END {
+    if (header != 1) { print "measurement table must have exactly one header row"; exit 1 }
+    if (separator != 1) { print "measurement table must have exactly one separator row"; exit 1 }
     if (rows == 0) { print "measurement table has no data rows"; exit 1 }
     for (i = 1; i <= n; i++)
         if (want[req[i]] != 1) { print "required row \"" req[i] "\" not present exactly once"; exit 1 }

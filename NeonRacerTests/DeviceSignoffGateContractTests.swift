@@ -286,6 +286,61 @@ final class DeviceSignoffGateContractTests: XCTestCase {
         )
     }
 
+    func testGateRejectsTableWithoutHeader() throws {
+        // Deleting the header/separator must not shrink the acceptance
+        // surface — the table structure itself is required.
+        let staged = try stagedRepoRoot(suffix: "no-header")
+        let evidenceURL = staged.appendingPathComponent("docs/performance-device-evidence.md")
+        var evidence = completeRecord()
+        let header = "| Metric | Threshold | Measured | Result |\n"
+        let separator = "| --- | --- | --- | --- |\n"
+        XCTAssertTrue(evidence.contains(header) && evidence.contains(separator))
+        evidence = evidence.replacingOccurrences(of: header + separator, with: "")
+        try evidence.write(to: evidenceURL, atomically: true, encoding: .utf8)
+
+        let result = try runGate(in: staged)
+        XCTAssertNotEqual(
+            result.status, 0,
+            "Gate must reject a table missing its header structure. Output: \(result.output)"
+        )
+    }
+
+    func testGateRejectsIndentedExtraPipeRow() throws {
+        let staged = try stagedRepoRoot(suffix: "indented-row")
+        let evidenceURL = staged.appendingPathComponent("docs/performance-device-evidence.md")
+        var evidence = completeRecord()
+        let gpuRow = "| GPU p95 | <= 8 ms/frame | 60.2 | PASS |"
+        XCTAssertTrue(evidence.contains(gpuRow))
+        evidence = evidence.replacingOccurrences(
+            of: gpuRow, with: gpuRow + "\n  | sneaky | row | 1 | PASS |"
+        )
+        try evidence.write(to: evidenceURL, atomically: true, encoding: .utf8)
+
+        let result = try runGate(in: staged)
+        XCTAssertNotEqual(
+            result.status, 0,
+            "Gate must reject indented pipe rows. Output: \(result.output)"
+        )
+    }
+
+    func testGateRejectsEmptyMetricNameRow() throws {
+        let staged = try stagedRepoRoot(suffix: "empty-name-row")
+        let evidenceURL = staged.appendingPathComponent("docs/performance-device-evidence.md")
+        var evidence = completeRecord()
+        let gpuRow = "| GPU p95 | <= 8 ms/frame | 60.2 | PASS |"
+        XCTAssertTrue(evidence.contains(gpuRow))
+        evidence = evidence.replacingOccurrences(
+            of: gpuRow, with: gpuRow + "\n| | x | y | PASS |"
+        )
+        try evidence.write(to: evidenceURL, atomically: true, encoding: .utf8)
+
+        let result = try runGate(in: staged)
+        XCTAssertNotEqual(
+            result.status, 0,
+            "Gate must reject pipe rows with an empty metric name. Output: \(result.output)"
+        )
+    }
+
     func testGateFailsClosedWhenEvidenceFileIsMissing() throws {
         let staged = try stagedRepoRoot(suffix: "missing")
         try FileManager.default.removeItem(
