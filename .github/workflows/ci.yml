@@ -4,6 +4,7 @@ on:
   push:
     branches: [main]
   pull_request:
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -160,3 +161,20 @@ jobs:
           if [ -n "${DEVICE_UDID:-}" ]; then
             xcrun simctl shutdown "$DEVICE_UDID" || true
           fi
+
+  release-readiness:
+    name: Release readiness gate (physical-device sign-off)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    if: github.event_name == 'workflow_dispatch' || startsWith(github.ref, 'refs/tags/v')
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Verify physical-device performance sign-off
+        run: |
+          set -euo pipefail
+          bash scripts/check_device_signoff.sh
