@@ -1,32 +1,49 @@
 #!/usr/bin/env bash
-# Release gate: physical-device performance sign-off.
+# Physical-device performance sign-off gate (issue #37).
 #
-# Fails closed (exit 1) until docs/performance-device-evidence.md carries a
-# dated physical-device measurement. This is a pre-submission gate, not a
-# synthetic pass: it blocks release while any sign-off field is PENDING.
+# Fails CLOSED (non-zero) unless docs/performance-device-evidence.md records a
+# complete owner sign-off:
+#   * all four metadata markers present with non-empty, non-PENDING values;
+#   * SIGN_OFF_DATE is a real ISO calendar date (pure bash, no GNU date);
+#   * zero PENDING placeholder tokens anywhere in the record;
+#   * the measurement table contains every required metric row exactly once,
+#     each with a non-empty Measured value and an exact PASS verdict.
+# The evidence record currently encodes "PENDING — owner physical-device run
+# not yet completed", so release readiness stays blocked until real device
+# measurements are recorded. The gate NEVER synthesizes a pass and this
+# script must not be weakened to fake one.
 set -euo pipefail
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
-EVIDENCE="$REPO_ROOT/docs/performance-device-evidence.md"
+cd "$(dirname "$0")/.."
+
+EVIDENCE="docs/performance-device-evidence.md"
 
 if [[ ! -f "$EVIDENCE" ]]; then
-    echo "release gate: BLOCKED — evidence file missing: $EVIDENCE"
+    echo "release gate: BLOCKED — $EVIDENCE not found"
     exit 1
 fi
 
-signoff_date="$(sed -n 's/^<!-- SIGN_OFF_DATE: \([^ ]*\) -->$/\1/p' "$EVIDENCE")"
+marker_value() {
+    # Echoes the trimmed value of "<!-- NAME: value -->", or nothing if absent.
+    local name="$1"
+    grep -m1 -oE "<!-- ${name}:[^>]*-->" "$EVIDENCE" \
+        | sed -E "s/^<!-- ${name}:[[:space:]]*//; s/[[:space:]]*-->\$//" \
+        || true
+}
 
-if [[ -z "$signoff_date" ]]; then
-    echo "release gate: BLOCKED — SIGN_OFF_DATE marker missing from $EVIDENCE"
-    exit 1
-fi
+for marker in SIGN_OFF_DATE DEVICE_MODEL IOS_VERSION BUILD_COMMIT; do
+    value="$(marker_value "$marker")"
+    if [[ -z "$value" ]]; then
+        echo "release gate: BLOCKED — $marker marker is missing"
+        exit 1
+    fi
+    if [[ "$value" == "PENDING" ]]; then
+        echo "release gate: BLOCKED — $marker still PENDING"
+        exit 1
+    fi
+done
 
-if [[ "$signoff_date" == "PENDING" ]]; then
-    echo "release gate: BLOCKED — physical-device performance sign-off is pending owner device run"
-    exit 1
-fi
-
+signoff_date="$(marker_value SIGN_OFF_DATE)"
 if ! [[ "$signoff_date" =~ ^([0-9]{4})-([0-9]{2})-([0-9]{2})$ ]]; then
     echo "release gate: BLOCKED — SIGN_OFF_DATE '$signoff_date' is not an ISO date (YYYY-MM-DD)"
     exit 1
@@ -50,30 +67,36 @@ if [[ "$pending_cells" -ne 0 ]]; then
     exit 1
 fi
 
-# The measurement table must still contain its full set of required rows,
-# each with an explicit PASS verdict. Deleting or altering rows keeps the
-# gate closed; only a complete, dated, all-PASS record passes.
-required_rows=(
-    "Sustained FPS (full race)"
-    "Frame time p95"
-    "CPU simulation p95"
-    "Render submission p95"
-    "GPU p95"
-    "Recursive nodes (medium tier)"
-    "Geometry/draw-ish nodes (medium tier)"
-    "Road chunks (medium tier)"
-    "Resident memory"
-    "Retry-loop memory growth"
-    "Transient allocation"
-    "Title-to-race load time"
-    "Thermal state"
-)
-for row in "${required_rows[@]}"; do
-    if ! grep -F "| $row |" "$EVIDENCE" | grep -qE 'PASS *\|$'; then
-        echo "release gate: BLOCKED — required metric row '$row' is missing or lacks a PASS verdict"
-        exit 1
-    fi
-done
+# Measurement table validation: every required metric row exactly once, each
+# with a non-empty Measured cell and an EXACT PASS verdict. Unexpected extra
+# rows, empty measurements, and non-PASS verdicts (FAIL, blank, FAILPASS, or
+# a duplicate PASS masking a failing row) keep the gate closed.
+required="Sustained FPS (full race);Frame time p95;CPU simulation p95;Render submission p95;GPU p95;Recursive nodes (medium tier);Geometry/draw-ish nodes (medium tier);Road chunks (medium tier);Resident memory;Retry-loop memory growth;Transient allocation;Title-to-race load time;Thermal state"
+
+if ! awk -F'|' -v required="$required" '
+BEGIN {
+    n = split(required, req, ";")
+    for (i = 1; i <= n; i++) want[req[i]] = 0
+}
+/^\|/ {
+    f2 = $2; f4 = $4; f5 = $5
+    gsub(/^[ \t]+|[ \t]+$/, "", f2)
+    gsub(/^[ \t]+|[ \t]+$/, "", f4)
+    gsub(/^[ \t]+|[ \t]+$/, "", f5)
+    if (f2 == "Metric" || f2 ~ /^-*$/ || f2 == "") next
+    rows++
+    if (f4 == "") { print "row \"" f2 "\" has an empty Measured cell"; bad = 1 }
+    if (f5 != "PASS") { print "row \"" f2 "\" verdict is not an exact PASS"; bad = 1 }
+    if (f2 in want) { want[f2]++ } else { print "unexpected metric row \"" f2 "\""; bad = 1 }
+}
+END {
+    if (rows == 0) { print "measurement table has no data rows"; exit 1 }
+    for (i = 1; i <= n; i++)
+        if (want[req[i]] != 1) { print "required row \"" req[i] "\" not present exactly once"; exit 1 }
+    if (bad) exit 1
+}' "$EVIDENCE"; then
+    echo "release gate: BLOCKED — measurement record incomplete or not all PASS"
+    exit 1
+fi
 
 echo "release gate: PASS — physical-device performance sign-off recorded on $signoff_date"
-exit 0

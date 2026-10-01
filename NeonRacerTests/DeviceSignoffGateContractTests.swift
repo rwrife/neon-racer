@@ -88,14 +88,7 @@ final class DeviceSignoffGateContractTests: XCTestCase {
     func testGatePassesOnlyWithDatedCompleteEvidence() throws {
         let staged = try stagedRepoRoot(suffix: "complete")
         let evidenceURL = staged.appendingPathComponent("docs/performance-device-evidence.md")
-        var evidence = try read(evidenceURL)
-        evidence = evidence
-            .replacingOccurrences(of: "SIGN_OFF_DATE: PENDING", with: "SIGN_OFF_DATE: 2026-10-01")
-            .replacingOccurrences(of: "DEVICE_MODEL: PENDING", with: "DEVICE_MODEL: iPhone 16 Pro")
-            .replacingOccurrences(of: "IOS_VERSION: PENDING", with: "IOS_VERSION: 26.5")
-            .replacingOccurrences(of: "BUILD_COMMIT: PENDING", with: "BUILD_COMMIT: 0123456")
-            .replacingOccurrences(of: "Sign-off status: PENDING", with: "Sign-off status: RECORDED")
-            .replacingOccurrences(of: "| PENDING | PENDING |", with: "| 60.2 | PASS |")
+        let evidence = completeRecord()
         try evidence.write(to: evidenceURL, atomically: true, encoding: .utf8)
         XCTAssertFalse(
             evidence.contains("PENDING"),
@@ -197,6 +190,102 @@ final class DeviceSignoffGateContractTests: XCTestCase {
         )
     }
 
+    func testGateRejectsMissingMetadataMarker() throws {
+        // Stripping DEVICE_MODEL from an otherwise-complete record must block.
+        let staged = try stagedRepoRoot(suffix: "missing-marker")
+        let evidenceURL = staged.appendingPathComponent("docs/performance-device-evidence.md")
+        var evidence = completeRecord()
+        XCTAssertTrue(evidence.contains("DEVICE_MODEL: iPhone 16 Pro"))
+        evidence = evidence.replacingOccurrences(
+            of: "<!-- DEVICE_MODEL: iPhone 16 Pro -->", with: ""
+        )
+        try evidence.write(to: evidenceURL, atomically: true, encoding: .utf8)
+
+        let result = try runGate(in: staged)
+        XCTAssertNotEqual(
+            result.status, 0,
+            "Gate must block when a metadata marker is deleted. Output: \(result.output)"
+        )
+    }
+
+    func testGateRejectsEmptyMeasuredCell() throws {
+        let staged = try stagedRepoRoot(suffix: "empty-measured")
+        let evidenceURL = staged.appendingPathComponent("docs/performance-device-evidence.md")
+        var evidence = completeRecord()
+        let gpuRow = "| GPU p95 | <= 8 ms/frame | 60.2 | PASS |"
+        XCTAssertTrue(evidence.contains(gpuRow))
+        evidence = evidence.replacingOccurrences(
+            of: gpuRow, with: "| GPU p95 | <= 8 ms/frame | | PASS |"
+        )
+        try evidence.write(to: evidenceURL, atomically: true, encoding: .utf8)
+
+        let result = try runGate(in: staged)
+        XCTAssertNotEqual(
+            result.status, 0,
+            "Gate must reject a row with no measured value. Output: \(result.output)"
+        )
+    }
+
+    func testGateRejectsMalformedVerdict() throws {
+        // A verdict that merely contains PASS (e.g. FAILPASS) is not a pass.
+        let staged = try stagedRepoRoot(suffix: "malformed-verdict")
+        let evidenceURL = staged.appendingPathComponent("docs/performance-device-evidence.md")
+        var evidence = completeRecord()
+        evidence = evidence.replacingOccurrences(
+            of: "| GPU p95 | <= 8 ms/frame | 60.2 | PASS |",
+            with: "| GPU p95 | <= 8 ms/frame | 60.2 | FAILPASS |"
+        )
+        try evidence.write(to: evidenceURL, atomically: true, encoding: .utf8)
+
+        let result = try runGate(in: staged)
+        XCTAssertNotEqual(
+            result.status, 0,
+            "Gate must reject verdicts that are not an exact PASS. Output: \(result.output)"
+        )
+    }
+
+    func testGateRejectsDuplicateRowMaskingFail() throws {
+        // Appending a duplicate PASS row cannot mask the original FAIL row:
+        // required rows must appear exactly once.
+        let staged = try stagedRepoRoot(suffix: "duplicate-mask")
+        let evidenceURL = staged.appendingPathComponent("docs/performance-device-evidence.md")
+        var evidence = completeRecord()
+        let gpuRow = "| GPU p95 | <= 8 ms/frame | 60.2 | PASS |"
+        XCTAssertTrue(evidence.contains(gpuRow))
+        evidence = evidence.replacingOccurrences(
+            of: gpuRow,
+            with: "| GPU p95 | <= 8 ms/frame | 12 | FAIL |\n" + gpuRow
+        )
+        try evidence.write(to: evidenceURL, atomically: true, encoding: .utf8)
+
+        let result = try runGate(in: staged)
+        XCTAssertNotEqual(
+            result.status, 0,
+            "Gate must reject duplicate rows used to mask a FAIL. Output: \(result.output)"
+        )
+    }
+
+    func testGateRejectsUnexpectedExtraRow() throws {
+        // Injecting an extra row outside the required metric set means the
+        // record no longer matches the checklist's acceptance surface.
+        let staged = try stagedRepoRoot(suffix: "extra-row")
+        let evidenceURL = staged.appendingPathComponent("docs/performance-device-evidence.md")
+        var evidence = completeRecord()
+        let gpuRow = "| GPU p95 | <= 8 ms/frame | 60.2 | PASS |"
+        XCTAssertTrue(evidence.contains(gpuRow))
+        evidence = evidence.replacingOccurrences(
+            of: gpuRow,
+            with: gpuRow + "\n| Made-up metric | anything | 1 | PASS |"
+        )
+        try evidence.write(to: evidenceURL, atomically: true, encoding: .utf8)
+
+        let result = try runGate(in: staged)
+        XCTAssertNotEqual(
+            result.status, 0,
+            "Gate must reject records with rows outside the required set. Output: \(result.output)"
+        )
+    }
+
     func testGateFailsClosedWhenEvidenceFileIsMissing() throws {
         let staged = try stagedRepoRoot(suffix: "missing")
         try FileManager.default.removeItem(
@@ -260,6 +349,22 @@ final class DeviceSignoffGateContractTests: XCTestCase {
 
     private func read(_ url: URL) throws -> String {
         try String(contentsOf: url, encoding: .utf8)
+    }
+
+    /// The pending evidence record with every placeholder replaced by a
+    /// dated, all-PASS measurement — the only shape the gate may accept.
+    private func completeRecord() -> String {
+        (try? read(repoRoot.appendingPathComponent("docs/performance-device-evidence.md")))
+            .map { evidence in
+                evidence
+                    .replacingOccurrences(of: "SIGN_OFF_DATE: PENDING", with: "SIGN_OFF_DATE: 2026-10-01")
+                    .replacingOccurrences(of: "DEVICE_MODEL: PENDING", with: "DEVICE_MODEL: iPhone 16 Pro")
+                    .replacingOccurrences(of: "IOS_VERSION: PENDING", with: "IOS_VERSION: 26.5")
+                    .replacingOccurrences(of: "BUILD_COMMIT: PENDING", with: "BUILD_COMMIT: 0123456")
+                    .replacingOccurrences(of: "Sign-off status: PENDING", with: "Sign-off status: RECORDED")
+                    .replacingOccurrences(of: "| PENDING | PENDING |", with: "| 60.2 | PASS |")
+            }
+            ?? ""
     }
 
     #if os(macOS) || os(Linux)
