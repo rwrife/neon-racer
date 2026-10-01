@@ -126,6 +126,77 @@ final class DeviceSignoffGateContractTests: XCTestCase {
         )
     }
 
+    func testGateRejectsInvalidCalendarDate() throws {
+        // Shape-valid but nonexistent date: a Feb-30 sign-off must not unlock
+        // release readiness (regression fixture from independent review).
+        let staged = try stagedRepoRoot(suffix: "invalid-date")
+        let evidenceURL = staged.appendingPathComponent("docs/performance-device-evidence.md")
+        var evidence = try read(evidenceURL)
+        evidence = evidence
+            .replacingOccurrences(of: "SIGN_OFF_DATE: PENDING", with: "SIGN_OFF_DATE: 2026-02-30")
+            .replacingOccurrences(of: "PENDING", with: "60 | PASS")
+        evidence = evidence.replacingOccurrences(of: "| 60 | PASS | PASS |", with: "| 60 | PASS |")
+        try evidence.write(to: evidenceURL, atomically: true, encoding: .utf8)
+
+        let result = try runGate(in: staged)
+        XCTAssertNotEqual(
+            result.status, 0,
+            "Gate must reject an ISO-shaped but invalid calendar date. Output: \(result.output)"
+        )
+    }
+
+    func testGateRejectsFailedMetricRow() throws {
+        // A complete record where one metric row reports FAIL (or any
+        // non-PASS verdict) must keep the gate closed.
+        let staged = try stagedRepoRoot(suffix: "fail-row")
+        let evidenceURL = staged.appendingPathComponent("docs/performance-device-evidence.md")
+        var evidence = try read(evidenceURL)
+        evidence = evidence
+            .replacingOccurrences(of: "SIGN_OFF_DATE: PENDING", with: "SIGN_OFF_DATE: 2026-10-01")
+            .replacingOccurrences(of: "DEVICE_MODEL: PENDING", with: "DEVICE_MODEL: iPhone 16 Pro")
+            .replacingOccurrences(of: "IOS_VERSION: PENDING", with: "IOS_VERSION: 26.5")
+            .replacingOccurrences(of: "BUILD_COMMIT: PENDING", with: "BUILD_COMMIT: 0123456")
+            .replacingOccurrences(of: "Sign-off status: PENDING", with: "Sign-off status: RECORDED")
+            .replacingOccurrences(of: "| PENDING | PENDING |", with: "| 60.2 | PASS |")
+        evidence = evidence.replacingOccurrences(
+            of: "| Sustained FPS (full race) | >= 55 | 60.2 | PASS |",
+            with: "| Sustained FPS (full race) | >= 55 | 41.0 | FAIL |"
+        )
+        XCTAssertFalse(evidence.contains("PENDING"))
+        try evidence.write(to: evidenceURL, atomically: true, encoding: .utf8)
+
+        let result = try runGate(in: staged)
+        XCTAssertNotEqual(
+            result.status, 0,
+            "Gate must reject a record with a FAIL verdict row. Output: \(result.output)"
+        )
+    }
+
+    func testGateRejectsDeletedMetricRow() throws {
+        // Deleting a required row must not shrink the acceptance surface.
+        let staged = try stagedRepoRoot(suffix: "deleted-row")
+        let evidenceURL = staged.appendingPathComponent("docs/performance-device-evidence.md")
+        var evidence = try read(evidenceURL)
+        evidence = evidence
+            .replacingOccurrences(of: "SIGN_OFF_DATE: PENDING", with: "SIGN_OFF_DATE: 2026-10-01")
+            .replacingOccurrences(of: "DEVICE_MODEL: PENDING", with: "DEVICE_MODEL: iPhone 16 Pro")
+            .replacingOccurrences(of: "IOS_VERSION: PENDING", with: "IOS_VERSION: 26.5")
+            .replacingOccurrences(of: "BUILD_COMMIT: PENDING", with: "BUILD_COMMIT: 0123456")
+            .replacingOccurrences(of: "Sign-off status: PENDING", with: "Sign-off status: RECORDED")
+            .replacingOccurrences(of: "| PENDING | PENDING |", with: "| 60.2 | PASS |")
+        let gpuLine = "| GPU p95 | <= 8 ms/frame | 60.2 | PASS |\n"
+        XCTAssertTrue(evidence.contains(gpuLine), "Fixture precondition: GPU row exists")
+        evidence = evidence.replacingOccurrences(of: gpuLine, with: "")
+        XCTAssertFalse(evidence.contains("PENDING"))
+        try evidence.write(to: evidenceURL, atomically: true, encoding: .utf8)
+
+        let result = try runGate(in: staged)
+        XCTAssertNotEqual(
+            result.status, 0,
+            "Gate must reject a record with a deleted required metric row. Output: \(result.output)"
+        )
+    }
+
     func testGateFailsClosedWhenEvidenceFileIsMissing() throws {
         let staged = try stagedRepoRoot(suffix: "missing")
         try FileManager.default.removeItem(

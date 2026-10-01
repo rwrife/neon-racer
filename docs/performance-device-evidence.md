@@ -35,6 +35,9 @@ Procedure and thresholds: see [Performance device sign-off](performance-device-s
 | Thermal state | <= `.fair` | PENDING | PENDING |
 
 When the owner device run completes: set `Sign-off status` to `RECORDED`,
-replace the four marker placeholders above (using an ISO `YYYY-MM-DD` date for
-`SIGN_OFF_DATE`), and fill every `Measured` and `Result` cell in the table.
-The gate passes only when no placeholder token remains anywhere in this file.
+replace the four marker placeholders above (using a valid ISO `YYYY-MM-DD`
+date for `SIGN_OFF_DATE`), and fill every `Measured` cell and set every
+`Result` cell to `PASS` in the table. The gate passes only when the date is
+a valid calendar date, no placeholder token remains anywhere in this file,
+and every required metric row is present with a `PASS` verdict. Deleting a
+row or recording a non-PASS verdict keeps the gate closed.
