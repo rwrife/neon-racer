@@ -87,6 +87,15 @@ struct RaceView: View {
                 forkDecisionDistance: 0, minimumForkDecisionTime: 0
             )
         }
+        if ProcessInfo.processInfo.arguments.contains("UITestSplitPreview") {
+            resolvedRoute = RouteGraph(
+                startStageID: "coast-solar-sweep",
+                stages: [RouteStage(id: "coast-solar-sweep", displayName: "Split Causeway",
+                                    environmentID: "sunset-coast", distance: 1_050,
+                                    checkpointTimeAward: 0, branches: [])],
+                forkDecisionDistance: 0, minimumForkDecisionTime: 0
+            )
+        }
 #endif
         _sceneHolder = StateObject(
             wrappedValue: RaceSceneHolder(

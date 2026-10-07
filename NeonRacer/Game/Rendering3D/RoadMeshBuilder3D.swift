@@ -163,28 +163,48 @@ final class RoadMeshBuilder3D {
         }
 
         strip(.shoulder, yOffset: 0.0, left: { -Self.offRoadExtent(for: $0) }, right: { Self.offRoadExtent(for: $0) })
-        strip(.asphalt, yOffset: 0.02, left: { -$0.roadHalfWidth }, right: { $0.roadHalfWidth })
-        strip(.magenta, yOffset: 0.04, left: { -$0.roadHalfWidth - 0.12 }, right: { -$0.roadHalfWidth + 0.18 })
-        strip(.magenta, yOffset: 0.04, left: { $0.roadHalfWidth - 0.18 }, right: { $0.roadHalfWidth + 0.12 })
-
-        let midFrame = mapper.frame(atRunDistance: (start + end) * 0.5)
-        if midFrame.laneCount > 1 {
-            for lane in 1..<midFrame.laneCount {
-                let normalized = Float(-1.0 + Double(lane) / Double(midFrame.laneCount) * 2.0)
-                dashed(
-                    midFrame.laneCount.isMultiple(of: 2) && lane == midFrame.laneCount / 2 ? .amber : .cyan,
-                    dashLength: 8,
-                    gapLength: 14,
-                    yOffset: 0.04,
-                    left: { normalized * $0.roadHalfWidth - 0.055 },
-                    right: { normalized * $0.roadHalfWidth + 0.055 }
-                )
+        func cross(_ frame: TrackWorldFrame3D) -> TrackSplitCrossSection? {
+            mapper.layout.splitCrossSection(stageID: frame.stageID, distanceInStage: frame.distanceInStage)
+        }
+        let hasSplit = frames.contains { cross($0) != nil }
+        let paths = hasSplit ? [-1, 1] : [0]
+        for path in paths {
+            func center(_ frame: TrackWorldFrame3D) -> Float {
+                guard let section = cross(frame) else { return 0 }
+                return Float(path < 0 ? section.leftCenter : section.rightCenter)
+            }
+            func halfWidth(_ frame: TrackWorldFrame3D) -> Float {
+                guard let section = cross(frame) else { return frame.roadHalfWidth }
+                return Float(path < 0 ? section.leftHalfWidth : section.rightHalfWidth)
+            }
+            strip(.asphalt, yOffset: 0.02,
+                  left: { center($0) - halfWidth($0) }, right: { center($0) + halfWidth($0) })
+            strip(path > 0 ? .amber : .magenta, yOffset: 0.04,
+                  left: { center($0) - halfWidth($0) - 0.12 }, right: { center($0) - halfWidth($0) + 0.18 })
+            strip(path > 0 ? .amber : .magenta, yOffset: 0.04,
+                  left: { center($0) + halfWidth($0) - 0.18 }, right: { center($0) + halfWidth($0) + 0.12 })
+            let midFrame = mapper.frame(atRunDistance: (start + end) * 0.5)
+            let count = hasSplit ? 3 : midFrame.laneCount
+            for lane in 1..<max(1, count) {
+                func divider(_ frame: TrackWorldFrame3D) -> Float {
+                    let normalized = Float(-1 + Double(lane) / Double(count) * 2)
+                    if path > 0, let section = cross(frame) {
+                        // Two dividers converge into one for a two-lane branch,
+                        // or into the outer edges for a single-lane branch.
+                        let narrowOffset: Float = section.narrowLaneCount == 2 ? 0 : (lane == 1 ? -1 : 1)
+                        return center(frame) + (normalized + (narrowOffset - normalized) * Float(section.blend)) * halfWidth(frame)
+                    }
+                    return center(frame) + normalized * halfWidth(frame)
+                }
+                dashed(count.isMultiple(of: 2) && lane == count / 2 ? .amber : .cyan,
+                       dashLength: 8, gapLength: 14, yOffset: 0.04,
+                       left: { divider($0) - 0.055 }, right: { divider($0) + 0.055 })
             }
         }
 
         var latticeDistance = ceil(start / 6) * 6
         while latticeDistance < end {
-            if latticeDistance.truncatingRemainder(dividingBy: 24) != 0 {
+            if !hasSplit && latticeDistance.truncatingRemainder(dividingBy: 24) != 0 {
                 strip(
                     .surfaceGrid,
                     from: latticeDistance,
@@ -196,7 +216,7 @@ final class RoadMeshBuilder3D {
             }
             latticeDistance += 6
         }
-        for normalized in [Float(-0.75), -0.25, 0.25, 0.75] {
+        for normalized in (hasSplit ? [] : [Float(-0.75), -0.25, 0.25, 0.75]) {
             strip(
                 .surfaceGrid,
                 yOffset: 0.03,
