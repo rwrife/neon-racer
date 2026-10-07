@@ -211,6 +211,8 @@ struct RaceState: Codable, Equatable, Sendable {
     var currentEnvironmentID: String = ""
     var completedStageIDs: [String] = []
     var committedBranchIDs: [String] = []
+    /// Optional for backward-compatible saved runs; fixed after choosing a physical split path.
+    var splitRoadSide: Int?
     var traffic: [TrafficVehicleState] = []
     var obstacles: [TrackObstacleState] = []
 
@@ -544,17 +546,29 @@ struct RaceSimulation: Sendable {
         wasBoosting = isBoostActive
 
         let currentStageDistanceBeforeMove = max(0, state.distance - stageStartDistance)
-        let trackSample = trackLayout.sample(
-            stageID: state.currentStageID,
-            distanceInStage: currentStageDistanceBeforeMove
-        )
+        let split = trackLayout.split(for: state.currentStageID)
+        if let split, currentStageDistanceBeforeMove > split.entrance,
+           currentStageDistanceBeforeMove < split.mergeEnd, state.splitRoadSide == nil {
+            state.splitRoadSide = abs(state.lateralPosition) > 0.05
+                ? (state.lateralPosition < 0 ? -1 : 1) : (steering > 0.05 ? 1 : -1)
+        }
+        let side = state.splitRoadSide
+        let path = side.flatMap { trackLayout.splitPath(stageID: state.currentStageID,
+                                                       distanceInStage: currentStageDistanceBeforeMove, side: $0) }
+        let aggregate = trackLayout.sample(stageID: state.currentStageID, distanceInStage: currentStageDistanceBeforeMove)
+        var drivingVehicle = state.vehicle
+        if let path {
+            drivingVehicle.roadPosition.lateralOffset = (state.lateralPosition * aggregate.roadHalfWidth - path.center) / path.halfWidth
+        }
+        let trackSample = trackLayout.drivingSample(stageID: state.currentStageID,
+                                                    distanceInStage: currentStageDistanceBeforeMove, splitSide: side)
         let drivingUpdate = isWipingOut ? DrivingModel.updateWipeout(
-            vehicle: state.vehicle,
+            vehicle: drivingVehicle,
             configuration: configuration,
             deltaTime: deltaTime,
             runtime: &drivingRuntime
         ) : DrivingModel.update(
-            vehicle: state.vehicle,
+            vehicle: drivingVehicle,
             command: PlayerCommand(
                 steering: steering,
                 throttle: throttle,
@@ -569,8 +583,16 @@ struct RaceSimulation: Sendable {
         )
         state.vehicle = drivingUpdate.vehicle
 
-        let distanceDelta = drivingUpdate.distanceDelta
+        let distanceDelta = drivingUpdate.distanceDelta / (path?.distanceScale ?? 1)
         state.distance += distanceDelta
+        if let side {
+            let nextDistance = currentStageDistanceBeforeMove + distanceDelta
+            let nextPath = trackLayout.splitPath(stageID: state.currentStageID, distanceInStage: nextDistance, side: side)
+            let nextAggregate = trackLayout.sample(stageID: state.currentStageID, distanceInStage: nextDistance)
+            let localHalfWidth = nextPath?.halfWidth ?? trackLayout.profile(for: state.currentStageID).roadHalfWidth
+            state.lateralPosition = ((nextPath?.center ?? 0) + state.lateralPosition * localHalfWidth) / nextAggregate.roadHalfWidth
+            if nextPath == nil { state.splitRoadSide = nil }
+        }
         state.elapsedTime += deltaTime
         if let drift = drivingUpdate.completedDrift {
             ingest(.drift(id: drift.id, duration: drift.duration, intensity: drift.intensity))

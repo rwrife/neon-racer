@@ -2,6 +2,25 @@ import XCTest
 
 final class NeonRacerUITests: XCTestCase {
     @MainActor
+    func testRightSplitRoadAndMergeRemainVisible() {
+        let app = XCUIApplication()
+        app.launchArguments = ["UITestDisableRunRecovery", "UITestStartRace", "UITestAutoDrive", "UITestSplitPreview", "UITestSplitRight"]
+        XCUIDevice.shared.orientation = .landscapeLeft
+        app.launch()
+        XCTAssertTrue(app.buttons["Pause race"].waitForExistence(timeout: 10))
+        sleep(5)
+        let branch = XCTAttachment(screenshot: XCUIScreen.main.screenshot())
+        branch.name = "right-branch-ridge-road"
+        branch.lifetime = .keepAlways
+        add(branch)
+        sleep(4)
+        let merge = XCTAttachment(screenshot: XCUIScreen.main.screenshot())
+        merge.name = "right-branch-reconnected-road"
+        merge.lifetime = .keepAlways
+        add(merge)
+    }
+
+    @MainActor
     func testSplitRoadChoice() {
         let app = XCUIApplication()
         app.launchArguments = ["UITestDisableRunRecovery", "UITestStartRace", "UITestAutoDrive", "UITestSplitPreview"]

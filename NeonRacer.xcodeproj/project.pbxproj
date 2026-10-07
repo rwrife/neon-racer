@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 77;
+	objectVersion = 71;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -24,80 +24,80 @@
 		20000000000000000000000F /* RaceSimulationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 30000000000000000000000F /* RaceSimulationTests.swift */; };
 		200000000000000000000010 /* NeonRacerUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 300000000000000000000010 /* NeonRacerUITests.swift */; };
 		200000000000000000000011 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 300000000000000000000014 /* PrivacyInfo.xcprivacy */; };
-		200000000000000000000090 /* CyberpunkSpaceRace.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 300000000000000000000090 /* CyberpunkSpaceRace.mp3 */; };
-		D23000000000000000000001 /* CosmeticQuality.swift in Sources */ = {isa = PBXBuildFile; fileRef = E23000000000000000000001 /* CosmeticQuality.swift */; };
-		D23000000000000000000002 /* PerformanceInstrumentation.swift in Sources */ = {isa = PBXBuildFile; fileRef = E23000000000000000000002 /* PerformanceInstrumentation.swift */; };
-		D23000000000000000000003 /* DebugPerformanceMetrics.swift in Sources */ = {isa = PBXBuildFile; fileRef = E23000000000000000000003 /* DebugPerformanceMetrics.swift */; };
-		D23000000000000000000004 /* CosmeticQualityTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E23000000000000000000004 /* CosmeticQualityTests.swift */; };
-		F23000000000000000000001 /* RenderQualityTier.swift in Sources */ = {isa = PBXBuildFile; fileRef = F23000000000000000000002 /* RenderQualityTier.swift */; };
-		F23000000000000000000003 /* DebugPerformanceOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = F23000000000000000000004 /* DebugPerformanceOverlay.swift */; };
-		F23000000000000000000005 /* RenderQualityTierTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F23000000000000000000006 /* RenderQualityTierTests.swift */; };
-		22C000000000000000000001 /* RunInterruptionCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 22C000000000000000000002 /* RunInterruptionCoordinator.swift */; };
 		200000000000000000000025 /* TutorialState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 300000000000000000000025 /* TutorialState.swift */; };
 		200000000000000000000026 /* TutorialPromptContent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 300000000000000000000026 /* TutorialPromptContent.swift */; };
 		200000000000000000000028 /* TutorialStateTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 300000000000000000000028 /* TutorialStateTests.swift */; };
-		F20000000000000000000001 /* InputService.swift in Sources */ = {isa = PBXBuildFile; fileRef = F20000000000000000000002 /* InputService.swift */; };
-		B28000000000000000000001 /* RaceBalanceConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = B28000000000000000000003 /* RaceBalanceConfiguration.swift */; };
-		B28000000000000000000002 /* RaceBalanceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B28000000000000000000004 /* RaceBalanceTests.swift */; };
+		200000000000000000000090 /* CyberpunkSpaceRace.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 300000000000000000000090 /* CyberpunkSpaceRace.mp3 */; };
+		22C000000000000000000001 /* RunInterruptionCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 22C000000000000000000002 /* RunInterruptionCoordinator.swift */; };
 		A21000000000000000000001 /* AccessibilitySettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = A21000000000000000000011 /* AccessibilitySettings.swift */; };
 		A21000000000000000000002 /* AccessibilitySettingsStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A21000000000000000000012 /* AccessibilitySettingsStore.swift */; };
 		A21000000000000000000003 /* AccessiblePalette.swift in Sources */ = {isa = PBXBuildFile; fileRef = A21000000000000000000013 /* AccessiblePalette.swift */; };
 		A21000000000000000000004 /* AccessibilitySettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A21000000000000000000014 /* AccessibilitySettingsView.swift */; };
 		A21000000000000000000005 /* AccessibilitySettingsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A21000000000000000000015 /* AccessibilitySettingsTests.swift */; };
-		F34000000000000000000001 /* FinishSequenceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F34000000000000000000002 /* FinishSequenceTests.swift */; };
-		F34000000000000000000003 /* FinishOverlayContractTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F34000000000000000000004 /* FinishOverlayContractTests.swift */; };
-		G33000000000000000000001 /* GarageLayoutContractTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = G33000000000000000000002 /* GarageLayoutContractTests.swift */; };
-		I20000000000000000000001 /* InputServiceCommandTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = I20000000000000000000002 /* InputServiceCommandTests.swift */; };
 		A24000000000000000000001 /* RaceReplay.swift in Sources */ = {isa = PBXBuildFile; fileRef = A24000000000000000000003 /* RaceReplay.swift */; };
 		A24000000000000000000002 /* RaceDebugDiagnostics.swift in Sources */ = {isa = PBXBuildFile; fileRef = A24000000000000000000004 /* RaceDebugDiagnostics.swift */; };
-		F19000000000000000000001 /* AudioMixState.swift in Sources */ = {isa = PBXBuildFile; fileRef = F19000000000000000000003 /* AudioMixState.swift */; };
-		F19000000000000000000002 /* AudioMixStateTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F19000000000000000000004 /* AudioMixStateTests.swift */; };
-		C18000000000000000000001 /* Progression.swift in Sources */ = {isa = PBXBuildFile; fileRef = C18000000000000000000011 /* Progression.swift */; };
-		C18000000000000000000002 /* GarageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C18000000000000000000012 /* GarageView.swift */; };
-		C18000000000000000000003 /* ProfileStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C18000000000000000000013 /* ProfileStoreTests.swift */; };
+		B28000000000000000000001 /* RaceBalanceConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = B28000000000000000000003 /* RaceBalanceConfiguration.swift */; };
+		B28000000000000000000002 /* RaceBalanceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B28000000000000000000004 /* RaceBalanceTests.swift */; };
 		C09000000000000000000001 /* RunProgression.swift in Sources */ = {isa = PBXBuildFile; fileRef = C09000000000000000000002 /* RunProgression.swift */; };
-		C15000000000000000000001 /* InitialRouteContent.swift in Sources */ = {isa = PBXBuildFile; fileRef = C15000000000000000000003 /* InitialRouteContent.swift */; };
-		C15000000000000000000002 /* InitialRouteContentTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C15000000000000000000004 /* InitialRouteContentTests.swift */; };
-		E12000000000000000000001 /* EnvironmentRenderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = E12000000000000000000002 /* EnvironmentRenderer.swift */; };
-		E14000000000000000000001 /* NeonEffectsStack.swift in Sources */ = {isa = PBXBuildFile; fileRef = E14000000000000000000002 /* NeonEffectsStack.swift */; };
-		E14100000000000000000001 /* RaceScoring.swift in Sources */ = {isa = PBXBuildFile; fileRef = E14100000000000000000011 /* RaceScoring.swift */; };
-		C0DE0000000000000000A001 /* TrackGeometry.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0DE0000000000000000A002 /* TrackGeometry.swift */; };
-		E14100000000000000000002 /* RaceHUDSnapshot.swift in Sources */ = {isa = PBXBuildFile; fileRef = E14100000000000000000012 /* RaceHUDSnapshot.swift */; };
-		E14100000000000000000003 /* RaceHUDView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E14100000000000000000013 /* RaceHUDView.swift */; };
-		E14100000000000000000004 /* RaceScoringTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E14100000000000000000014 /* RaceScoringTests.swift */; };
-		E14100000000000000000005 /* RaceHUDSnapshotTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E14100000000000000000015 /* RaceHUDSnapshotTests.swift */; };
-		V13000000000000000000001 /* VehicleArt.swift in Sources */ = {isa = PBXBuildFile; fileRef = V13000000000000000000004 /* VehicleArt.swift */; };
-		V13000000000000000000002 /* VehicleArtPreviewScene.swift in Sources */ = {isa = PBXBuildFile; fileRef = V13000000000000000000005 /* VehicleArtPreviewScene.swift */; };
-		V13000000000000000000003 /* VehicleArtTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = V13000000000000000000006 /* VehicleArtTests.swift */; };
-		D11000000000000000000001 /* ContentValidation.swift in Sources */ = {isa = PBXBuildFile; fileRef = D11000000000000000000005 /* ContentValidation.swift */; };
-		D11000000000000000000002 /* StageContentLoader.swift in Sources */ = {isa = PBXBuildFile; fileRef = D11000000000000000000006 /* StageContentLoader.swift */; };
-		D11000000000000000000003 /* StageContentTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D11000000000000000000007 /* StageContentTests.swift */; };
-		D11000000000000000000004 /* neon-harbor.json in Resources */ = {isa = PBXBuildFile; fileRef = D11000000000000000000008 /* neon-harbor.json */; };
-		D1100000000000000000000B /* solar-to-summit.json in Resources */ = {isa = PBXBuildFile; fileRef = D1100000000000000000000A /* solar-to-summit.json */; };
-		C0DE0000000000000000B001 /* RaceScene3D.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0DE0000000000000000B002 /* RaceScene3D.swift */; };
-		C0DE0000000000000000B003 /* TrackWorldMapper3D.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0DE0000000000000000B004 /* TrackWorldMapper3D.swift */; };
-		C0DE0000000000000000B005 /* RoadMeshBuilder3D.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0DE0000000000000000B006 /* RoadMeshBuilder3D.swift */; };
-		C0DE0000000000000000B021 /* NeonTerrain3D.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0DE0000000000000000B020 /* NeonTerrain3D.swift */; };
-		C0DE0000000000000000B007 /* ChaseCamera3D.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0DE0000000000000000B008 /* ChaseCamera3D.swift */; };
-		C0DE0000000000000000B009 /* TrackMarkers3D.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0DE0000000000000000B00A /* TrackMarkers3D.swift */; };
-		C0DE0000000000000000B00B /* NeonEnvironment3D.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0DE0000000000000000B00C /* NeonEnvironment3D.swift */; };
-		C0DE0000000000000000B00D /* VehicleModels3D.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0DE0000000000000000B00E /* VehicleModels3D.swift */; };
-		C0DE0000000000000000B00F /* NeonEffects3D.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0DE0000000000000000B010 /* NeonEffects3D.swift */; };
-		C0DE0000000000000000B01A /* NeonPostProcess.metal in Sources */ = {isa = PBXBuildFile; fileRef = C0DE0000000000000000E004 /* NeonPostProcess.metal */; };
-		C0DE0000000000000000D001 /* VehicleModels3DTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0DE0000000000000000D002 /* VehicleModels3DTests.swift */; };
-		C0DE0000000000000000B014 /* DrivingModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0DE0000000000000000B015 /* DrivingModel.swift */; };
 		C0DE00000000000000001001 /* TouchDrivingControls.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0DE00000000000000001002 /* TouchDrivingControls.swift */; };
 		C0DE00000000000000001003 /* DrivingModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0DE00000000000000001004 /* DrivingModelTests.swift */; };
-		C0DE0000000000000000B016 /* TrafficSystem.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0DE0000000000000000B017 /* TrafficSystem.swift */; };
-		C0DE0000000000000000B018 /* CollisionSystem.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0DE0000000000000000B019 /* CollisionSystem.swift */; };
-		C0DE0000000000000000E005 /* NeonEffects3DTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0DE0000000000000000E006 /* NeonEffects3DTests.swift */; };
-		C0DE0000000000000000F001 /* TrafficSystemTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0DE0000000000000000F002 /* TrafficSystemTests.swift */; };
-		C0DE0000000000000000F003 /* CollisionSystemTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0DE0000000000000000F004 /* CollisionSystemTests.swift */; };
 		C0DE00000000000000002001 /* HUDCalloutMapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0DE00000000000000002002 /* HUDCalloutMapper.swift */; };
 		C0DE00000000000000002003 /* HUDArcadeComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0DE00000000000000002004 /* HUDArcadeComponents.swift */; };
 		C0DE00000000000000002005 /* HUDRouteProgressView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0DE00000000000000002006 /* HUDRouteProgressView.swift */; };
 		C0DE00000000000000002007 /* HUDCalloutView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0DE00000000000000002008 /* HUDCalloutView.swift */; };
 		C0DE00000000000000002009 /* HUDTacticalPanels.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0DE0000000000000000200A /* HUDTacticalPanels.swift */; };
+		C0DE0000000000000000A001 /* TrackGeometry.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0DE0000000000000000A002 /* TrackGeometry.swift */; };
+		C0DE0000000000000000B001 /* RaceScene3D.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0DE0000000000000000B002 /* RaceScene3D.swift */; };
+		C0DE0000000000000000B003 /* TrackWorldMapper3D.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0DE0000000000000000B004 /* TrackWorldMapper3D.swift */; };
+		C0DE0000000000000000B005 /* RoadMeshBuilder3D.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0DE0000000000000000B006 /* RoadMeshBuilder3D.swift */; };
+		C0DE0000000000000000B007 /* ChaseCamera3D.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0DE0000000000000000B008 /* ChaseCamera3D.swift */; };
+		C0DE0000000000000000B009 /* TrackMarkers3D.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0DE0000000000000000B00A /* TrackMarkers3D.swift */; };
+		C0DE0000000000000000B00B /* NeonEnvironment3D.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0DE0000000000000000B00C /* NeonEnvironment3D.swift */; };
+		C0DE0000000000000000B00D /* VehicleModels3D.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0DE0000000000000000B00E /* VehicleModels3D.swift */; };
+		C0DE0000000000000000B00F /* NeonEffects3D.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0DE0000000000000000B010 /* NeonEffects3D.swift */; };
+		C0DE0000000000000000B014 /* DrivingModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0DE0000000000000000B015 /* DrivingModel.swift */; };
+		C0DE0000000000000000B016 /* TrafficSystem.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0DE0000000000000000B017 /* TrafficSystem.swift */; };
+		C0DE0000000000000000B018 /* CollisionSystem.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0DE0000000000000000B019 /* CollisionSystem.swift */; };
+		C0DE0000000000000000B01A /* NeonPostProcess.metal in Sources */ = {isa = PBXBuildFile; fileRef = C0DE0000000000000000E004 /* NeonPostProcess.metal */; };
+		C0DE0000000000000000B021 /* NeonTerrain3D.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0DE0000000000000000B020 /* NeonTerrain3D.swift */; };
+		C0DE0000000000000000D001 /* VehicleModels3DTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0DE0000000000000000D002 /* VehicleModels3DTests.swift */; };
+		C0DE0000000000000000E005 /* NeonEffects3DTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0DE0000000000000000E006 /* NeonEffects3DTests.swift */; };
+		C0DE0000000000000000F001 /* TrafficSystemTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0DE0000000000000000F002 /* TrafficSystemTests.swift */; };
+		C0DE0000000000000000F003 /* CollisionSystemTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0DE0000000000000000F004 /* CollisionSystemTests.swift */; };
+		C15000000000000000000001 /* InitialRouteContent.swift in Sources */ = {isa = PBXBuildFile; fileRef = C15000000000000000000003 /* InitialRouteContent.swift */; };
+		C15000000000000000000002 /* InitialRouteContentTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C15000000000000000000004 /* InitialRouteContentTests.swift */; };
+		C18000000000000000000001 /* Progression.swift in Sources */ = {isa = PBXBuildFile; fileRef = C18000000000000000000011 /* Progression.swift */; };
+		C18000000000000000000002 /* GarageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C18000000000000000000012 /* GarageView.swift */; };
+		C18000000000000000000003 /* ProfileStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C18000000000000000000013 /* ProfileStoreTests.swift */; };
+		D11000000000000000000001 /* ContentValidation.swift in Sources */ = {isa = PBXBuildFile; fileRef = D11000000000000000000005 /* ContentValidation.swift */; };
+		D11000000000000000000002 /* StageContentLoader.swift in Sources */ = {isa = PBXBuildFile; fileRef = D11000000000000000000006 /* StageContentLoader.swift */; };
+		D11000000000000000000003 /* StageContentTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D11000000000000000000007 /* StageContentTests.swift */; };
+		D11000000000000000000004 /* neon-harbor.json in Resources */ = {isa = PBXBuildFile; fileRef = D11000000000000000000008 /* neon-harbor.json */; };
+		D1100000000000000000000B /* solar-to-summit.json in Resources */ = {isa = PBXBuildFile; fileRef = D1100000000000000000000A /* solar-to-summit.json */; };
+		D23000000000000000000001 /* CosmeticQuality.swift in Sources */ = {isa = PBXBuildFile; fileRef = E23000000000000000000001 /* CosmeticQuality.swift */; };
+		D23000000000000000000002 /* PerformanceInstrumentation.swift in Sources */ = {isa = PBXBuildFile; fileRef = E23000000000000000000002 /* PerformanceInstrumentation.swift */; };
+		D23000000000000000000003 /* DebugPerformanceMetrics.swift in Sources */ = {isa = PBXBuildFile; fileRef = E23000000000000000000003 /* DebugPerformanceMetrics.swift */; };
+		D23000000000000000000004 /* CosmeticQualityTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E23000000000000000000004 /* CosmeticQualityTests.swift */; };
+		E12000000000000000000001 /* EnvironmentRenderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = E12000000000000000000002 /* EnvironmentRenderer.swift */; };
+		E14000000000000000000001 /* NeonEffectsStack.swift in Sources */ = {isa = PBXBuildFile; fileRef = E14000000000000000000002 /* NeonEffectsStack.swift */; };
+		E14100000000000000000001 /* RaceScoring.swift in Sources */ = {isa = PBXBuildFile; fileRef = E14100000000000000000011 /* RaceScoring.swift */; };
+		E14100000000000000000002 /* RaceHUDSnapshot.swift in Sources */ = {isa = PBXBuildFile; fileRef = E14100000000000000000012 /* RaceHUDSnapshot.swift */; };
+		E14100000000000000000003 /* RaceHUDView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E14100000000000000000013 /* RaceHUDView.swift */; };
+		E14100000000000000000004 /* RaceScoringTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E14100000000000000000014 /* RaceScoringTests.swift */; };
+		E14100000000000000000005 /* RaceHUDSnapshotTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E14100000000000000000015 /* RaceHUDSnapshotTests.swift */; };
+		F19000000000000000000001 /* AudioMixState.swift in Sources */ = {isa = PBXBuildFile; fileRef = F19000000000000000000003 /* AudioMixState.swift */; };
+		F19000000000000000000002 /* AudioMixStateTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F19000000000000000000004 /* AudioMixStateTests.swift */; };
+		F20000000000000000000001 /* InputService.swift in Sources */ = {isa = PBXBuildFile; fileRef = F20000000000000000000002 /* InputService.swift */; };
+		F23000000000000000000001 /* RenderQualityTier.swift in Sources */ = {isa = PBXBuildFile; fileRef = F23000000000000000000002 /* RenderQualityTier.swift */; };
+		F23000000000000000000003 /* DebugPerformanceOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = F23000000000000000000004 /* DebugPerformanceOverlay.swift */; };
+		F23000000000000000000005 /* RenderQualityTierTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F23000000000000000000006 /* RenderQualityTierTests.swift */; };
+		F34000000000000000000001 /* FinishSequenceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F34000000000000000000002 /* FinishSequenceTests.swift */; };
+		F34000000000000000000003 /* FinishOverlayContractTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F34000000000000000000004 /* FinishOverlayContractTests.swift */; };
+		G33000000000000000000001 /* GarageLayoutContractTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = G33000000000000000000002 /* GarageLayoutContractTests.swift */; };
+		I20000000000000000000001 /* InputServiceCommandTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = I20000000000000000000002 /* InputServiceCommandTests.swift */; };
+		V13000000000000000000001 /* VehicleArt.swift in Sources */ = {isa = PBXBuildFile; fileRef = V13000000000000000000004 /* VehicleArt.swift */; };
+		V13000000000000000000002 /* VehicleArtPreviewScene.swift in Sources */ = {isa = PBXBuildFile; fileRef = V13000000000000000000005 /* VehicleArtPreviewScene.swift */; };
+		V13000000000000000000003 /* VehicleArtTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = V13000000000000000000006 /* VehicleArtTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -118,6 +118,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		22C000000000000000000002 /* RunInterruptionCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RunInterruptionCoordinator.swift; sourceTree = "<group>"; };
 		300000000000000000000001 /* NeonRacerApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NeonRacerApp.swift; sourceTree = "<group>"; };
 		300000000000000000000002 /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
 		300000000000000000000003 /* MainMenuView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainMenuView.swift; sourceTree = "<group>"; };
@@ -138,40 +139,50 @@
 		300000000000000000000012 /* NeonRacerTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = NeonRacerTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		300000000000000000000013 /* NeonRacerUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = NeonRacerUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		300000000000000000000014 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
-		300000000000000000000090 /* CyberpunkSpaceRace.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = CyberpunkSpaceRace.mp3; sourceTree = "<group>"; };
-		E23000000000000000000001 /* CosmeticQuality.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CosmeticQuality.swift; sourceTree = "<group>"; };
-		E23000000000000000000002 /* PerformanceInstrumentation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PerformanceInstrumentation.swift; sourceTree = "<group>"; };
-		E23000000000000000000003 /* DebugPerformanceMetrics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebugPerformanceMetrics.swift; sourceTree = "<group>"; };
-		E23000000000000000000004 /* CosmeticQualityTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CosmeticQualityTests.swift; sourceTree = "<group>"; };
-		F23000000000000000000002 /* RenderQualityTier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RenderQualityTier.swift; sourceTree = "<group>"; };
-		F23000000000000000000004 /* DebugPerformanceOverlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebugPerformanceOverlay.swift; sourceTree = "<group>"; };
-		F23000000000000000000006 /* RenderQualityTierTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RenderQualityTierTests.swift; sourceTree = "<group>"; };
-		22C000000000000000000002 /* RunInterruptionCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RunInterruptionCoordinator.swift; sourceTree = "<group>"; };
 		300000000000000000000025 /* TutorialState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TutorialState.swift; sourceTree = "<group>"; };
 		300000000000000000000026 /* TutorialPromptContent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TutorialPromptContent.swift; sourceTree = "<group>"; };
 		300000000000000000000028 /* TutorialStateTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TutorialStateTests.swift; sourceTree = "<group>"; };
-		F20000000000000000000002 /* InputService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InputService.swift; sourceTree = "<group>"; };
-		B28000000000000000000003 /* RaceBalanceConfiguration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RaceBalanceConfiguration.swift; sourceTree = "<group>"; };
-		B28000000000000000000004 /* RaceBalanceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RaceBalanceTests.swift; sourceTree = "<group>"; };
+		300000000000000000000090 /* CyberpunkSpaceRace.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = CyberpunkSpaceRace.mp3; sourceTree = "<group>"; };
 		A21000000000000000000011 /* AccessibilitySettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccessibilitySettings.swift; sourceTree = "<group>"; };
 		A21000000000000000000012 /* AccessibilitySettingsStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccessibilitySettingsStore.swift; sourceTree = "<group>"; };
 		A21000000000000000000013 /* AccessiblePalette.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccessiblePalette.swift; sourceTree = "<group>"; };
 		A21000000000000000000014 /* AccessibilitySettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccessibilitySettingsView.swift; sourceTree = "<group>"; };
 		A21000000000000000000015 /* AccessibilitySettingsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccessibilitySettingsTests.swift; sourceTree = "<group>"; };
-		F34000000000000000000002 /* FinishSequenceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FinishSequenceTests.swift; sourceTree = "<group>"; };
-		F34000000000000000000004 /* FinishOverlayContractTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FinishOverlayContractTests.swift; sourceTree = "<group>"; };
-		G33000000000000000000002 /* GarageLayoutContractTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GarageLayoutContractTests.swift; sourceTree = "<group>"; };
-		I20000000000000000000002 /* InputServiceCommandTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InputServiceCommandTests.swift; sourceTree = "<group>"; };
 		A24000000000000000000003 /* RaceReplay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RaceReplay.swift; sourceTree = "<group>"; };
 		A24000000000000000000004 /* RaceDebugDiagnostics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RaceDebugDiagnostics.swift; sourceTree = "<group>"; };
-		F19000000000000000000003 /* AudioMixState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioMixState.swift; sourceTree = "<group>"; };
-		F19000000000000000000004 /* AudioMixStateTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioMixStateTests.swift; sourceTree = "<group>"; };
+		B28000000000000000000003 /* RaceBalanceConfiguration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RaceBalanceConfiguration.swift; sourceTree = "<group>"; };
+		B28000000000000000000004 /* RaceBalanceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RaceBalanceTests.swift; sourceTree = "<group>"; };
+		C09000000000000000000002 /* RunProgression.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RunProgression.swift; sourceTree = "<group>"; };
+		C0DE00000000000000001002 /* TouchDrivingControls.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TouchDrivingControls.swift; sourceTree = "<group>"; };
+		C0DE00000000000000001004 /* DrivingModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DrivingModelTests.swift; sourceTree = "<group>"; };
+		C0DE00000000000000002002 /* HUDCalloutMapper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HUDCalloutMapper.swift; sourceTree = "<group>"; };
+		C0DE00000000000000002004 /* HUDArcadeComponents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HUDArcadeComponents.swift; sourceTree = "<group>"; };
+		C0DE00000000000000002006 /* HUDRouteProgressView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HUDRouteProgressView.swift; sourceTree = "<group>"; };
+		C0DE00000000000000002008 /* HUDCalloutView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HUDCalloutView.swift; sourceTree = "<group>"; };
+		C0DE0000000000000000200A /* HUDTacticalPanels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HUDTacticalPanels.swift; sourceTree = "<group>"; };
+		C0DE0000000000000000A002 /* TrackGeometry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrackGeometry.swift; sourceTree = "<group>"; };
+		C0DE0000000000000000B002 /* RaceScene3D.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RaceScene3D.swift; sourceTree = "<group>"; };
+		C0DE0000000000000000B004 /* TrackWorldMapper3D.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrackWorldMapper3D.swift; sourceTree = "<group>"; };
+		C0DE0000000000000000B006 /* RoadMeshBuilder3D.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RoadMeshBuilder3D.swift; sourceTree = "<group>"; };
+		C0DE0000000000000000B008 /* ChaseCamera3D.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChaseCamera3D.swift; sourceTree = "<group>"; };
+		C0DE0000000000000000B00A /* TrackMarkers3D.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrackMarkers3D.swift; sourceTree = "<group>"; };
+		C0DE0000000000000000B00C /* NeonEnvironment3D.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NeonEnvironment3D.swift; sourceTree = "<group>"; };
+		C0DE0000000000000000B00E /* VehicleModels3D.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VehicleModels3D.swift; sourceTree = "<group>"; };
+		C0DE0000000000000000B010 /* NeonEffects3D.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NeonEffects3D.swift; sourceTree = "<group>"; };
+		C0DE0000000000000000B015 /* DrivingModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DrivingModel.swift; sourceTree = "<group>"; };
+		C0DE0000000000000000B017 /* TrafficSystem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrafficSystem.swift; sourceTree = "<group>"; };
+		C0DE0000000000000000B019 /* CollisionSystem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CollisionSystem.swift; sourceTree = "<group>"; };
+		C0DE0000000000000000B020 /* NeonTerrain3D.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NeonTerrain3D.swift; sourceTree = "<group>"; };
+		C0DE0000000000000000D002 /* VehicleModels3DTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VehicleModels3DTests.swift; sourceTree = "<group>"; };
+		C0DE0000000000000000E004 /* NeonPostProcess.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = NeonPostProcess.metal; sourceTree = "<group>"; };
+		C0DE0000000000000000E006 /* NeonEffects3DTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NeonEffects3DTests.swift; sourceTree = "<group>"; };
+		C0DE0000000000000000F002 /* TrafficSystemTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrafficSystemTests.swift; sourceTree = "<group>"; };
+		C0DE0000000000000000F004 /* CollisionSystemTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CollisionSystemTests.swift; sourceTree = "<group>"; };
+		C15000000000000000000003 /* InitialRouteContent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InitialRouteContent.swift; sourceTree = "<group>"; };
+		C15000000000000000000004 /* InitialRouteContentTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InitialRouteContentTests.swift; sourceTree = "<group>"; };
 		C18000000000000000000011 /* Progression.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Progression.swift; sourceTree = "<group>"; };
 		C18000000000000000000012 /* GarageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GarageView.swift; sourceTree = "<group>"; };
 		C18000000000000000000013 /* ProfileStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileStoreTests.swift; sourceTree = "<group>"; };
-		C09000000000000000000002 /* RunProgression.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RunProgression.swift; sourceTree = "<group>"; };
-		C15000000000000000000003 /* InitialRouteContent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InitialRouteContent.swift; sourceTree = "<group>"; };
-		C15000000000000000000004 /* InitialRouteContentTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InitialRouteContentTests.swift; sourceTree = "<group>"; };
 		D11000000000000000000005 /* ContentValidation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentValidation.swift; sourceTree = "<group>"; };
 		D11000000000000000000006 /* StageContentLoader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StageContentLoader.swift; sourceTree = "<group>"; };
 		D11000000000000000000007 /* StageContentTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StageContentTests.swift; sourceTree = "<group>"; };
@@ -179,39 +190,28 @@
 		D1100000000000000000000A /* solar-to-summit.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "solar-to-summit.json"; sourceTree = "<group>"; };
 		E12000000000000000000002 /* EnvironmentRenderer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EnvironmentRenderer.swift; sourceTree = "<group>"; };
 		E14000000000000000000002 /* NeonEffectsStack.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NeonEffectsStack.swift; sourceTree = "<group>"; };
-		C0DE0000000000000000A002 /* TrackGeometry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrackGeometry.swift; sourceTree = "<group>"; };
 		E14100000000000000000011 /* RaceScoring.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RaceScoring.swift; sourceTree = "<group>"; };
 		E14100000000000000000012 /* RaceHUDSnapshot.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RaceHUDSnapshot.swift; sourceTree = "<group>"; };
 		E14100000000000000000013 /* RaceHUDView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RaceHUDView.swift; sourceTree = "<group>"; };
 		E14100000000000000000014 /* RaceScoringTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RaceScoringTests.swift; sourceTree = "<group>"; };
 		E14100000000000000000015 /* RaceHUDSnapshotTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RaceHUDSnapshotTests.swift; sourceTree = "<group>"; };
+		E23000000000000000000001 /* CosmeticQuality.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CosmeticQuality.swift; sourceTree = "<group>"; };
+		E23000000000000000000002 /* PerformanceInstrumentation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PerformanceInstrumentation.swift; sourceTree = "<group>"; };
+		E23000000000000000000003 /* DebugPerformanceMetrics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebugPerformanceMetrics.swift; sourceTree = "<group>"; };
+		E23000000000000000000004 /* CosmeticQualityTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CosmeticQualityTests.swift; sourceTree = "<group>"; };
+		F19000000000000000000003 /* AudioMixState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioMixState.swift; sourceTree = "<group>"; };
+		F19000000000000000000004 /* AudioMixStateTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioMixStateTests.swift; sourceTree = "<group>"; };
+		F20000000000000000000002 /* InputService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InputService.swift; sourceTree = "<group>"; };
+		F23000000000000000000002 /* RenderQualityTier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RenderQualityTier.swift; sourceTree = "<group>"; };
+		F23000000000000000000004 /* DebugPerformanceOverlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebugPerformanceOverlay.swift; sourceTree = "<group>"; };
+		F23000000000000000000006 /* RenderQualityTierTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RenderQualityTierTests.swift; sourceTree = "<group>"; };
+		F34000000000000000000002 /* FinishSequenceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FinishSequenceTests.swift; sourceTree = "<group>"; };
+		F34000000000000000000004 /* FinishOverlayContractTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FinishOverlayContractTests.swift; sourceTree = "<group>"; };
+		G33000000000000000000002 /* GarageLayoutContractTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GarageLayoutContractTests.swift; sourceTree = "<group>"; };
+		I20000000000000000000002 /* InputServiceCommandTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InputServiceCommandTests.swift; sourceTree = "<group>"; };
 		V13000000000000000000004 /* VehicleArt.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VehicleArt.swift; sourceTree = "<group>"; };
 		V13000000000000000000005 /* VehicleArtPreviewScene.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VehicleArtPreviewScene.swift; sourceTree = "<group>"; };
 		V13000000000000000000006 /* VehicleArtTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VehicleArtTests.swift; sourceTree = "<group>"; };
-		C0DE0000000000000000D002 /* VehicleModels3DTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VehicleModels3DTests.swift; sourceTree = "<group>"; };
-		C0DE0000000000000000B002 /* RaceScene3D.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RaceScene3D.swift; sourceTree = "<group>"; };
-		C0DE0000000000000000B004 /* TrackWorldMapper3D.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrackWorldMapper3D.swift; sourceTree = "<group>"; };
-		C0DE0000000000000000B006 /* RoadMeshBuilder3D.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RoadMeshBuilder3D.swift; sourceTree = "<group>"; };
-		C0DE0000000000000000B020 /* NeonTerrain3D.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NeonTerrain3D.swift; sourceTree = "<group>"; };
-		C0DE0000000000000000B008 /* ChaseCamera3D.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChaseCamera3D.swift; sourceTree = "<group>"; };
-		C0DE0000000000000000B00A /* TrackMarkers3D.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrackMarkers3D.swift; sourceTree = "<group>"; };
-		C0DE0000000000000000B00C /* NeonEnvironment3D.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NeonEnvironment3D.swift; sourceTree = "<group>"; };
-		C0DE0000000000000000B00E /* VehicleModels3D.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VehicleModels3D.swift; sourceTree = "<group>"; };
-		C0DE0000000000000000B010 /* NeonEffects3D.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NeonEffects3D.swift; sourceTree = "<group>"; };
-		C0DE0000000000000000B015 /* DrivingModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DrivingModel.swift; sourceTree = "<group>"; };
-		C0DE00000000000000001002 /* TouchDrivingControls.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TouchDrivingControls.swift; sourceTree = "<group>"; };
-		C0DE00000000000000001004 /* DrivingModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DrivingModelTests.swift; sourceTree = "<group>"; };
-		C0DE0000000000000000B017 /* TrafficSystem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrafficSystem.swift; sourceTree = "<group>"; };
-		C0DE0000000000000000B019 /* CollisionSystem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CollisionSystem.swift; sourceTree = "<group>"; };
-		C0DE0000000000000000E004 /* NeonPostProcess.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = NeonPostProcess.metal; sourceTree = "<group>"; };
-		C0DE0000000000000000E006 /* NeonEffects3DTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NeonEffects3DTests.swift; sourceTree = "<group>"; };
-		C0DE0000000000000000F002 /* TrafficSystemTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrafficSystemTests.swift; sourceTree = "<group>"; };
-		C0DE0000000000000000F004 /* CollisionSystemTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CollisionSystemTests.swift; sourceTree = "<group>"; };
-		C0DE00000000000000002002 /* HUDCalloutMapper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HUDCalloutMapper.swift; sourceTree = "<group>"; };
-		C0DE00000000000000002004 /* HUDArcadeComponents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HUDArcadeComponents.swift; sourceTree = "<group>"; };
-		C0DE00000000000000002006 /* HUDRouteProgressView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HUDRouteProgressView.swift; sourceTree = "<group>"; };
-		C0DE00000000000000002008 /* HUDCalloutView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HUDCalloutView.swift; sourceTree = "<group>"; };
-		C0DE0000000000000000200A /* HUDTacticalPanels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HUDTacticalPanels.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -306,22 +306,6 @@
 			path = Race;
 			sourceTree = "<group>";
 		};
-		A21000000000000000000024 /* Settings */ = {
-			isa = PBXGroup;
-			children = (
-				A21000000000000000000014 /* AccessibilitySettingsView.swift */,
-			);
-			path = Settings;
-			sourceTree = "<group>";
-		};
-		C18000000000000000000021 /* Garage */ = {
-			isa = PBXGroup;
-			children = (
-				C18000000000000000000012 /* GarageView.swift */,
-			);
-			path = Garage;
-			sourceTree = "<group>";
-		};
 		700000000000000000000007 /* Game */ = {
 			isa = PBXGroup;
 			children = (
@@ -386,15 +370,6 @@
 			path = Content;
 			sourceTree = "<group>";
 		};
-		D11000000000000000000009 /* Fixtures */ = {
-			isa = PBXGroup;
-			children = (
-				D11000000000000000000008 /* neon-harbor.json */,
-				D1100000000000000000000A /* solar-to-summit.json */,
-			);
-			path = Fixtures;
-			sourceTree = "<group>";
-		};
 		70000000000000000000000B /* Services */ = {
 			isa = PBXGroup;
 			children = (
@@ -414,30 +389,6 @@
 			path = Audio;
 			sourceTree = "<group>";
 		};
-		700000000000000000000012 /* Haptics */ = {
-			isa = PBXGroup;
-			children = (
-				30000000000000000000000B /* HapticsService.swift */,
-			);
-			path = Haptics;
-			sourceTree = "<group>";
-		};
-		700000000000000000000013 /* Persistence */ = {
-			isa = PBXGroup;
-			children = (
-				30000000000000000000000C /* ProfileStore.swift */,
-			);
-			path = Persistence;
-			sourceTree = "<group>";
-		};
-		F20000000000000000000003 /* Input */ = {
-			isa = PBXGroup;
-			children = (
-				F20000000000000000000002 /* InputService.swift */,
-			);
-			path = Input;
-			sourceTree = "<group>";
-		};
 		70000000000000000000000D /* Shared */ = {
 			isa = PBXGroup;
 			children = (
@@ -445,24 +396,6 @@
 				700000000000000000000014 /* Design */,
 			);
 			path = Shared;
-			sourceTree = "<group>";
-		};
-		A21000000000000000000023 /* Accessibility */ = {
-			isa = PBXGroup;
-			children = (
-				A21000000000000000000011 /* AccessibilitySettings.swift */,
-				A21000000000000000000012 /* AccessibilitySettingsStore.swift */,
-			);
-			path = Accessibility;
-			sourceTree = "<group>";
-		};
-		700000000000000000000014 /* Design */ = {
-			isa = PBXGroup;
-			children = (
-				30000000000000000000000D /* NeonPalette.swift */,
-				A21000000000000000000013 /* AccessiblePalette.swift */,
-			);
-			path = Design;
 			sourceTree = "<group>";
 		};
 		70000000000000000000000E /* Resources */ = {
@@ -522,6 +455,48 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
+		700000000000000000000012 /* Haptics */ = {
+			isa = PBXGroup;
+			children = (
+				30000000000000000000000B /* HapticsService.swift */,
+			);
+			path = Haptics;
+			sourceTree = "<group>";
+		};
+		700000000000000000000013 /* Persistence */ = {
+			isa = PBXGroup;
+			children = (
+				30000000000000000000000C /* ProfileStore.swift */,
+			);
+			path = Persistence;
+			sourceTree = "<group>";
+		};
+		700000000000000000000014 /* Design */ = {
+			isa = PBXGroup;
+			children = (
+				30000000000000000000000D /* NeonPalette.swift */,
+				A21000000000000000000013 /* AccessiblePalette.swift */,
+			);
+			path = Design;
+			sourceTree = "<group>";
+		};
+		A21000000000000000000023 /* Accessibility */ = {
+			isa = PBXGroup;
+			children = (
+				A21000000000000000000011 /* AccessibilitySettings.swift */,
+				A21000000000000000000012 /* AccessibilitySettingsStore.swift */,
+			);
+			path = Accessibility;
+			sourceTree = "<group>";
+		};
+		A21000000000000000000024 /* Settings */ = {
+			isa = PBXGroup;
+			children = (
+				A21000000000000000000014 /* AccessibilitySettingsView.swift */,
+			);
+			path = Settings;
+			sourceTree = "<group>";
+		};
 		C0DE0000000000000000B011 /* Rendering3D */ = {
 			isa = PBXGroup;
 			children = (
@@ -537,6 +512,31 @@
 				C0DE0000000000000000E004 /* NeonPostProcess.metal */,
 			);
 			path = Rendering3D;
+			sourceTree = "<group>";
+		};
+		C18000000000000000000021 /* Garage */ = {
+			isa = PBXGroup;
+			children = (
+				C18000000000000000000012 /* GarageView.swift */,
+			);
+			path = Garage;
+			sourceTree = "<group>";
+		};
+		D11000000000000000000009 /* Fixtures */ = {
+			isa = PBXGroup;
+			children = (
+				D11000000000000000000008 /* neon-harbor.json */,
+				D1100000000000000000000A /* solar-to-summit.json */,
+			);
+			path = Fixtures;
+			sourceTree = "<group>";
+		};
+		F20000000000000000000003 /* Input */ = {
+			isa = PBXGroup;
+			children = (
+				F20000000000000000000002 /* InputService.swift */,
+			);
+			path = Input;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -609,7 +609,7 @@
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
 				LastSwiftUpdateCheck = 2600;
-				LastUpgradeCheck = 2600;
+				LastUpgradeCheck = 2700;
 				TargetAttributes = {
 					100000000000000000000001 = {
 						CreatedOnToolsVersion = 26.0;
@@ -634,7 +634,6 @@
 			);
 			mainGroup = 700000000000000000000001;
 			minimizedProjectReferenceProxies = 1;
-			preferredProjectObjectVersion = 77;
 			productRefGroup = 700000000000000000000011 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -806,7 +805,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = 2ES87W257J;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = CyberRun;
@@ -823,7 +822,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.1;
-				PRODUCT_BUNDLE_IDENTIFIER = com.infinityball.neon-racer;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.infinityball.neon-racer";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
@@ -842,7 +841,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = 2ES87W257J;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = CyberRun;
@@ -859,7 +858,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.1;
-				PRODUCT_BUNDLE_IDENTIFIER = com.infinityball.neon-racer;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.infinityball.neon-racer";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
@@ -878,7 +877,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.infinityball.neon-racer.tests;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.infinityball.neon-racer.tests";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
@@ -896,7 +895,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.infinityball.neon-racer.tests;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.infinityball.neon-racer.tests";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
@@ -913,7 +912,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.infinityball.neon-racer.uitests;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.infinityball.neon-racer.uitests";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
@@ -930,7 +929,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.infinityball.neon-racer.uitests;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.infinityball.neon-racer.uitests";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
@@ -974,6 +973,7 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
+				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
@@ -996,6 +996,7 @@
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 			};
@@ -1034,6 +1035,7 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
+				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
@@ -1049,6 +1051,7 @@
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_COMPILATION_MODE = wholemodule;
 			};
 			name = Release;
