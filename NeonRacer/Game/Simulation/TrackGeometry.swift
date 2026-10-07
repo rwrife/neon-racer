@@ -17,6 +17,7 @@ struct TrackSectionProfile: Codable, Equatable, Sendable {
     var laneCount: Int
     var laneWidth: Double
     var shoulderWidth: Double
+    var laneCenterOffsets: [Double]? = nil
 
     /// Heading change in radians per meter for a normalized curvature of 1.
     static let radiansPerMeterAtFullCurve = 0.004
@@ -55,6 +56,7 @@ struct TrackSectionProfile: Codable, Equatable, Sendable {
     func laneCenter(_ lane: Int) -> Double {
         guard laneCount > 0 else { return 0 }
         let clamped = min(max(lane, 0), laneCount - 1)
+        if let offsets = laneCenterOffsets { return offsets[min(clamped, offsets.count - 1)] }
         return (Double(clamped) + 0.5) / Double(laneCount) * 2 - 1
     }
 
@@ -82,6 +84,15 @@ struct TrackSample: Equatable, Sendable {
     let shoulderWidth: Double
     let isStartZone: Bool
     let isFinishZone: Bool
+    var drivableRanges: [ClosedRange<Double>]? = nil
+
+    func isOffRoad(lateralPosition: Double) -> Bool {
+        if let ranges = drivableRanges {
+            let meters = lateralPosition * roadHalfWidth
+            return !ranges.contains { ($0.lowerBound - shoulderWidth...$0.upperBound + shoulderWidth).contains(meters) }
+        }
+        return abs(lateralPosition) > 1 + shoulderWidth / max(roadHalfWidth, 0.001)
+    }
 }
 
 enum TrackZoneKind: String, Codable, Equatable, Sendable {
@@ -89,6 +100,7 @@ enum TrackZoneKind: String, Codable, Equatable, Sendable {
     case startLine
     case checkpoint
     case forkSplit
+    case laneSplit
     case finishLine
 }
 
@@ -117,6 +129,55 @@ struct TrackTunnelSection: Equatable, Sendable {
         }
         return smooth((distance - entrance + 60) / 60)
             * (1 - smooth((distance - exit - 24) / 60))
+    }
+}
+
+/// Both paths share one stage and one deterministic centerline. The player
+/// chooses a path by steering; no scene reload or teleport occurs at the split.
+struct TrackSplitSection: Equatable, Sendable {
+    let entrance: Double
+    let transitionLength: Double
+    let mergeStart: Double
+    let narrowLaneCount: Int
+    var mergeEnd: Double { mergeStart + transitionLength }
+
+    func crossSection(at distance: Double, laneWidth: Double) -> TrackSplitCrossSection {
+        func smooth(_ x: Double) -> Double {
+            let t = min(max(x, 0), 1)
+            return t * t * (3 - 2 * t)
+        }
+        let blend = smooth((distance - entrance) / transitionLength)
+            * (1 - smooth((distance - mergeStart) / transitionLength))
+        let wideHalf = laneWidth * 1.5
+        let narrowHalf = laneWidth * Double(narrowLaneCount) / 2
+        // Keep a four-meter median centered on the original centerline.
+        // Both shoulders then remain clear of its center during the decision.
+        return TrackSplitCrossSection(blend: blend, leftCenter: -(wideHalf + 2) * blend,
+                                     rightCenter: (narrowHalf + 2) * blend,
+                                     leftHalfWidth: wideHalf,
+                                     rightHalfWidth: wideHalf + (narrowHalf - wideHalf) * blend,
+                                     narrowLaneCount: narrowLaneCount)
+    }
+}
+
+struct TrackSplitCrossSection: Equatable, Sendable {
+    let blend: Double
+    let leftCenter: Double
+    let rightCenter: Double
+    let leftHalfWidth: Double
+    let rightHalfWidth: Double
+    let narrowLaneCount: Int
+    var roadHalfWidth: Double { max(-leftCenter + leftHalfWidth, rightCenter + rightHalfWidth) }
+    var drivableRanges: [ClosedRange<Double>] {
+        [leftCenter - leftHalfWidth...leftCenter + leftHalfWidth,
+         rightCenter - rightHalfWidth...rightCenter + rightHalfWidth]
+    }
+    var laneCenters: [Double] {
+        let left = (0..<3).map { leftCenter + (Double($0) + 0.5) * leftHalfWidth * 2 / 3 - leftHalfWidth }
+        let right = (0..<narrowLaneCount).map {
+            rightCenter + (Double($0) + 0.5) * rightHalfWidth * 2 / Double(narrowLaneCount) - rightHalfWidth
+        }
+        return (left + right).map { $0 / roadHalfWidth }
     }
 }
 
@@ -173,6 +234,32 @@ struct TrackLayout: Equatable, Sendable {
         TrackLayout(routeGraph: routeGraph, sections: InitialRouteContent.bundle.document.stage.route.sections)
     }
 
+    func split(for stageID: String) -> TrackSplitSection? {
+        guard stageID == "coast-solar-sweep" || stageID == "skyline-1",
+              let stage = routeGraph.stage(id: stageID), stage.distance >= 400 else { return nil }
+        return TrackSplitSection(entrance: stage.distance * 0.2,
+                                 transitionLength: stage.distance * 0.12,
+                                 mergeStart: stage.distance * 0.7,
+                                 narrowLaneCount: stageID == "skyline-1" ? 1 : 2)
+    }
+
+    func splitCrossSection(stageID: String, distanceInStage: Double) -> TrackSplitCrossSection? {
+        guard let split = split(for: stageID), distanceInStage > split.entrance,
+              distanceInStage < split.mergeEnd else { return nil }
+        return split.crossSection(at: distanceInStage, laneWidth: profile(for: stageID).laneWidth)
+    }
+
+    /// Traffic uses actual branch lane centers, never the unpaved median.
+    func trafficProfile(stageID: String, distanceInStage: Double) -> TrackSectionProfile {
+        var result = profile(for: stageID)
+        if let cross = splitCrossSection(stageID: stageID, distanceInStage: distanceInStage) {
+            result.laneCenterOffsets = cross.laneCenters
+            result.laneCount = cross.laneCenters.count
+            result.laneWidth = cross.roadHalfWidth * 2 / Double(result.laneCount)
+        }
+        return result
+    }
+
     func tunnel(for stageID: String) -> TrackTunnelSection? {
         guard stageID == "city-axis-tunnel" || stageID == "skyline-2",
               let stage = routeGraph.stage(id: stageID), stage.distance >= 240 else { return nil }
@@ -206,6 +293,7 @@ struct TrackLayout: Equatable, Sendable {
             blend = 1
             blendDerivative = 0
         }
+        let cross = splitCrossSection(stageID: stageID, distanceInStage: distanceInStage)
         let elevationDelta = profile.elevation(at: distanceInStage) - profile.elevationStart
         return TrackSample(
             stageID: stageID,
@@ -215,10 +303,11 @@ struct TrackLayout: Equatable, Sendable {
             grade: profile.grade(at: distanceInStage) * blend + elevationDelta * blendDerivative,
             laneCount: profile.laneCount,
             laneWidth: profile.laneWidth,
-            roadHalfWidth: profile.roadHalfWidth,
+            roadHalfWidth: cross?.roadHalfWidth ?? profile.roadHalfWidth,
             shoulderWidth: profile.shoulderWidth,
             isStartZone: isStart,
-            isFinishZone: isFinish
+            isFinishZone: isFinish,
+            drivableRanges: cross?.drivableRanges
         )
     }
 
@@ -229,6 +318,10 @@ struct TrackLayout: Equatable, Sendable {
         if stageID == routeGraph.startStageID {
             markers.append(TrackZoneMarker(kind: .startGrid, stageID: stageID, distanceInStage: 0))
             markers.append(TrackZoneMarker(kind: .startLine, stageID: stageID, distanceInStage: Self.startLineDistance))
+        }
+        if let split = split(for: stageID) {
+            markers.append(TrackZoneMarker(kind: .laneSplit, stageID: stageID,
+                                           distanceInStage: max(0, split.entrance - 80)))
         }
         if stage.branches.isEmpty {
             markers.append(TrackZoneMarker(kind: .finishLine, stageID: stageID, distanceInStage: stage.distance))

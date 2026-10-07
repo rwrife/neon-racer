@@ -369,6 +369,10 @@ final class RaceScene3D: NSObject {
     private func debugAutoDriveCommand() -> PlayerCommand {
         let state = simulation.state
         var target = 0.0
+        if let cross = simulation.trackLayout.splitCrossSection(stageID: state.currentStageID,
+                                                                distanceInStage: state.currentStageDistance + 35) {
+            target = cross.leftCenter / cross.roadHalfWidth
+        }
         let threats = state.traffic.map { ($0.distance, $0.lateralPosition) }
             + state.obstacles.filter { !$0.isHit && abs($0.lateralPosition) < 1 }.map { ($0.distance, $0.lateralPosition) }
         if let threat = threats
