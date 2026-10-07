@@ -95,6 +95,26 @@ final class TrackWorldMapper3D {
             )
         }
 
+        // Extend the launch road behind the car instead of collapsing negative
+        // distances onto the first sample (which produces degenerate road chunks).
+        if let first = centerSamples.first, runDistance < first.runDistance {
+            let forward = SCNVector3(sin(first.heading), 0, -cos(first.heading))
+            let right = SCNVector3(cos(first.heading), 0, sin(first.heading))
+            let worldCenter = first.worldPosition + forward * Float(runDistance - first.runDistance)
+            return TrackWorldFrame3D(
+                runDistance: runDistance,
+                stageID: first.stageID,
+                distanceInStage: runDistance,
+                position: worldCenter - originWorldPosition + right * (Float(lateralPosition) * first.roadHalfWidth),
+                heading: first.heading,
+                pitch: 0,
+                roadHalfWidth: first.roadHalfWidth,
+                shoulderWidth: first.shoulderWidth,
+                laneCount: first.laneCount,
+                laneWidth: first.laneWidth
+            )
+        }
+
         // Past the last authored sample (e.g. the finish-line cruise), extrapolate a straight,
         // level extension of the final heading so the road keeps going to the horizon.
         if let last = centerSamples.last, runDistance > last.runDistance {
@@ -187,14 +207,13 @@ final class TrackWorldMapper3D {
             let elevationOffset = centerSamples.isEmpty ? 0 : worldPosition.y - stageStartElevation
             while distance <= placement.stage.distance + 0.001 {
                 let runDistance = placement.startRunDistance + distance
-                let profile = layout.profile(for: placement.stage.id)
                 let sample = layout.sample(stageID: placement.stage.id, distanceInStage: distance)
                 if centerSamples.isEmpty {
                     worldPosition.y = Float(sample.elevation) + elevationOffset
                 } else {
                     let delta = runDistance - previousRunDistance
                     let midDistance = max(0, distance - delta * 0.5)
-                    let curvature = profile.curvature(at: midDistance)
+                    let curvature = layout.sample(stageID: placement.stage.id, distanceInStage: midDistance).curvature
                     heading += Float(curvature * TrackSectionProfile.radiansPerMeterAtFullCurve * delta)
                     worldPosition.x += sin(heading) * Float(delta)
                     worldPosition.z -= cos(heading) * Float(delta)

@@ -68,7 +68,8 @@ final class RaceScene3D: NSObject {
         configuration: RaceConfiguration = .standard,
         routeGraph: RouteGraph? = nil,
         routeName: String = "Neon Causeway",
-        garagePalette: GaragePaletteDefinition = ProgressionCatalog.palettes[0]
+        garagePalette: GaragePaletteDefinition = ProgressionCatalog.palettes[0],
+        selectedVehicleID: String = "prototype-zero"
     ) {
         self.init(
             quality: .environmentDefault,
@@ -76,7 +77,8 @@ final class RaceScene3D: NSObject {
             configuration: configuration,
             routeGraph: routeGraph,
             routeName: routeName,
-            garagePalette: garagePalette
+            garagePalette: garagePalette,
+            selectedVehicleID: selectedVehicleID
         )
     }
 
@@ -86,7 +88,8 @@ final class RaceScene3D: NSObject {
         configuration: RaceConfiguration = .standard,
         routeGraph: RouteGraph? = nil,
         routeName: String = "Neon Causeway",
-        garagePalette: GaragePaletteDefinition = ProgressionCatalog.palettes[0]
+        garagePalette: GaragePaletteDefinition = ProgressionCatalog.palettes[0],
+        selectedVehicleID: String = "prototype-zero"
     ) {
         let selectedRenderQuality = if renderQualityPreference == .automatic,
                                        ProcessInfo.processInfo.environment["NEON_RACER_QUALITY_TIER"] != nil {
@@ -103,7 +106,7 @@ final class RaceScene3D: NSObject {
         self.simulation = RaceSimulation(configuration: configuration, routeGraph: routeGraph)
         self.mapper = TrackWorldMapper3D(layout: simulation.trackLayout)
         self.environment = NeonEnvironment3D(quality: quality.tier)
-        self.carNode = VehicleModels3D.makeHeroCar(vehicleID: "hero", paletteID: garagePalette.id)
+        self.carNode = VehicleModels3D.makeHeroCar(vehicleID: selectedVehicleID, paletteID: garagePalette.id)
         super.init()
         buildScene()
     }

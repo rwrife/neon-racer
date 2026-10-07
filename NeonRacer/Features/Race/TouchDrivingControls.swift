@@ -21,7 +21,7 @@ struct TouchDrivingControls: View {
                         setAction(.brake, pressed)
                     }
 
-                    DrivingHoldButton(title: "BOOST", systemImage: "bolt.fill", tint: .cyan) { pressed in
+                    DrivingHoldButton(title: "BOOST", systemImage: "bolt.fill", tint: .cyan, holdHint: "Hold to accelerate and boost") { pressed in
                         setAction(.boost, pressed)
                     }
                     DrivingHoldButton(title: "GO", systemImage: "arrow.up", tint: .pink) { pressed in
@@ -94,6 +94,7 @@ private struct DrivingHoldButton: View {
     let title: String
     let systemImage: String
     var tint: Color = .orange
+    var holdHint: String? = nil
     let changed: (Bool) -> Void
 
     @State private var isPressed = false
@@ -120,7 +121,7 @@ private struct DrivingHoldButton: View {
                 .onEnded { _ in setPressed(false) }
         )
         .accessibilityLabel(title)
-        .accessibilityHint("Hold to \(title.lowercased())")
+        .accessibilityHint(holdHint ?? "Hold to \(title.lowercased())")
         .accessibilityAddTraits(isPressed ? [.isButton, .isSelected] : .isButton)
     }
 

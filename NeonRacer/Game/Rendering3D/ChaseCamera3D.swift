@@ -1,5 +1,6 @@
 import Foundation
 import SceneKit
+import simd
 
 @MainActor
 final class ChaseCamera3D {
@@ -76,11 +77,12 @@ final class ChaseCamera3D {
         let distanceBack: Float = subjectRearOverhang + 5.4 + speed * 1.4
         let height: Float = subjectHeight + 1.35 + speed * 0.25
         let lateralLag = reduceMotion ? 0 : Float(-steering) * 0.45
-        var desiredOffset = right * lateralLag - forward * distanceBack
-        desiredOffset.y += height
-        let desiredLookOffset = forward * (26 + speed * 8)
-            + right * Float(steering) * (reduceMotion ? 0.6 : 1.8)
-            + SCNVector3(0, 1.05, 0)
+        // Smooth in road-local coordinates. World-space smoothing can leave the
+        // camera on the wrong side of the car when the route heading changes.
+        let desiredOffset = SCNVector3(lateralLag, height, distanceBack)
+        let desiredLookOffset = SCNVector3(
+            Float(steering) * (reduceMotion ? 0.6 : 1.8), 1.05, -(26 + speed * 8)
+        )
 
         // Smooth offsets relative to the car so the camera never falls behind at speed.
         if !hasPosition {
@@ -94,24 +96,30 @@ final class ChaseCamera3D {
             smoothedLookOffset = smoothedLookOffset.lerp(to: desiredLookOffset, t: min(1, smoothing * 1.5))
         }
 
-        var position = carFrame.position + smoothedOffset
+        func worldOffset(_ local: SCNVector3) -> SCNVector3 {
+            right * local.x + SCNVector3(0, local.y, 0) - forward * local.z
+        }
+        var position = carFrame.position + worldOffset(smoothedOffset)
         if shakeTime > 0 {
             shakeTime = max(0, shakeTime - deltaTime)
             let shake = shakeIntensity * Float(shakeTime / 0.28)
             position.x += sin(Float(time) * 63) * shake * 0.22
             position.y += cos(Float(time) * 47) * shake * 0.14
         }
-        let lookTarget = carFrame.position + smoothedLookOffset
-        cameraNode.position = position
-        cameraNode.look(at: lookTarget, up: SCNVector3(0, 1, 0), localFront: SCNVector3(0, 0, -1))
-        if !reduceMotion {
-            cameraNode.eulerAngles.z += Float(-steering) * 0.03
-        }
-
-        currentPosition = position
+        let lookTarget = carFrame.position + worldOffset(smoothedLookOffset)
         let lookVector = lookTarget - position
-        let length = max(0.001, sqrt(lookVector.x * lookVector.x + lookVector.y * lookVector.y + lookVector.z * lookVector.z))
-        currentForward = SCNVector3(lookVector.x / length, lookVector.y / length, lookVector.z / length)
+        let direction = simd_normalize(SIMD3<Float>(lookVector.x, lookVector.y, lookVector.z))
+        let cameraRight = simd_normalize(simd_cross(direction, SIMD3<Float>(0, 1, 0)))
+        let cameraUp = simd_cross(cameraRight, direction)
+        // Set one orientation directly instead of editing Euler angles after
+        // look-at; Euler decomposition changes branches around quarter turns.
+        SCNTransaction.begin()
+        SCNTransaction.disableActions = true
+        cameraNode.position = position
+        cameraNode.simdOrientation = simd_quatf(simd_float3x3(columns: (cameraRight, cameraUp, -direction)))
+        SCNTransaction.commit()
+        currentPosition = position
+        currentForward = SCNVector3(direction.x, direction.y, direction.z)
 
         let boostKick: CGFloat = isBoosting && !reduceMotion ? 7 : 0
         let targetFOV = baseFieldOfView + CGFloat(speed) * 6 + boostKick

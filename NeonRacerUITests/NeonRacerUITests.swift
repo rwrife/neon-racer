@@ -2,6 +2,21 @@ import XCTest
 
 final class NeonRacerUITests: XCTestCase {
     @MainActor
+    func testGarageCarPreviews() {
+        let app = XCUIApplication()
+        app.launchArguments = ["UITestDisableRunRecovery"]
+        XCUIDevice.shared.orientation = .landscapeLeft
+        app.launch()
+        app.buttons["GARAGE"].tap()
+        XCTAssertTrue(app.navigationBars["Garage"].waitForExistence(timeout: 5))
+        sleep(2)
+        let preview = XCTAttachment(screenshot: XCUIScreen.main.screenshot())
+        preview.name = "garage-car-previews"
+        preview.lifetime = .keepAlways
+        add(preview)
+    }
+
+    @MainActor
     func testHighQualityRaceOrientation() {
         let app = XCUIApplication()
         app.launchArguments = ["UITestDisableRunRecovery", "UITestStartRace", "UITestHideHUD"]

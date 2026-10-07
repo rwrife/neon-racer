@@ -103,6 +103,8 @@ struct TrackLayout: Equatable, Sendable {
     /// The start grid occupies the first meters of the start stage; the start line gantry sits at its end.
     static let startGridLength = 40.0
     static let startLineDistance = 12.0
+    /// Ease from the level launch straight into the authored road over 120 meters.
+    static let startTransitionLength = 120.0
     /// The finish zone extends before the end of every stage with no branches.
     static let finishZoneLength = 60.0
 
@@ -162,12 +164,28 @@ struct TrackLayout: Equatable, Sendable {
         let profile = profile(for: stageID)
         let isStart = stageID == routeGraph.startStageID && distanceInStage < Self.startGridLength
         let isFinish = isFinalStage(stageID) && distanceInStage >= profile.length - Self.finishZoneLength
+        let isOpeningStage = stageID == routeGraph.startStageID
+        let transitionLength = min(Self.startTransitionLength, max(0, profile.length - Self.startGridLength))
+        let blend: Double
+        let blendDerivative: Double
+        if isOpeningStage && distanceInStage < Self.startGridLength {
+            blend = 0
+            blendDerivative = 0
+        } else if isOpeningStage && transitionLength > 0 {
+            let t = min(max((distanceInStage - Self.startGridLength) / transitionLength, 0), 1)
+            blend = t * t * (3 - 2 * t)
+            blendDerivative = 6 * t * (1 - t) / transitionLength
+        } else {
+            blend = 1
+            blendDerivative = 0
+        }
+        let elevationDelta = profile.elevation(at: distanceInStage) - profile.elevationStart
         return TrackSample(
             stageID: stageID,
             distanceInStage: distanceInStage,
-            curvature: profile.curvature(at: distanceInStage),
-            elevation: profile.elevation(at: distanceInStage),
-            grade: profile.grade(at: distanceInStage),
+            curvature: profile.curvature(at: distanceInStage) * blend,
+            elevation: profile.elevationStart + elevationDelta * blend,
+            grade: profile.grade(at: distanceInStage) * blend + elevationDelta * blendDerivative,
             laneCount: profile.laneCount,
             laneWidth: profile.laneWidth,
             roadHalfWidth: profile.roadHalfWidth,
