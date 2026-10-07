@@ -2,6 +2,20 @@ import XCTest
 
 final class NeonRacerUITests: XCTestCase {
     @MainActor
+    func testSplitRoadChoice() {
+        let app = XCUIApplication()
+        app.launchArguments = ["UITestDisableRunRecovery", "UITestStartRace", "UITestAutoDrive", "UITestSplitPreview"]
+        XCUIDevice.shared.orientation = .landscapeLeft
+        app.launch()
+        XCTAssertTrue(app.buttons["Pause race"].waitForExistence(timeout: 10))
+        sleep(5)
+        let choice = XCTAttachment(screenshot: XCUIScreen.main.screenshot())
+        choice.name = "split-road-choice"
+        choice.lifetime = .keepAlways
+        add(choice)
+    }
+
+    @MainActor
     func testTunnelInterior() {
         let app = XCUIApplication()
         app.launchArguments = ["UITestDisableRunRecovery", "UITestStartRace", "UITestAutoDrive", "UITestTunnelPreview"]

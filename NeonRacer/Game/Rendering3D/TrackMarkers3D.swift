@@ -55,6 +55,10 @@ final class TrackMarkers3D {
             return makeArch(title: "CHECK", material: magenta, height: 7, width: 15, includeLights: false)
         case .forkSplit:
             return makeForkSign(stage: routeStage)
+        case .laneSplit:
+            let narrow = routeStage.id == "skyline-1" ? 1 : 2
+            return makeArch(title: "← 3 LANES     \(narrow) LANE\(narrow == 1 ? "" : "S") →", material: cyan,
+                            height: 6, width: 14, includeLights: false)
         case .finishLine:
             return makeMonumentalFinishGantry()
         }
