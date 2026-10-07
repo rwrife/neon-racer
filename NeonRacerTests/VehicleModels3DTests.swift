@@ -2,10 +2,51 @@ import Testing
 
 #if !canImport(NeonRacerCore)
 import SceneKit
+import UIKit
 @testable import NeonRacer
 
 @MainActor
 struct VehicleModels3DTests {
+    @Test
+    func raceUsesSelectedVehicleAndPaintMatchesTheCatalog() throws {
+        for palette in ProgressionCatalog.palettes {
+            let scene = RaceScene3D(garagePalette: palette, selectedVehicleID: "vector-sprint")
+            let car = try #require(scene.scene.rootNode.childNode(
+                withName: "hero-car-vector-sprint-\(palette.id)", recursively: true
+            ))
+            var paint: UIColor?
+            car.enumerateChildNodes { node, _ in
+                for material in node.geometry?.materials ?? [] where material.name == "vehicle-premium-clearcoat-paint" {
+                    paint = material.diffuse.contents as? UIColor
+                }
+            }
+            let color = try #require(paint)
+            var red: CGFloat = 0, green: CGFloat = 0, blue: CGFloat = 0, alpha: CGFloat = 0
+            color.getRed(&red, green: &green, blue: &blue, alpha: &alpha)
+            #expect(abs(red - CGFloat((palette.primaryHex >> 16) & 255) / 255) < 0.001)
+            #expect(abs(green - CGFloat((palette.primaryHex >> 8) & 255) / 255) < 0.001)
+            #expect(abs(blue - CGFloat(palette.primaryHex & 255) / 255) < 0.001)
+        }
+    }
+
+    @Test
+    func chaseCameraAlwaysStaysBehindAndLooksAlongTheRoad() {
+        let camera = ChaseCamera3D()
+        for heading in stride(from: Float(-4 * Double.pi), through: Float(4 * Double.pi), by: 0.12) {
+            let frame = TrackWorldFrame3D(
+                runDistance: 100, stageID: "test", distanceInStage: 100,
+                position: SCNVector3(40, 3, -60), heading: heading, pitch: 0,
+                roadHalfWidth: 6, shoulderWidth: 1, laneCount: 3, laneWidth: 4
+            )
+            camera.update(carFrame: frame, speedRatio: 1, isBoosting: true,
+                          steering: 0.8, deltaTime: 1.0 / 60, time: 0)
+            let offset = camera.currentPosition - frame.position
+            #expect(offset.x * frame.forward.x + offset.z * frame.forward.z < -5)
+            let facing = camera.cameraNode.convertVector(SCNVector3(0, 0, -1), to: nil)
+            #expect(facing.x * frame.forward.x + facing.z * frame.forward.z > 0.9)
+        }
+    }
+
     @Test
     func heroFactoryBuildsReadableRetroWedgeWithAnimatedParts() {
         let car = VehicleModels3D.makeHeroCar(vehicleID: "prototype-zero", paletteID: "synthwave")

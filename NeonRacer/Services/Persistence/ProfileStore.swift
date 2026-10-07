@@ -224,7 +224,7 @@ struct PlayerProfile: Codable, Equatable, Sendable {
         selectedVehicleID: "prototype-zero",
         unlockedVehicleIDs: ["prototype-zero"],
         selectedPaletteID: "synthwave",
-        unlockedPaletteIDs: ["synthwave"],
+        unlockedPaletteIDs: ["synthwave", "electric-blue", "arctic-white"],
         selectedRouteID: "neon-loop",
         unlockedRouteIDs: ["neon-loop"],
         recordsByRoute: [:],
@@ -274,7 +274,9 @@ struct PlayerProfile: Codable, Equatable, Sendable {
 
     mutating func normalizeSelections() {
         unlockedVehicleIDs.insert(ProgressionCatalog.vehicles[0].id)
-        unlockedPaletteIDs.insert(ProgressionCatalog.palettes[0].id)
+        unlockedPaletteIDs.formUnion(
+            ProgressionCatalog.palettes.filter { $0.unlockRequirement == .starter }.map(\.id)
+        )
         unlockedRouteIDs.insert(ProgressionCatalog.routes[0].id)
         if !unlockedVehicleIDs.contains(selectedVehicleID) {
             selectedVehicleID = ProgressionCatalog.vehicles[0].id

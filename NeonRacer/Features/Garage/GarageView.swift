@@ -1,4 +1,5 @@
 import SwiftUI
+import SceneKit
 
 struct GarageView: View {
     @Binding var profile: PlayerProfile
@@ -66,18 +67,24 @@ struct GarageView: View {
 
                 VehicleComparisonCard(
                     vehicle: vehicle,
-                    palette: ProgressionCatalog.palette(id: profile.selectedPaletteID),
+                    palette: ProgressionCatalog.palette(id: selected ? profile.selectedPaletteID : vehicle.defaultPaletteID),
                     unlocked: unlocked,
                     selected: selected,
                     compactHeight: isCompactHeight
                 ) {
-                    profile.selectedVehicleID = vehicle.id
-                    saveProfile()
+                    selectVehicle(vehicle.id)
                 }
                 .focused($focusedItem, equals: .vehicle(vehicle.id))
             }
         }
         .frame(maxWidth: .infinity)
+    }
+
+    private func selectVehicle(_ id: String) {
+        guard profile.selectedVehicleID != id else { return }
+        profile.selectedVehicleID = id
+        profile.selectedPaletteID = ProgressionCatalog.vehicle(id: id).defaultPaletteID
+        saveProfile()
     }
 
     private var overviewActionsRow: some View {
@@ -152,8 +159,7 @@ struct GarageView: View {
         guard let focusedItem else { return }
         switch focusedItem {
         case .vehicle(let id):
-            profile.selectedVehicleID = id
-            saveProfile()
+            selectVehicle(id)
         case .customize:
             isShowingCustomization = true
         case .done:
@@ -531,63 +537,57 @@ private struct StatGrid: View {
     }
 }
 
-private struct CarPreview: View {
+private struct CarPreview: UIViewRepresentable {
     let vehicle: VehicleDefinition
     let palette: GaragePaletteDefinition
 
-    var body: some View {
-        GeometryReader { proxy in
-            let width = proxy.size.width
-            ZStack {
-                ForEach(0..<7, id: \.self) { index in
-                    Path { path in
-                        let y = proxy.size.height * (0.58 + CGFloat(index) * 0.07)
-                        path.move(to: CGPoint(x: width * 0.5, y: proxy.size.height * 0.48))
-                        path.addLine(to: CGPoint(x: index.isMultiple(of: 2) ? 0 : width, y: y))
-                    }
-                    .stroke(Color(hex: palette.secondaryHex).opacity(0.25), lineWidth: 1)
-                }
-
-                CarSilhouette(profile: vehicle.configurationProfile)
-                    .fill(
-                        LinearGradient(
-                            colors: [Color(hex: palette.primaryHex), Color(hex: palette.secondaryHex)],
-                            startPoint: .top,
-                            endPoint: .bottom
-                        )
-                    )
-                    .overlay(
-                        CarSilhouette(profile: vehicle.configurationProfile)
-                            .stroke(Color.white.opacity(0.8), lineWidth: 2)
-                    )
-                    .shadow(color: Color(hex: palette.primaryHex), radius: 10)
-            }
-        }
+    final class Coordinator {
+        var loadout = ""
     }
-}
 
-private struct CarSilhouette: Shape {
-    let profile: DifficultyProfile
+    func makeCoordinator() -> Coordinator { Coordinator() }
 
-    func path(in rect: CGRect) -> Path {
-        let proportions: (shoulder: CGFloat, canopy: CGFloat) = switch profile {
-        case .novice: (0.29, 0.40)
-        case .standard: (0.32, 0.43)
-        case .expert: (0.35, 0.46)
-        }
-        return Path { path in
-            path.move(to: CGPoint(x: rect.width * 0.23, y: rect.height * 0.78))
-            path.addLine(to: CGPoint(x: rect.width * proportions.shoulder, y: rect.height * 0.34))
-            path.addLine(to: CGPoint(x: rect.width * proportions.canopy, y: rect.height * 0.19))
-            path.addLine(
-                to: CGPoint(x: rect.width * (1 - proportions.canopy), y: rect.height * 0.19)
-            )
-            path.addLine(
-                to: CGPoint(x: rect.width * (1 - proportions.shoulder), y: rect.height * 0.34)
-            )
-            path.addLine(to: CGPoint(x: rect.width * 0.77, y: rect.height * 0.78))
-            path.closeSubpath()
-        }
+    func makeUIView(context: Context) -> SCNView {
+        let view = SCNView()
+        view.backgroundColor = .clear
+        view.isOpaque = false
+        view.antialiasingMode = .multisampling4X
+        view.isUserInteractionEnabled = false
+        view.autoenablesDefaultLighting = false
+        view.scene = SCNScene()
+        let camera = SCNNode()
+        camera.camera = SCNCamera()
+        camera.camera?.usesOrthographicProjection = true
+        camera.camera?.orthographicScale = 1.35
+        camera.position = SCNVector3(6, 2.8, 7)
+        camera.look(at: SCNVector3(0, 0.5, 0))
+        view.scene?.rootNode.addChildNode(camera)
+        view.pointOfView = camera
+        let ambient = SCNNode()
+        ambient.light = SCNLight()
+        ambient.light?.type = .ambient
+        ambient.light?.color = UIColor.white
+        ambient.light?.intensity = 650
+        view.scene?.rootNode.addChildNode(ambient)
+        let key = SCNNode()
+        key.light = SCNLight()
+        key.light?.type = .omni
+        key.light?.intensity = 1_100
+        key.position = SCNVector3(-3, 6, 4)
+        view.scene?.rootNode.addChildNode(key)
+        updateUIView(view, context: context)
+        return view
+    }
+
+    func updateUIView(_ view: SCNView, context: Context) {
+        let loadout = "\(vehicle.id)-\(palette.id)"
+        guard context.coordinator.loadout != loadout else { return }
+        context.coordinator.loadout = loadout
+        view.scene?.rootNode.childNode(withName: "garage-preview-car", recursively: false)?.removeFromParentNode()
+        let car = VehicleModels3D.makeHeroCar(vehicleID: vehicle.id, paletteID: palette.id)
+        car.name = "garage-preview-car"
+        view.scene?.rootNode.addChildNode(car)
+        view.setNeedsDisplay()
     }
 }
 

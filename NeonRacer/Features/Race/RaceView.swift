@@ -85,7 +85,8 @@ struct RaceView: View {
                         configuration: configuration
                     ),
                     routeName: routeName,
-                    garagePalette: garagePalette
+                    garagePalette: garagePalette,
+                    selectedVehicleID: selectedVehicleID
                 )
             )
         )

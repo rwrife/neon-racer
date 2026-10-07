@@ -166,14 +166,13 @@ final class RoadMeshBuilder3D {
         strip(.asphalt, yOffset: 0.02, left: { -$0.roadHalfWidth }, right: { $0.roadHalfWidth })
         strip(.magenta, yOffset: 0.04, left: { -$0.roadHalfWidth - 0.12 }, right: { -$0.roadHalfWidth + 0.18 })
         strip(.magenta, yOffset: 0.04, left: { $0.roadHalfWidth - 0.18 }, right: { $0.roadHalfWidth + 0.12 })
-        dashed(.amber, dashLength: 10, gapLength: 15, yOffset: 0.04, left: { _ in -0.08 }, right: { _ in 0.08 })
 
         let midFrame = mapper.frame(atRunDistance: (start + end) * 0.5)
         if midFrame.laneCount > 1 {
             for lane in 1..<midFrame.laneCount {
                 let normalized = Float(-1.0 + Double(lane) / Double(midFrame.laneCount) * 2.0)
                 dashed(
-                    .cyan,
+                    midFrame.laneCount.isMultiple(of: 2) && lane == midFrame.laneCount / 2 ? .amber : .cyan,
                     dashLength: 8,
                     gapLength: 14,
                     yOffset: 0.04,

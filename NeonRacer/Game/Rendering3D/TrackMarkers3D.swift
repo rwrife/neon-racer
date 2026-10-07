@@ -16,7 +16,6 @@ final class TrackMarkers3D {
     private let white = TrackMarkers3D.material(.white)
     private let black = TrackMarkers3D.material(.black)
     private let hotPink = TrackMarkers3D.material(UIColor(red: 1, green: 0.08, blue: 0.55, alpha: 1))
-    private let startLattice = TrackMarkers3D.material(UIColor(red: 0, green: 0.55, blue: 0.7, alpha: 1))
     private let darkPanel = TrackMarkers3D.material(UIColor(red: 0.015, green: 0.0, blue: 0.045, alpha: 1), emission: UIColor(red: 0.04, green: 0.0, blue: 0.08, alpha: 1))
 
     init() {
@@ -63,32 +62,9 @@ final class TrackMarkers3D {
 
     private func makeStartGrid() -> SCNNode {
         let node = SCNNode()
-        let asphalt = SCNNode(geometry: SCNBox(width: 22, height: 0.03, length: 150, chamferRadius: 0))
-        asphalt.name = "start-view-dark-violet-asphalt-panel"
-        asphalt.geometry?.materials = [darkPanel]
-        asphalt.position = SCNVector3(0, 0.025, -64)
-        node.addChildNode(asphalt)
-        for x in stride(from: -10.0, through: 10.0, by: 2.0) {
-            let line = SCNNode(geometry: SCNBox(width: 0.045, height: 0.045, length: 150, chamferRadius: 0.006))
-            line.name = "start-cyan-grid-longitudinal"
-            line.geometry?.materials = [startLattice]
-            line.position = SCNVector3(Float(x), 0.08, -64)
-            node.addChildNode(line)
-        }
-        for z in stride(from: 6.0, through: -136.0, by: -8.0) {
-            let line = SCNNode(geometry: SCNBox(width: 22, height: 0.045, length: 0.06, chamferRadius: 0.006))
-            line.name = "start-cyan-grid-cross"
-            line.geometry?.materials = [startLattice]
-            line.position = SCNVector3(0, 0.085, Float(z))
-            node.addChildNode(line)
-        }
-        for x in [-7.2 as Float, 7.2] {
-            let edge = SCNNode(geometry: SCNBox(width: 0.18, height: 0.075, length: 150, chamferRadius: 0.02))
-            edge.name = "start-magenta-edge-strip"
-            edge.geometry?.materials = [magenta]
-            edge.position = SCNVector3(x, 0.12, -64)
-            node.addChildNode(edge)
-        }
+        // RoadMeshBuilder3D owns the asphalt, edges, and lane markings all the
+        // way through the start. A separate flat slab hides that road and pops
+        // out of view when this marker is retired.
         // Staggered starting-grid slots drawn as thin neon brackets.
         for row in 0..<4 {
             let x: Float = row.isMultiple(of: 2) ? -2.4 : 2.4
@@ -218,7 +194,7 @@ final class TrackMarkers3D {
         for child in node.childNodes {
             child.position.z -= isFinish ? 15.0 : 18.0
         }
-        let stripe = makeCheckeredStripe(width: isFinish ? 15.0 : 13.8, depth: isFinish ? 4.8 : 3.6)
+        let stripe = makeCheckeredStripe(width: isFinish ? 15.0 : 12.0, depth: isFinish ? 4.8 : 3.6)
         stripe.name = isFinish ? "finish-wide-checkered-neon-line" : "start-wide-checkered-neon-line"
         node.addChildNode(stripe)
         return node
