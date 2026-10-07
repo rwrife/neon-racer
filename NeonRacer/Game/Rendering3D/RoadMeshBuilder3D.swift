@@ -292,3 +292,144 @@ final class RoadMeshBuilder3D {
         return material
     }
 }
+
+/// Bounded, preloaded tunnel mesh in the road's existing world space. The open
+/// portals and continuous road surface avoid a scene switch at either end.
+@MainActor
+final class TunnelMeshBuilder3D {
+    let rootNode = SCNNode()
+    private var nodes: [String: SCNNode] = [:]
+    private var origins: [String: SCNVector3] = [:]
+    private var originVersion = -1
+    private var routeVersion = -1
+    private let panel = TunnelMeshBuilder3D.material(UIColor(red: 0.025, green: 0.015, blue: 0.055, alpha: 1))
+    private let cyan = TunnelMeshBuilder3D.material(UIColor(red: 0.02, green: 0.7, blue: 0.85, alpha: 1))
+    private let violet = TunnelMeshBuilder3D.material(UIColor(red: 0.55, green: 0.08, blue: 0.8, alpha: 1))
+    var activeSegmentCount: Int { nodes.count }
+
+    init() { rootNode.name = "continuous-tunnel-root" }
+
+    func update(playerDistance: Double, mapper: TrackWorldMapper3D) {
+        if routeVersion != mapper.routeVersion {
+            nodes.values.forEach { $0.removeFromParentNode() }
+            nodes.removeAll()
+            origins.removeAll()
+            routeVersion = mapper.routeVersion
+        }
+        if originVersion != mapper.originVersion {
+            for (key, node) in nodes { node.position = origins[key]! - mapper.originWorldPosition }
+            originVersion = mapper.originVersion
+        }
+        var wanted: Set<String> = []
+        var newSegments = 0
+        for placement in mapper.placements {
+            guard let tunnel = mapper.layout.tunnel(for: placement.stage.id) else { continue }
+            var local = tunnel.entrance
+            while local < tunnel.exit {
+                let from = placement.startRunDistance + local
+                let to = min(from + 24, placement.startRunDistance + tunnel.exit)
+                let key = "\(placement.stage.id)-\(Int(local))"
+                if to > playerDistance - 120 && from < playerDistance + 840 {
+                    wanted.insert(key)
+                    if nodes[key] == nil && newSegments < 4 {
+                        let node = build(from: from, to: to, height: Float(tunnel.ceilingHeight),
+                                         entrance: local == tunnel.entrance,
+                                         exit: to == placement.startRunDistance + tunnel.exit, mapper: mapper)
+                        node.name = "tunnel-segment-\(key)"
+                        nodes[key] = node
+                        origins[key] = mapper.originWorldPosition
+                        rootNode.addChildNode(node)
+                        newSegments += 1
+                    }
+                }
+                local += 24
+            }
+        }
+        for key in Array(nodes.keys) where !wanted.contains(key) {
+            nodes.removeValue(forKey: key)?.removeFromParentNode()
+            origins[key] = nil
+        }
+    }
+
+    private func build(from: Double, to: Double, height: Float, entrance: Bool, exit: Bool,
+                       mapper: TrackWorldMapper3D) -> SCNNode {
+        let root = SCNNode()
+        var frames: [TrackWorldFrame3D] = []
+        var distance = from
+        while distance < to { frames.append(mapper.frame(atRunDistance: distance)); distance += 6 }
+        frames.append(mapper.frame(atRunDistance: to))
+        func point(_ frame: TrackWorldFrame3D, side: Float, y: Float) -> SCNVector3 {
+            frame.position + frame.right * (side * (frame.roadHalfWidth + 1.0)) + SCNVector3(0, y, 0)
+        }
+        func ribbon(name: String, material: SCNMaterial,
+                    left: (TrackWorldFrame3D) -> SCNVector3,
+                    right: (TrackWorldFrame3D) -> SCNVector3) {
+            var vertices: [SCNVector3] = []
+            var indices: [Int32] = []
+            for frame in frames { vertices += [left(frame), right(frame)] }
+            for row in 1..<frames.count {
+                let a = Int32((row - 1) * 2)
+                indices += [a, a + 1, a + 2, a + 1, a + 3, a + 2]
+            }
+            let geometry = SCNGeometry(sources: [SCNGeometrySource(vertices: vertices)],
+                                       elements: [SCNGeometryElement(indices: indices, primitiveType: .triangles)])
+            geometry.materials = [material]
+            let node = SCNNode(geometry: geometry)
+            node.name = name
+            root.addChildNode(node)
+        }
+        ribbon(name: "tunnel-ceiling", material: panel,
+               left: { point($0, side: -1, y: height) }, right: { point($0, side: 1, y: height) })
+        for side: Float in [-1, 1] {
+            ribbon(name: "tunnel-wall", material: panel,
+                   left: { point($0, side: side, y: 0) }, right: { point($0, side: side, y: height) })
+            for y: Float in [0.65, height - 0.45] {
+                ribbon(name: "tunnel-neon-wall-rail", material: side < 0 ? cyan : violet,
+                       left: { point($0, side: side * 0.997, y: y) },
+                       right: { point($0, side: side * 0.997, y: y + 0.07) })
+            }
+            let frame = frames[frames.count / 2]
+            let text = SCNText(string: side < 0 ? "AXIS  ››" : "KEEP MOVING  ››", extrusionDepth: 0.005)
+            text.font = UIFont.monospacedSystemFont(ofSize: 0.45, weight: .bold)
+            text.flatness = 0.15
+            text.materials = [side < 0 ? cyan : violet]
+            let sign = SCNNode(geometry: text)
+            sign.name = "tunnel-wall-neon-sign"
+            sign.position = point(frame, side: side * 0.985, y: 2.2)
+            sign.eulerAngles.y = frame.yaw + (side < 0 ? .pi / 2 : -.pi / 2)
+            root.addChildNode(sign)
+        }
+        // Repeating overhead light strips provide depth and speed cues without flashing.
+        let frame = frames[0]
+        let beam = SCNNode(geometry: SCNBox(width: CGFloat(frame.roadHalfWidth * 2 + 2),
+                                          height: 0.07, length: 0.15, chamferRadius: 0))
+        beam.geometry?.materials = [cyan]
+        beam.position = frame.position + SCNVector3(0, height - 0.1, 0)
+        beam.eulerAngles = SCNVector3(frame.pitch, frame.yaw, 0)
+        beam.name = "tunnel-overhead-light"
+        root.addChildNode(beam)
+        if entrance || exit {
+            let portalFrame = entrance ? frames[0] : frames.last!
+            let text = SCNText(string: entrance ? "AXIS TUNNEL" : "EXIT", extrusionDepth: 0.01)
+            text.font = UIFont.monospacedSystemFont(ofSize: 0.65, weight: .bold)
+            text.materials = [cyan]
+            let label = SCNNode(geometry: text)
+            let bounds = text.boundingBox
+            label.pivot = SCNMatrix4MakeTranslation((bounds.min.x + bounds.max.x) / 2, 0, 0)
+            label.position = portalFrame.position + SCNVector3(0, height + 0.15, 0)
+            label.eulerAngles.y = portalFrame.yaw
+            label.name = entrance ? "tunnel-entrance-sign" : "tunnel-exit-sign"
+            root.addChildNode(label)
+        }
+        return root
+    }
+
+    private static func material(_ color: UIColor) -> SCNMaterial {
+        let material = SCNMaterial()
+        material.diffuse.contents = color
+        material.emission.contents = color
+        material.lightingModel = .constant
+        material.isDoubleSided = true
+        return material
+    }
+}
