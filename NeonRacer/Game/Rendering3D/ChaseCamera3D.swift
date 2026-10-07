@@ -68,14 +68,15 @@ final class ChaseCamera3D {
         isBoosting: Bool,
         steering: Double,
         deltaTime: TimeInterval,
-        time: TimeInterval
+        time: TimeInterval,
+        tunnelBlend: Double = 0
     ) {
         let forward = carFrame.forward
         let right = carFrame.right
         let speed = Float(min(max(speedRatio, 0), 1.4))
         // OutRun framing: low and close behind the car, road running to the horizon.
         let distanceBack: Float = subjectRearOverhang + 5.4 + speed * 1.4
-        let height: Float = subjectHeight + 1.35 + speed * 0.25
+        let height: Float = subjectHeight + 1.35 + speed * 0.25 - Float(min(max(tunnelBlend, 0), 1)) * 0.8
         let lateralLag = reduceMotion ? 0 : Float(-steering) * 0.45
         // Smooth in road-local coordinates. World-space smoothing can leave the
         // camera on the wrong side of the car when the route heading changes.

@@ -8,6 +8,30 @@ import UIKit
 @MainActor
 struct VehicleModels3DTests {
     @Test
+    func tunnelPreloadsCurvedShellAndRetiresItAfterPassing() throws {
+        let layout = TrackLayout.initialContent()
+        let mapper = TrackWorldMapper3D(layout: layout)
+        let state = RaceState(currentStageID: layout.routeGraph.startStageID)
+        mapper.updateRoute(for: state)
+        let entrance = try #require(mapper.runDistance(stageID: "city-axis-tunnel", distanceInStage: 120))
+        let builder = TunnelMeshBuilder3D()
+        for _ in 0..<8 { builder.update(playerDistance: entrance - 300, mapper: mapper) }
+        #expect(builder.activeSegmentCount == 20)
+        #expect(builder.rootNode.childNode(withName: "tunnel-ceiling", recursively: true) != nil)
+        #expect(builder.rootNode.childNode(withName: "tunnel-wall-neon-sign", recursively: true) != nil)
+        #expect(builder.rootNode.childNode(withName: "tunnel-entrance-sign", recursively: true) != nil)
+        #expect(builder.rootNode.childNode(withName: "tunnel-exit-sign", recursively: true) != nil)
+        let frame = mapper.frame(atRunDistance: entrance + 200)
+        let camera = ChaseCamera3D()
+        camera.update(carFrame: frame, speedRatio: 1, isBoosting: false, steering: 0,
+                      deltaTime: 1.0 / 60, time: 0, tunnelBlend: 1)
+        #expect(camera.currentPosition.y - frame.position.y < 2.3)
+        #expect(camera.currentForward.z * frame.forward.z + camera.currentForward.x * frame.forward.x > 0.9)
+        builder.update(playerDistance: entrance + 1_000, mapper: mapper)
+        #expect(builder.activeSegmentCount == 0)
+    }
+
+    @Test
     func raceUsesSelectedVehicleAndPaintMatchesTheCatalog() throws {
         for palette in ProgressionCatalog.palettes {
             let scene = RaceScene3D(garagePalette: palette, selectedVehicleID: "vector-sprint")

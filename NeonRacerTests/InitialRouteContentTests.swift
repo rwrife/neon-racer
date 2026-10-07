@@ -9,6 +9,25 @@ import Testing
 
 struct InitialRouteContentTests {
     @Test
+    func tunnelCameraEnvelopeLowersBeforeEntranceAndRestoresAfterExit() throws {
+        let layout = TrackLayout.initialContent()
+        let tunnel = try #require(layout.tunnel(for: "city-axis-tunnel"))
+        #expect(tunnel.entrance == 120)
+        #expect(tunnel.exit == 600)
+        #expect(tunnel.cameraBlend(at: 60) == 0)
+        #expect(tunnel.cameraBlend(at: 90) == 0.5)
+        #expect(tunnel.cameraBlend(at: 120) == 1)
+        #expect(tunnel.cameraBlend(at: 624) == 1)
+        #expect(tunnel.cameraBlend(at: 684) == 0)
+        #expect(layout.tunnel(for: "coast-causeway") == nil)
+        for edge in [60.0, 120, 624, 684] {
+            #expect(abs(tunnel.cameraBlend(at: edge - 0.01) - tunnel.cameraBlend(at: edge + 0.01)) < 0.001)
+        }
+        #expect(tunnel.contains(300))
+        #expect(!tunnel.contains(90))
+    }
+
+    @Test
     func authoredBundlePassesValidation() {
         #expect(InitialRouteContent.bundle.validationDiagnostics.isEmpty)
     }
