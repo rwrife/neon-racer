@@ -183,10 +183,10 @@ struct TrackSplitCrossSection: Equatable, Sendable {
          rightCenter - rightHalfWidth...rightCenter + rightHalfWidth]
     }
     var laneCenters: [Double] {
-        let left = (0..<3).map { leftCenter + (Double($0) + 0.5) * leftHalfWidth * 2 / 3 - leftHalfWidth }
-        let right = (0..<narrowLaneCount).map {
-            rightCenter + (Double($0) + 0.5) * rightHalfWidth * 2 / Double(narrowLaneCount) - rightHalfWidth
-        }
+        let leftLaneWidth = leftHalfWidth * 2 / 3
+        let rightLaneWidth = rightHalfWidth * 2 / Double(narrowLaneCount)
+        let left: [Double] = (0..<3).map { leftCenter - leftHalfWidth + (Double($0) + 0.5) * leftLaneWidth }
+        let right: [Double] = (0..<narrowLaneCount).map { rightCenter - rightHalfWidth + (Double($0) + 0.5) * rightLaneWidth }
         return (left + right).map { $0 / roadHalfWidth }
     }
 }

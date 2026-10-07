@@ -8,6 +8,22 @@ import Testing
 #endif
 
 struct DrivingModelTests {
+    @Test(arguments: [1, 2])
+    func splitLaneCentersPreserveBranchSpacing(narrowLanes: Int) {
+        let cross = TrackSplitCrossSection(blend: 1, leftCenter: -50, rightCenter: 50,
+                                          leftHalfWidth: 6, rightHalfWidth: Double(narrowLanes) * 2,
+                                          narrowLaneCount: narrowLanes, leftElevation: 0, rightElevation: 0)
+        let lanes = cross.laneCenters.map { $0 * cross.roadHalfWidth }
+        #expect(lanes.count == 3 + narrowLanes)
+        for (actual, expected) in zip(lanes.prefix(3), [-54.0, -50.0, -46.0]) {
+            #expect(abs(actual - expected) < 0.000001)
+        }
+        let expectedRight = narrowLanes == 1 ? [50.0] : [48.0, 52.0]
+        for (actual, expected) in zip(lanes.suffix(narrowLanes), expectedRight) {
+            #expect(abs(actual - expected) < 0.000001)
+        }
+    }
+
     @Test(arguments: [-1, 1])
     func simulationChoosesAndFollowsTheSeparatePathThenRejoins(side: Int) throws {
         let base = RaceConfiguration.standard
