@@ -50,7 +50,7 @@ struct CollisionSystem: Equatable, Sendable {
             distanceInStage: state.currentStageDistance
         )
         let roadHalfWidth = max(sample.roadHalfWidth, 1)
-        let playerHalfWidth = (Tuning.playerHalfWidthMeters / roadHalfWidth).clamped(to: 0.06...0.32)
+        let playerHalfWidth = (Tuning.playerHalfWidthMeters / roadHalfWidth).clamped(to: 0.01...0.32)
 
         if !wasRecovering {
             if let collision = resolveTrafficCollision(

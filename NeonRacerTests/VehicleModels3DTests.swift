@@ -8,6 +8,30 @@ import UIKit
 @MainActor
 struct VehicleModels3DTests {
     @Test
+    func splitRoadsHaveIndependentTangentsElevationAndContinuousEndpoints() throws {
+        let layout = TrackLayout.initialContent()
+        let mapper = TrackWorldMapper3D(layout: layout)
+        mapper.updateRoute(for: RaceState(currentStageID: layout.routeGraph.startStageID))
+        let start = try #require(mapper.runDistance(stageID: "coast-solar-sweep", distanceInStage: 0))
+        let split = try #require(layout.split(for: "coast-solar-sweep"))
+        let left = mapper.branchFrame(atRunDistance: start + 500, side: -1)
+        let right = mapper.branchFrame(atRunDistance: start + 500, side: 1)
+        #expect((right.position - left.position).length > 75)
+        #expect(right.position.y - left.position.y > 4)
+        let divergingLeft = mapper.branchFrame(atRunDistance: start + 270, side: -1)
+        let divergingRight = mapper.branchFrame(atRunDistance: start + 270, side: 1)
+        #expect(abs(divergingLeft.heading - divergingRight.heading) > 0.3)
+        for side in [-1, 1] {
+            for boundary in [split.entrance, split.mergeEnd] {
+                let before = mapper.branchFrame(atRunDistance: start + boundary - 0.01, side: side)
+                let after = mapper.branchFrame(atRunDistance: start + boundary + 0.01, side: side)
+                #expect((after.position - before.position).length < 0.03)
+                #expect(abs(after.heading - before.heading) < 0.001)
+            }
+        }
+    }
+
+    @Test
     func tunnelPreloadsCurvedShellAndRetiresItAfterPassing() throws {
         let layout = TrackLayout.initialContent()
         let mapper = TrackWorldMapper3D(layout: layout)
