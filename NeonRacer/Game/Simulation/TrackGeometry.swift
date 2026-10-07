@@ -99,6 +99,27 @@ struct TrackZoneMarker: Codable, Equatable, Sendable {
     let distanceInStage: Double
 }
 
+/// A physical tunnel embedded in a road section; distances remain in the same
+/// stage coordinate system as the simulation, road mesh, and camera.
+struct TrackTunnelSection: Equatable, Sendable {
+    let entrance: Double
+    let exit: Double
+    let ceilingHeight: Double
+
+    func contains(_ distance: Double) -> Bool { distance >= entrance && distance <= exit }
+
+    /// Lower the chase camera before the portal and restore it only after the
+    /// camera (which trails the car) has cleared the exit.
+    func cameraBlend(at distance: Double) -> Double {
+        func smooth(_ value: Double) -> Double {
+            let t = min(max(value, 0), 1)
+            return t * t * (3 - 2 * t)
+        }
+        return smooth((distance - entrance + 60) / 60)
+            * (1 - smooth((distance - exit - 24) / 60))
+    }
+}
+
 struct TrackLayout: Equatable, Sendable {
     /// The start grid occupies the first meters of the start stage; the start line gantry sits at its end.
     static let startGridLength = 40.0
@@ -150,6 +171,12 @@ struct TrackLayout: Equatable, Sendable {
     /// Chooses authored sections when the graph's stages come from bundled content, otherwise procedural shapes.
     static func forRoute(_ routeGraph: RouteGraph) -> TrackLayout {
         TrackLayout(routeGraph: routeGraph, sections: InitialRouteContent.bundle.document.stage.route.sections)
+    }
+
+    func tunnel(for stageID: String) -> TrackTunnelSection? {
+        guard stageID == "city-axis-tunnel" || stageID == "skyline-2",
+              let stage = routeGraph.stage(id: stageID), stage.distance >= 240 else { return nil }
+        return TrackTunnelSection(entrance: 120, exit: stage.distance - 120, ceilingHeight: 5.2)
     }
 
     func profile(for stageID: String) -> TrackSectionProfile {

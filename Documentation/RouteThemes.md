@@ -46,3 +46,15 @@ to procedural synthesis arrangements and perform timed crossfades.
 Screenshot/reference capture remains blocked until those systems render authored content.
 When available, capture both branches in default, high-contrast, color-vision-safe,
 Reduce Motion, and Reduce Effects modes using the checklist in `VisualStyleGuide.md`.
+
+### Axis tunnel
+
+The `city-axis-tunnel` section contains a physical tunnel from 120 to 600 meters.
+The Skyline Run's middle section uses the same partial-section treatment. The
+road mesh, physics, curvature, and elevation continue unchanged through open
+portals. Opaque walls/ceiling, neon rails, overhead strips, and wall signs stream
+in before the entrance; external roadside props are omitted inside the shell.
+The chase camera lowers over the 60 meters before entry and returns to its normal
+height after its trailing position has cleared the exit. Lights remain steady to
+avoid introducing flashing. `testTunnelInterior` captures the authored tunnel on
+a short Debug-only route for visual review.

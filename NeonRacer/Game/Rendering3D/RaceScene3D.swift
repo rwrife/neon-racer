@@ -26,6 +26,7 @@ final class RaceScene3D: NSObject {
     private let mapper: TrackWorldMapper3D
     private let terrain = NeonTerrain3D()
     private let roadBuilder = RoadMeshBuilder3D()
+    private let tunnelBuilder = TunnelMeshBuilder3D()
     private let markerBuilder = TrackMarkers3D()
     private let chaseCamera = ChaseCamera3D()
     private let environment: NeonEnvironment3D
@@ -268,6 +269,7 @@ final class RaceScene3D: NSObject {
         )
         scene.rootNode.addChildNode(carNode)
         scene.rootNode.addChildNode(chaseCamera.cameraNode)
+        scene.rootNode.addChildNode(tunnelBuilder.rootNode)
         environment.attach(to: scene)
         if let camera = chaseCamera.cameraNode.camera {
             effects.configure(camera: camera)
@@ -431,6 +433,7 @@ final class RaceScene3D: NSObject {
             time: currentTime
         )
         roadBuilder.update(playerDistance: distance, mapper: mapper)
+        tunnelBuilder.update(playerDistance: distance, mapper: mapper)
         terrain.update(playerDistance: distance, mapper: mapper, renderQuality: renderQuality)
         roadsideProps.update(
             playerDistance: distance,
@@ -455,7 +458,8 @@ final class RaceScene3D: NSObject {
             isBoosting: state.isBoostActive,
             steering: command.steering,
             deltaTime: frameDelta,
-            time: currentTime
+            time: currentTime,
+            tunnelBlend: mapper.layout.tunnel(for: carFrame.stageID)?.cameraBlend(at: carFrame.distanceInStage) ?? 0
         )
         environment.groundLevel = carFrame.position.y
         environment.update(
@@ -817,6 +821,8 @@ final class RoadsidePropStreamer3D {
                 let seed = Self.seed(environmentID: themeID, index: index)
                 let stationDistance = Double(index) * spacing + Double(seed % 17) * 0.73
                 guard stationDistance >= visibleStart, stationDistance < visibleEnd else { continue }
+                if let tunnel = mapper.layout.tunnel(for: placement.stage.id),
+                   tunnel.contains(stationDistance - placement.startRunDistance) { continue }
                 let wantsBillboard = abs(index) <= 6 || index.isMultiple(of: 4)
                 let selectableKinds = wantsBillboard && !billboardKinds.isEmpty ? billboardKinds : kinds
                 let kind = selectableKinds[Int(seed % UInt64(selectableKinds.count))]
