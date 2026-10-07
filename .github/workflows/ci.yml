@@ -145,7 +145,7 @@ jobs:
           test -n "$APP"
           test "$(plutil -extract CFBundleIdentifier raw "$APP/Info.plist")" = "com.infinityball.neon-racer"
           test "$(plutil -extract CFBundleDisplayName raw "$APP/Info.plist")" = "CyberRun"
-          test "$(plutil -extract CFBundleShortVersionString raw "$APP/Info.plist")" = "1.0"
+          test "$(plutil -extract CFBundleShortVersionString raw "$APP/Info.plist")" = "1.1"
           FAMILY=$(plutil -extract UIDeviceFamily json -o - "$APP/Info.plist")
           test "$FAMILY" = '[1,2]'
           test -f "$APP/PrivacyInfo.xcprivacy"
