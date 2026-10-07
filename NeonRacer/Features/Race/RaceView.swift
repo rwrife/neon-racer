@@ -75,15 +75,34 @@ struct RaceView: View {
             ?? ProgressionCatalog.routes[0].displayName
         self.routeName = routeName
         self.raceDuration = configuration.raceDuration
+        var resolvedRoute = ProgressionCatalog.routeGraph(id: routeID, configuration: configuration)
+#if DEBUG
+        // Short, real-content route for deterministic portal/camera UI captures.
+        if ProcessInfo.processInfo.arguments.contains("UITestTunnelPreview") {
+            resolvedRoute = RouteGraph(
+                startStageID: "city-axis-tunnel",
+                stages: [RouteStage(id: "city-axis-tunnel", displayName: "Axis Tunnel",
+                                    environmentID: "neon-city", distance: 720,
+                                    checkpointTimeAward: 0, branches: [])],
+                forkDecisionDistance: 0, minimumForkDecisionTime: 0
+            )
+        }
+        if ProcessInfo.processInfo.arguments.contains("UITestSplitPreview") {
+            resolvedRoute = RouteGraph(
+                startStageID: "coast-solar-sweep",
+                stages: [RouteStage(id: "coast-solar-sweep", displayName: "Split Causeway",
+                                    environmentID: "sunset-coast", distance: 1_050,
+                                    checkpointTimeAward: 0, branches: [])],
+                forkDecisionDistance: 0, minimumForkDecisionTime: 0
+            )
+        }
+#endif
         _sceneHolder = StateObject(
             wrappedValue: RaceSceneHolder(
                 scene: RaceScene3D(
                     renderQualityPreference: gameplaySettings.settings.renderQualityPreference,
                     configuration: configuration,
-                    routeGraph: ProgressionCatalog.routeGraph(
-                        id: routeID,
-                        configuration: configuration
-                    ),
+                    routeGraph: resolvedRoute,
                     routeName: routeName,
                     garagePalette: garagePalette,
                     selectedVehicleID: selectedVehicleID

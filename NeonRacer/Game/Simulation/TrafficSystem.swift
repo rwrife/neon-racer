@@ -83,8 +83,11 @@ struct TrafficSystem: Equatable, Sendable {
             environmentID: state.currentEnvironmentID,
             configuration: configuration
         )
-        let trackProfile = trackLayout.profile(for: state.currentStageID)
         for index in state.traffic.indices {
+            let trackProfile = trackLayout.trafficProfile(
+                stageID: state.currentStageID,
+                distanceInStage: state.traffic[index].distance - (state.distance - state.currentStageDistance)
+            )
             let oldLateral = state.traffic[index].lateralPosition
             let targetSpeed = targetSpeed(
                 for: state.traffic[index],
@@ -96,7 +99,7 @@ struct TrafficSystem: Equatable, Sendable {
             let vehicleAhead = closestVehicleAhead(
                 of: state.traffic[index],
                 in: state.traffic,
-                laneCount: trackProfile.laneCount
+                profile: trackProfile
             )
             let shouldBrake = vehicleAhead.map { $0.distance - state.traffic[index].distance < 42 } ?? false
             let adjustedTarget = shouldBrake ? min(targetSpeed, max(0, vehicleAhead!.speed - 8)) : targetSpeed
@@ -113,9 +116,10 @@ struct TrafficSystem: Equatable, Sendable {
                 for: state.traffic[index],
                 playerLateral: state.lateralPosition,
                 playerDistance: state.distance,
-                laneCount: trackProfile.laneCount
+                profile: trackProfile
             )
             let targetLateral = trackProfile.laneCenter(targetLane)
+            state.traffic[index].halfWidth = halfWidth(for: state.traffic[index].kind, roadHalfWidth: trackProfile.roadHalfWidth)
             let lateralRate = state.traffic[index].kind == .rival ? 0.56 : 0.22
             state.traffic[index].lateralPosition = approach(
                 state.traffic[index].lateralPosition,
@@ -189,6 +193,8 @@ struct TrafficSystem: Equatable, Sendable {
                 let kind = chooseVehicleKind(density: effectiveDensity)
                 nextVehicleID &+= 1
                 let speed = spawnSpeed(for: kind, profile: profile, configuration: configuration)
+                let trackProfile = trackLayout.trafficProfile(stageID: currentStage.id,
+                                                              distanceInStage: candidateDistance - stageStartDistance)
                 state.traffic.append(TrafficVehicleState(
                     id: nextVehicleID,
                     kind: kind,
@@ -265,6 +271,8 @@ struct TrafficSystem: Equatable, Sendable {
         let kind = chooseObstacleKind()
         let id = stableID("obstacle:\(currentStage.id):\(Int(candidateDistance / 5)):\(lane):\(kind.rawValue)")
         if !state.obstacles.contains(where: { $0.id == id }) {
+            let trackProfile = trackLayout.trafficProfile(stageID: currentStage.id,
+                                                          distanceInStage: candidateDistance - stageStartDistance)
             state.obstacles.append(TrackObstacleState(
                 id: id,
                 kind: kind,
@@ -399,7 +407,8 @@ struct TrafficSystem: Equatable, Sendable {
         minimumHeadwayMeters: Double,
         reservedLane: Int?
     ) -> Int? {
-        let profile = trackLayout.profile(for: stageID)
+        let profile = trackLayout.trafficProfile(stageID: stageID,
+                                                 distanceInStage: distance - (state.distance - state.currentStageDistance))
         let laneCount = profile.laneCount
         guard laneCount > 1 else { return nil }
         let sample = trackLayout.sample(stageID: stageID, distanceInStage: state.currentStageDistance)
@@ -585,40 +594,44 @@ struct TrafficSystem: Equatable, Sendable {
     }
 
     private func desiredLane(
-        for vehicle: TrafficVehicleState,
-        playerLateral: Double,
-        playerDistance: Double,
-        laneCount: Int
+        for vehicle: TrafficVehicleState, playerLateral: Double, playerDistance: Double,
+        profile: TrackSectionProfile
     ) -> Int {
-        guard laneCount > 1 else { return 0 }
-        let current = nearestLane(for: vehicle.lateralPosition, laneCount: laneCount)
-        guard vehicle.kind == .rival else { return current }
+        let current = nearestLane(for: vehicle.lateralPosition, profile: profile)
+        guard profile.laneCount > 1, vehicle.kind == .rival else { return current }
         let relativeDistance = vehicle.distance - playerDistance
+        let target: Int
         if (-35...145).contains(relativeDistance) {
-            return nearestLane(for: playerLateral, laneCount: laneCount)
+            target = nearestLane(for: playerLateral, profile: profile)
+        } else {
+            let period = max(1, Int((playerDistance + Double(vehicle.id & 0xFF)) / 180))
+            target = (current + (period.isMultiple(of: 2) ? 1 : -1)).clamped(to: 0...(profile.laneCount - 1))
         }
-        let weavePeriod = max(1, Int((playerDistance + Double(vehicle.id & 0xFF)) / 180))
-        let offset = weavePeriod.isMultiple(of: 2) ? 1 : -1
-        return (current + offset).clamped(to: 0...(laneCount - 1))
+        // A rival can weave within its branch, but cannot chase across the median.
+        if profile.laneCenterOffsets != nil,
+           profile.laneCenter(current) * profile.laneCenter(target) < 0 { return current }
+        return target
     }
 
     private func closestVehicleAhead(
         of vehicle: TrafficVehicleState,
         in vehicles: [TrafficVehicleState],
-        laneCount: Int
+        profile: TrackSectionProfile
     ) -> TrafficVehicleState? {
-        let lane = nearestLane(for: vehicle.lateralPosition, laneCount: laneCount)
+        let lane = nearestLane(for: vehicle.lateralPosition, profile: profile)
         return vehicles
             .filter {
                 $0.id != vehicle.id
-                    && nearestLane(for: $0.lateralPosition, laneCount: laneCount) == lane
+                    && nearestLane(for: $0.lateralPosition, profile: profile) == lane
                     && $0.distance > vehicle.distance
             }
             .min { $0.distance < $1.distance }
     }
 
     private func nearestLane(for lateral: Double, profile: TrackSectionProfile) -> Int {
-        nearestLane(for: lateral, laneCount: profile.laneCount)
+        (0..<profile.laneCount).min {
+            abs(profile.laneCenter($0) - lateral) < abs(profile.laneCenter($1) - lateral)
+        } ?? 0
     }
 
     private func nearestLane(for lateral: Double, laneCount: Int) -> Int {

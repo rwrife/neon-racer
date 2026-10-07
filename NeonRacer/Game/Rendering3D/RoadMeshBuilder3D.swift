@@ -163,28 +163,48 @@ final class RoadMeshBuilder3D {
         }
 
         strip(.shoulder, yOffset: 0.0, left: { -Self.offRoadExtent(for: $0) }, right: { Self.offRoadExtent(for: $0) })
-        strip(.asphalt, yOffset: 0.02, left: { -$0.roadHalfWidth }, right: { $0.roadHalfWidth })
-        strip(.magenta, yOffset: 0.04, left: { -$0.roadHalfWidth - 0.12 }, right: { -$0.roadHalfWidth + 0.18 })
-        strip(.magenta, yOffset: 0.04, left: { $0.roadHalfWidth - 0.18 }, right: { $0.roadHalfWidth + 0.12 })
-
-        let midFrame = mapper.frame(atRunDistance: (start + end) * 0.5)
-        if midFrame.laneCount > 1 {
-            for lane in 1..<midFrame.laneCount {
-                let normalized = Float(-1.0 + Double(lane) / Double(midFrame.laneCount) * 2.0)
-                dashed(
-                    midFrame.laneCount.isMultiple(of: 2) && lane == midFrame.laneCount / 2 ? .amber : .cyan,
-                    dashLength: 8,
-                    gapLength: 14,
-                    yOffset: 0.04,
-                    left: { normalized * $0.roadHalfWidth - 0.055 },
-                    right: { normalized * $0.roadHalfWidth + 0.055 }
-                )
+        func cross(_ frame: TrackWorldFrame3D) -> TrackSplitCrossSection? {
+            mapper.layout.splitCrossSection(stageID: frame.stageID, distanceInStage: frame.distanceInStage)
+        }
+        let hasSplit = frames.contains { cross($0) != nil }
+        let paths = hasSplit ? [-1, 1] : [0]
+        for path in paths {
+            func center(_ frame: TrackWorldFrame3D) -> Float {
+                guard let section = cross(frame) else { return 0 }
+                return Float(path < 0 ? section.leftCenter : section.rightCenter)
+            }
+            func halfWidth(_ frame: TrackWorldFrame3D) -> Float {
+                guard let section = cross(frame) else { return frame.roadHalfWidth }
+                return Float(path < 0 ? section.leftHalfWidth : section.rightHalfWidth)
+            }
+            strip(.asphalt, yOffset: 0.02,
+                  left: { center($0) - halfWidth($0) }, right: { center($0) + halfWidth($0) })
+            strip(path > 0 ? .amber : .magenta, yOffset: 0.04,
+                  left: { center($0) - halfWidth($0) - 0.12 }, right: { center($0) - halfWidth($0) + 0.18 })
+            strip(path > 0 ? .amber : .magenta, yOffset: 0.04,
+                  left: { center($0) + halfWidth($0) - 0.18 }, right: { center($0) + halfWidth($0) + 0.12 })
+            let midFrame = mapper.frame(atRunDistance: (start + end) * 0.5)
+            let count = hasSplit ? 3 : midFrame.laneCount
+            for lane in 1..<max(1, count) {
+                func divider(_ frame: TrackWorldFrame3D) -> Float {
+                    let normalized = Float(-1 + Double(lane) / Double(count) * 2)
+                    if path > 0, let section = cross(frame) {
+                        // Two dividers converge into one for a two-lane branch,
+                        // or into the outer edges for a single-lane branch.
+                        let narrowOffset: Float = section.narrowLaneCount == 2 ? 0 : (lane == 1 ? -1 : 1)
+                        return center(frame) + (normalized + (narrowOffset - normalized) * Float(section.blend)) * halfWidth(frame)
+                    }
+                    return center(frame) + normalized * halfWidth(frame)
+                }
+                dashed(count.isMultiple(of: 2) && lane == count / 2 ? .amber : .cyan,
+                       dashLength: 8, gapLength: 14, yOffset: 0.04,
+                       left: { divider($0) - 0.055 }, right: { divider($0) + 0.055 })
             }
         }
 
         var latticeDistance = ceil(start / 6) * 6
         while latticeDistance < end {
-            if latticeDistance.truncatingRemainder(dividingBy: 24) != 0 {
+            if !hasSplit && latticeDistance.truncatingRemainder(dividingBy: 24) != 0 {
                 strip(
                     .surfaceGrid,
                     from: latticeDistance,
@@ -196,7 +216,7 @@ final class RoadMeshBuilder3D {
             }
             latticeDistance += 6
         }
-        for normalized in [Float(-0.75), -0.25, 0.25, 0.75] {
+        for normalized in (hasSplit ? [] : [Float(-0.75), -0.25, 0.25, 0.75]) {
             strip(
                 .surfaceGrid,
                 yOffset: 0.03,
@@ -287,6 +307,147 @@ final class RoadMeshBuilder3D {
         let material = SCNMaterial()
         material.diffuse.contents = diffuse
         material.emission.contents = emission
+        material.lightingModel = .constant
+        material.isDoubleSided = true
+        return material
+    }
+}
+
+/// Bounded, preloaded tunnel mesh in the road's existing world space. The open
+/// portals and continuous road surface avoid a scene switch at either end.
+@MainActor
+final class TunnelMeshBuilder3D {
+    let rootNode = SCNNode()
+    private var nodes: [String: SCNNode] = [:]
+    private var origins: [String: SCNVector3] = [:]
+    private var originVersion = -1
+    private var routeVersion = -1
+    private let panel = TunnelMeshBuilder3D.material(UIColor(red: 0.025, green: 0.015, blue: 0.055, alpha: 1))
+    private let cyan = TunnelMeshBuilder3D.material(UIColor(red: 0.02, green: 0.7, blue: 0.85, alpha: 1))
+    private let violet = TunnelMeshBuilder3D.material(UIColor(red: 0.55, green: 0.08, blue: 0.8, alpha: 1))
+    var activeSegmentCount: Int { nodes.count }
+
+    init() { rootNode.name = "continuous-tunnel-root" }
+
+    func update(playerDistance: Double, mapper: TrackWorldMapper3D) {
+        if routeVersion != mapper.routeVersion {
+            nodes.values.forEach { $0.removeFromParentNode() }
+            nodes.removeAll()
+            origins.removeAll()
+            routeVersion = mapper.routeVersion
+        }
+        if originVersion != mapper.originVersion {
+            for (key, node) in nodes { node.position = origins[key]! - mapper.originWorldPosition }
+            originVersion = mapper.originVersion
+        }
+        var wanted: Set<String> = []
+        var newSegments = 0
+        for placement in mapper.placements {
+            guard let tunnel = mapper.layout.tunnel(for: placement.stage.id) else { continue }
+            var local = tunnel.entrance
+            while local < tunnel.exit {
+                let from = placement.startRunDistance + local
+                let to = min(from + 24, placement.startRunDistance + tunnel.exit)
+                let key = "\(placement.stage.id)-\(Int(local))"
+                if to > playerDistance - 120 && from < playerDistance + 840 {
+                    wanted.insert(key)
+                    if nodes[key] == nil && newSegments < 4 {
+                        let node = build(from: from, to: to, height: Float(tunnel.ceilingHeight),
+                                         entrance: local == tunnel.entrance,
+                                         exit: to == placement.startRunDistance + tunnel.exit, mapper: mapper)
+                        node.name = "tunnel-segment-\(key)"
+                        nodes[key] = node
+                        origins[key] = mapper.originWorldPosition
+                        rootNode.addChildNode(node)
+                        newSegments += 1
+                    }
+                }
+                local += 24
+            }
+        }
+        for key in Array(nodes.keys) where !wanted.contains(key) {
+            nodes.removeValue(forKey: key)?.removeFromParentNode()
+            origins[key] = nil
+        }
+    }
+
+    private func build(from: Double, to: Double, height: Float, entrance: Bool, exit: Bool,
+                       mapper: TrackWorldMapper3D) -> SCNNode {
+        let root = SCNNode()
+        var frames: [TrackWorldFrame3D] = []
+        var distance = from
+        while distance < to { frames.append(mapper.frame(atRunDistance: distance)); distance += 6 }
+        frames.append(mapper.frame(atRunDistance: to))
+        func point(_ frame: TrackWorldFrame3D, side: Float, y: Float) -> SCNVector3 {
+            frame.position + frame.right * (side * (frame.roadHalfWidth + 1.0)) + SCNVector3(0, y, 0)
+        }
+        func ribbon(name: String, material: SCNMaterial,
+                    left: (TrackWorldFrame3D) -> SCNVector3,
+                    right: (TrackWorldFrame3D) -> SCNVector3) {
+            var vertices: [SCNVector3] = []
+            var indices: [Int32] = []
+            for frame in frames { vertices += [left(frame), right(frame)] }
+            for row in 1..<frames.count {
+                let a = Int32((row - 1) * 2)
+                indices += [a, a + 1, a + 2, a + 1, a + 3, a + 2]
+            }
+            let geometry = SCNGeometry(sources: [SCNGeometrySource(vertices: vertices)],
+                                       elements: [SCNGeometryElement(indices: indices, primitiveType: .triangles)])
+            geometry.materials = [material]
+            let node = SCNNode(geometry: geometry)
+            node.name = name
+            root.addChildNode(node)
+        }
+        ribbon(name: "tunnel-ceiling", material: panel,
+               left: { point($0, side: -1, y: height) }, right: { point($0, side: 1, y: height) })
+        for side: Float in [-1, 1] {
+            ribbon(name: "tunnel-wall", material: panel,
+                   left: { point($0, side: side, y: 0) }, right: { point($0, side: side, y: height) })
+            for y: Float in [0.65, height - 0.45] {
+                ribbon(name: "tunnel-neon-wall-rail", material: side < 0 ? cyan : violet,
+                       left: { point($0, side: side * 0.997, y: y) },
+                       right: { point($0, side: side * 0.997, y: y + 0.07) })
+            }
+            let frame = frames[frames.count / 2]
+            let text = SCNText(string: side < 0 ? "AXIS  ››" : "KEEP MOVING  ››", extrusionDepth: 0.005)
+            text.font = UIFont.monospacedSystemFont(ofSize: 0.45, weight: .bold)
+            text.flatness = 0.15
+            text.materials = [side < 0 ? cyan : violet]
+            let sign = SCNNode(geometry: text)
+            sign.name = "tunnel-wall-neon-sign"
+            sign.position = point(frame, side: side * 0.985, y: 2.2)
+            sign.eulerAngles.y = frame.yaw + (side < 0 ? .pi / 2 : -.pi / 2)
+            root.addChildNode(sign)
+        }
+        // Repeating overhead light strips provide depth and speed cues without flashing.
+        let frame = frames[0]
+        let beam = SCNNode(geometry: SCNBox(width: CGFloat(frame.roadHalfWidth * 2 + 2),
+                                          height: 0.07, length: 0.15, chamferRadius: 0))
+        beam.geometry?.materials = [cyan]
+        beam.position = frame.position + SCNVector3(0, height - 0.1, 0)
+        beam.eulerAngles = SCNVector3(frame.pitch, frame.yaw, 0)
+        beam.name = "tunnel-overhead-light"
+        root.addChildNode(beam)
+        if entrance || exit {
+            let portalFrame = entrance ? frames[0] : frames.last!
+            let text = SCNText(string: entrance ? "AXIS TUNNEL" : "EXIT", extrusionDepth: 0.01)
+            text.font = UIFont.monospacedSystemFont(ofSize: 0.65, weight: .bold)
+            text.materials = [cyan]
+            let label = SCNNode(geometry: text)
+            let bounds = text.boundingBox
+            label.pivot = SCNMatrix4MakeTranslation((bounds.min.x + bounds.max.x) / 2, 0, 0)
+            label.position = portalFrame.position + SCNVector3(0, height + 0.15, 0)
+            label.eulerAngles.y = portalFrame.yaw
+            label.name = entrance ? "tunnel-entrance-sign" : "tunnel-exit-sign"
+            root.addChildNode(label)
+        }
+        return root
+    }
+
+    private static func material(_ color: UIColor) -> SCNMaterial {
+        let material = SCNMaterial()
+        material.diffuse.contents = color
+        material.emission.contents = color
         material.lightingModel = .constant
         material.isDoubleSided = true
         return material

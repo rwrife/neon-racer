@@ -523,7 +523,7 @@ enum HUDMinimapBuilder {
         case .startGrid: .start
         case .startLine: nil
         case .checkpoint: .checkpoint
-        case .forkSplit: .fork
+        case .forkSplit, .laneSplit: .fork
         case .finishLine: .finish
         }
     }

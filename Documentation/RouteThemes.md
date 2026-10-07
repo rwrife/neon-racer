@@ -46,3 +46,28 @@ to procedural synthesis arrangements and perform timed crossfades.
 Screenshot/reference capture remains blocked until those systems render authored content.
 When available, capture both branches in default, high-contrast, color-vision-safe,
 Reduce Motion, and Reduce Effects modes using the checklist in `VisualStyleGuide.md`.
+
+### Axis tunnel
+
+The `city-axis-tunnel` section contains a physical tunnel from 120 to 600 meters.
+The Skyline Run's middle section uses the same partial-section treatment. The
+road mesh, physics, curvature, and elevation continue unchanged through open
+portals. Opaque walls/ceiling, neon rails, overhead strips, and wall signs stream
+in before the entrance; external roadside props are omitted inside the shell.
+The chase camera lowers over the 60 meters before entry and returns to its normal
+height after its trailing position has cleared the exit. Lights remain steady to
+avoid introducing flashing. `testTunnelInterior` captures the authored tunnel on
+a short Debug-only route for visual review.
+
+### Split lanes and reconnection
+
+Coast Solar Sweep splits into a three-lane left branch and a two-lane right
+branch. Skyline Run's first section offers three lanes or one lane. Each split
+starts 20% into its section, eases apart over 12% of the section, begins merging
+at 70%, and is back to a three-lane road at 82%, before the next checkpoint.
+Overhead lane-count signs announce the choice. Both paths are real asphalt
+ribbons in the same world; steering chooses the path without changing scenes.
+The median is off-road, traffic follows the actual branch lane centers, and
+rivals cannot weave across the median. The road and camera remain continuous
+through the split and merge. `testSplitRoadChoice` provides a Debug-only visual
+capture of the authored split.
