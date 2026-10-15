@@ -144,19 +144,27 @@ struct TrackSplitSection: Equatable, Sendable {
     func crossSection(at distance: Double, laneWidth: Double) -> TrackSplitCrossSection {
         func smooth(_ x: Double) -> Double {
             let t = min(max(x, 0), 1)
-            return t * t * (3 - 2 * t)
+            return t * t * t * (t * (6 * t - 15) + 10)
         }
         let blend = smooth((distance - entrance) / transitionLength)
             * (1 - smooth((distance - mergeStart) / transitionLength))
         let wideHalf = laneWidth * 1.5
         let narrowHalf = laneWidth * Double(narrowLaneCount) / 2
-        // Keep a four-meter median centered on the original centerline.
-        // Both shoulders then remain clear of its center during the decision.
-        return TrackSplitCrossSection(blend: blend, leftCenter: -(wideHalf + 2) * blend,
-                                     rightCenter: (narrowHalf + 2) * blend,
-                                     leftHalfWidth: wideHalf,
-                                     rightHalfWidth: wideHalf + (narrowHalf - wideHalf) * blend,
-                                     narrowLaneCount: narrowLaneCount)
+        let progress = min(max((distance - entrance) / (mergeEnd - entrance), 0), 1)
+        let sweep = pow(sin(.pi * progress), 4)
+        let chicane = pow(sin(2 * .pi * progress), 3)
+        // The left road sweeps around the coast; the narrow bypass follows its
+        // own S bend over a ridge, tens of meters away from the coast road.
+        return TrackSplitCrossSection(
+            blend: blend,
+            leftCenter: -(wideHalf + 26 + 12 * sweep) * blend,
+            rightCenter: (narrowHalf + 42 + 14 * chicane) * blend,
+            leftHalfWidth: wideHalf,
+            rightHalfWidth: wideHalf + (narrowHalf - wideHalf) * blend,
+            narrowLaneCount: narrowLaneCount,
+            leftElevation: -1.2 * sweep * blend,
+            rightElevation: 5 * pow(sin(.pi * progress), 2) * blend
+        )
     }
 }
 
@@ -167,18 +175,30 @@ struct TrackSplitCrossSection: Equatable, Sendable {
     let leftHalfWidth: Double
     let rightHalfWidth: Double
     let narrowLaneCount: Int
+    let leftElevation: Double
+    let rightElevation: Double
     var roadHalfWidth: Double { max(-leftCenter + leftHalfWidth, rightCenter + rightHalfWidth) }
     var drivableRanges: [ClosedRange<Double>] {
         [leftCenter - leftHalfWidth...leftCenter + leftHalfWidth,
          rightCenter - rightHalfWidth...rightCenter + rightHalfWidth]
     }
     var laneCenters: [Double] {
-        let left = (0..<3).map { leftCenter + (Double($0) + 0.5) * leftHalfWidth * 2 / 3 - leftHalfWidth }
-        let right = (0..<narrowLaneCount).map {
-            rightCenter + (Double($0) + 0.5) * rightHalfWidth * 2 / Double(narrowLaneCount) - rightHalfWidth
-        }
+        let leftLaneWidth = leftHalfWidth * 2 / 3
+        let rightLaneWidth = rightHalfWidth * 2 / Double(narrowLaneCount)
+        let left: [Double] = (0..<3).map { leftCenter - leftHalfWidth + (Double($0) + 0.5) * leftLaneWidth }
+        let right: [Double] = (0..<narrowLaneCount).map { rightCenter - rightHalfWidth + (Double($0) + 0.5) * rightLaneWidth }
         return (left + right).map { $0 / roadHalfWidth }
     }
+}
+
+struct TrackSplitPathSample: Equatable, Sendable {
+    let center: Double
+    let halfWidth: Double
+    let elevationOffset: Double
+    let headingOffset: Double
+    let gradeOffset: Double
+    let curvatureOffset: Double
+    var distanceScale: Double { sqrt(1 + pow(tan(headingOffset), 2) + gradeOffset * gradeOffset) }
 }
 
 struct TrackLayout: Equatable, Sendable {
@@ -247,6 +267,37 @@ struct TrackLayout: Equatable, Sendable {
         guard let split = split(for: stageID), distanceInStage > split.entrance,
               distanceInStage < split.mergeEnd else { return nil }
         return split.crossSection(at: distanceInStage, laneWidth: profile(for: stageID).laneWidth)
+    }
+
+    func splitPath(stageID: String, distanceInStage distance: Double, side: Int) -> TrackSplitPathSample? {
+        guard let split = split(for: stageID), distance >= split.entrance,
+              distance <= split.mergeEnd else { return nil }
+        let width = profile(for: stageID).laneWidth
+        func cross(_ d: Double) -> TrackSplitCrossSection { split.crossSection(at: d, laneWidth: width) }
+        func center(_ d: Double) -> Double { side < 0 ? cross(d).leftCenter : cross(d).rightCenter }
+        func height(_ d: Double) -> Double { side < 0 ? cross(d).leftElevation : cross(d).rightElevation }
+        func heading(_ d: Double) -> Double { atan((center(d + 0.5) - center(d - 0.5))) }
+        let section = cross(distance)
+        return TrackSplitPathSample(
+            center: center(distance), halfWidth: side < 0 ? section.leftHalfWidth : section.rightHalfWidth,
+            elevationOffset: height(distance), headingOffset: heading(distance),
+            gradeOffset: (height(distance + 0.5) - height(distance - 0.5)),
+            curvatureOffset: (heading(distance + 0.5) - heading(distance - 0.5))
+                / TrackSectionProfile.radiansPerMeterAtFullCurve
+        )
+    }
+
+    func drivingSample(stageID: String, distanceInStage: Double, splitSide: Int?) -> TrackSample {
+        let base = sample(stageID: stageID, distanceInStage: distanceInStage)
+        guard let side = splitSide, let path = splitPath(stageID: stageID, distanceInStage: distanceInStage, side: side) else { return base }
+        return TrackSample(stageID: stageID, distanceInStage: distanceInStage,
+                           curvature: min(max(base.curvature + path.curvatureOffset, -0.85), 0.85),
+                           elevation: base.elevation + path.elevationOffset,
+                           grade: (base.grade + path.gradeOffset) / path.distanceScale,
+                           laneCount: side < 0 ? 3 : split(for: stageID)!.narrowLaneCount,
+                           laneWidth: base.laneWidth, roadHalfWidth: path.halfWidth,
+                           shoulderWidth: base.shoulderWidth, isStartZone: base.isStartZone,
+                           isFinishZone: base.isFinishZone)
     }
 
     /// Traffic uses actual branch lane centers, never the unpaved median.

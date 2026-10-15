@@ -71,3 +71,12 @@ The median is off-road, traffic follows the actual branch lane centers, and
 rivals cannot weave across the median. The road and camera remain continuous
 through the split and merge. `testSplitRoadChoice` provides a Debug-only visual
 capture of the authored split.
+
+The split branches now follow separate paths: the wide coast road sweeps left
+around a terrain island, while the narrow ridge bypass follows an independent
+S bend and rises up to five meters. Their centerlines separate by more than 75
+meters. Each path has its own tangent, elevation, road edges, and shoulders;
+no road platform or grid spans the gap. Steering at the entrance chooses a path
+for that split. Driving then uses the chosen road's local width and curvature,
+and the chase camera follows its tangent. Both paths ease back into the same
+three-lane road with matching position and heading at the merge.

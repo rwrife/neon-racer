@@ -110,6 +110,7 @@ final class RoadMeshBuilder3D {
         let start = Double(index) * chunkLength
         let end = start + chunkLength
         var accumulator = StripAccumulator(materialCount: Layer.allCases.count)
+        var activePathSide: Int?
 
         // Sample the centerline once per chunk; every strip reuses these frames.
         var frames: [TrackWorldFrame3D] = []
@@ -136,6 +137,7 @@ final class RoadMeshBuilder3D {
                 chunkStart: start,
                 frames: frames,
                 mapper: mapper,
+                pathSide: activePathSide,
                 yOffset: yOffset,
                 left: left,
                 right: right
@@ -162,21 +164,19 @@ final class RoadMeshBuilder3D {
             }
         }
 
-        strip(.shoulder, yOffset: 0.0, left: { -Self.offRoadExtent(for: $0) }, right: { Self.offRoadExtent(for: $0) })
         func cross(_ frame: TrackWorldFrame3D) -> TrackSplitCrossSection? {
             mapper.layout.splitCrossSection(stageID: frame.stageID, distanceInStage: frame.distanceInStage)
         }
         let hasSplit = frames.contains { cross($0) != nil }
         let paths = hasSplit ? [-1, 1] : [0]
         for path in paths {
-            func center(_ frame: TrackWorldFrame3D) -> Float {
-                guard let section = cross(frame) else { return 0 }
-                return Float(path < 0 ? section.leftCenter : section.rightCenter)
-            }
-            func halfWidth(_ frame: TrackWorldFrame3D) -> Float {
-                guard let section = cross(frame) else { return frame.roadHalfWidth }
-                return Float(path < 0 ? section.leftHalfWidth : section.rightHalfWidth)
-            }
+            activePathSide = hasSplit ? path : nil
+            func center(_ frame: TrackWorldFrame3D) -> Float { 0 }
+            func halfWidth(_ frame: TrackWorldFrame3D) -> Float { frame.roadHalfWidth }
+            // Each path has its own shoulder. There is no paved platform or grid
+            // stretched across the terrain island between the two roads.
+            strip(.shoulder, yOffset: 0,
+                  left: { -Self.offRoadExtent(for: $0) }, right: { Self.offRoadExtent(for: $0) })
             strip(.asphalt, yOffset: 0.02,
                   left: { center($0) - halfWidth($0) }, right: { center($0) + halfWidth($0) })
             strip(path > 0 ? .amber : .magenta, yOffset: 0.04,
@@ -202,6 +202,7 @@ final class RoadMeshBuilder3D {
             }
         }
 
+        activePathSide = nil
         var latticeDistance = ceil(start / 6) * 6
         while latticeDistance < end {
             if !hasSplit && latticeDistance.truncatingRemainder(dividingBy: 24) != 0 {
@@ -226,7 +227,7 @@ final class RoadMeshBuilder3D {
         }
 
         var gridDistance = ceil(start / 24) * 24
-        while gridDistance < end {
+        while !hasSplit && gridDistance < end {
             strip(
                 .cyan,
                 from: gridDistance,
@@ -238,7 +239,7 @@ final class RoadMeshBuilder3D {
             gridDistance += 24
         }
 
-        for normalized in [Float(-1.6), -1.3, 1.3, 1.6] {
+        for normalized in (hasSplit ? [] : [Float(-1.6), -1.3, 1.3, 1.6]) {
             dashed(
                 .offRoadGrid,
                 dashLength: 14,
@@ -264,6 +265,15 @@ final class RoadMeshBuilder3D {
         let node = SCNNode(geometry: geometry)
         node.name = "road-chunk-\(index)"
         node.castsShadow = false
+        let middle = mapper.frame(atRunDistance: (start + end) * 0.5)
+        if let split = cross(middle), split.blend > 0.95 {
+            let island = SCNNode(geometry: SCNPyramid(width: 30, height: 14, length: 44))
+            island.name = "split-terrain-island"
+            island.geometry?.materials = [shoulderMaterial]
+            island.position = middle.position + SCNVector3(0, 7, 0)
+            island.eulerAngles.y = middle.yaw
+            node.addChildNode(island)
+        }
         return node
     }
 
@@ -275,6 +285,7 @@ final class RoadMeshBuilder3D {
         chunkStart: Double,
         frames: [TrackWorldFrame3D],
         mapper: TrackWorldMapper3D,
+        pathSide: Int?,
         yOffset: Float,
         left: (TrackWorldFrame3D) -> Float,
         right: (TrackWorldFrame3D) -> Float
@@ -285,6 +296,9 @@ final class RoadMeshBuilder3D {
             rowFrames.append(frame)
         }
         rowFrames.append(mapper.frame(atRunDistance: to))
+        if let side = pathSide {
+            rowFrames = rowFrames.map { mapper.branchFrame(atRunDistance: $0.runDistance, side: side) }
+        }
 
         let base = Int32(accumulator.vertices.count)
         for frame in rowFrames {

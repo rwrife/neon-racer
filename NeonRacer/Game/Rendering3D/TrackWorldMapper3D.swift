@@ -169,6 +169,36 @@ final class TrackWorldMapper3D {
         )
     }
 
+    /// Car/camera/actors use the chosen road's own tangent and elevation.
+    /// Mesh and terrain callers continue to use the common route frame.
+    func actorFrame(atRunDistance distance: Double, lateralPosition: Double, splitSide: Int? = nil) -> TrackWorldFrame3D {
+        let base = frame(atRunDistance: distance)
+        guard let cross = layout.splitCrossSection(stageID: base.stageID, distanceInStage: base.distanceInStage) else {
+            return frame(atRunDistance: distance, lateralPosition: lateralPosition)
+        }
+        let meters = lateralPosition * cross.roadHalfWidth
+        let side = splitSide ?? (abs(meters - cross.leftCenter) < abs(meters - cross.rightCenter) ? -1 : 1)
+        let center = side < 0 ? cross.leftCenter : cross.rightCenter
+        let halfWidth = side < 0 ? cross.leftHalfWidth : cross.rightHalfWidth
+        return branchFrame(atRunDistance: distance, side: side, lateralPosition: (meters - center) / halfWidth)
+    }
+
+    func branchFrame(atRunDistance distance: Double, side: Int, lateralPosition: Double = 0) -> TrackWorldFrame3D {
+        let base = frame(atRunDistance: distance)
+        guard let path = layout.splitPath(stageID: base.stageID, distanceInStage: base.distanceInStage, side: side) else { return base }
+        let heading = base.heading + Float(path.headingOffset)
+        let branchRight = SCNVector3(cos(heading), 0, sin(heading))
+        let position = base.position + base.right * Float(path.center)
+            + SCNVector3(0, Float(path.elevationOffset), 0)
+            + branchRight * Float(lateralPosition * path.halfWidth)
+        return TrackWorldFrame3D(runDistance: distance, stageID: base.stageID, distanceInStage: base.distanceInStage,
+                                 position: position, heading: heading,
+                                 pitch: Float(atan(layout.sample(stageID: base.stageID, distanceInStage: base.distanceInStage).grade + path.gradeOffset)),
+                                 roadHalfWidth: Float(path.halfWidth), shoulderWidth: base.shoulderWidth,
+                                 laneCount: side < 0 ? 3 : layout.split(for: base.stageID)!.narrowLaneCount,
+                                 laneWidth: base.laneWidth)
+    }
+
     func runDistance(stageID: String, distanceInStage: Double) -> Double? {
         placements.first { $0.stage.id == stageID }.map { placement in
             placement.startRunDistance + distanceInStage.clamped(to: 0...placement.stage.distance)

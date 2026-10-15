@@ -371,7 +371,8 @@ final class RaceScene3D: NSObject {
         var target = 0.0
         if let cross = simulation.trackLayout.splitCrossSection(stageID: state.currentStageID,
                                                                 distanceInStage: state.currentStageDistance + 35) {
-            target = cross.leftCenter / cross.roadHalfWidth
+            let useRight = ProcessInfo.processInfo.arguments.contains("UITestSplitRight")
+            target = (useRight ? cross.rightCenter : cross.leftCenter) / cross.roadHalfWidth
         }
         let threats = state.traffic.map { ($0.distance, $0.lateralPosition) }
             + state.obstacles.filter { !$0.isHit && abs($0.lateralPosition) < 1 }.map { ($0.distance, $0.lateralPosition) }
@@ -380,9 +381,23 @@ final class RaceScene3D: NSObject {
             .min(by: { $0.0 < $1.0 }) {
             target = threat.1 > 0 ? -0.5 : 0.5
         }
-        let steering = min(max((target - state.lateralPosition) * 2.2, -1), 1)
+        let sample = simulation.trackLayout.drivingSample(stageID: state.currentStageID,
+                                                          distanceInStage: state.currentStageDistance,
+                                                          splitSide: state.splitRoadSide)
+        let speedRatio = min(state.speed / configuration.maximumSpeed, 1)
+        let authority = configuration.driving.steeringAtRestRatio + (1 - configuration.driving.steeringAtRestRatio) * speedRatio
+        var lateralError = target - state.lateralPosition
+        if let side = state.splitRoadSide,
+           let path = simulation.trackLayout.splitPath(stageID: state.currentStageID, distanceInStage: state.currentStageDistance, side: side) {
+            let cross = simulation.trackLayout.sample(stageID: state.currentStageID, distanceInStage: state.currentStageDistance)
+            lateralError = -(state.lateralPosition * cross.roadHalfWidth - path.center) / path.halfWidth
+        }
+        let counterSteer = sample.curvature * state.speed * state.speed * configuration.driving.centrifugalForce
+            / max(0.1, configuration.steeringRate * authority)
+        let steering = min(max(counterSteer + lateralError * 2.2, -1), 1)
         return PlayerCommand(steering: steering, throttle: 1, brake: 0, isBoosting: state.boostCharge > 1.5)
     }
+
 #endif
 
     private func publishHUDIfNeeded(currentTime: TimeInterval) {
@@ -420,7 +435,7 @@ final class RaceScene3D: NSObject {
         let speed = finishCruise.isActive
             ? finishCruise.presentationSpeed
             : interpolate(snapshot.previous.speed, snapshot.current.speed, alpha)
-        let carFrame = mapper.frame(atRunDistance: distance, lateralPosition: lateral)
+        let carFrame = mapper.actorFrame(atRunDistance: distance, lateralPosition: lateral, splitSide: state.splitRoadSide)
         carNode.position = carFrame.position
         carNode.eulerAngles = SCNVector3(
             carFrame.pitch,
@@ -588,7 +603,7 @@ final class RaceScene3D: NSObject {
             let old = previous[current.id] ?? current
             let distance = interpolate(old.distance, current.distance, alpha)
             let lateral = interpolate(old.lateralPosition, current.lateralPosition, alpha)
-            let frame = mapper.frame(atRunDistance: distance, lateralPosition: lateral)
+            let frame = mapper.actorFrame(atRunDistance: distance, lateralPosition: lateral)
             node.position = frame.position
             node.eulerAngles = SCNVector3(frame.pitch, frame.yaw - Float(current.steering) * 0.08, 0)
             node.update(steering: current.steering, speed: current.speed, isBoosting: false, isBraking: current.isBraking, slipAngle: 0, time: CACurrentMediaTime())
@@ -614,7 +629,7 @@ final class RaceScene3D: NSObject {
             let old = previous[current.id] ?? current
             let distance = interpolate(old.distance, current.distance, alpha)
             let lateral = interpolate(old.lateralPosition, current.lateralPosition, alpha)
-            let frame = mapper.frame(atRunDistance: distance, lateralPosition: lateral)
+            let frame = mapper.actorFrame(atRunDistance: distance, lateralPosition: lateral)
             node.position = frame.position
             node.eulerAngles = SCNVector3(frame.pitch, frame.yaw, 0)
             node.opacity = current.isHit ? 0.22 : 1
@@ -896,7 +911,7 @@ final class RoadsidePropStreamer3D {
             node = made
         }
         activeKeys.insert(key)
-        let frame = mapper.frame(atRunDistance: distance, lateralPosition: lateral)
+        let frame = mapper.actorFrame(atRunDistance: distance, lateralPosition: lateral)
         node.position = frame.position
         node.eulerAngles = SCNVector3(frame.pitch, frame.yaw + yawOffset, 0)
         node.opacity = 1

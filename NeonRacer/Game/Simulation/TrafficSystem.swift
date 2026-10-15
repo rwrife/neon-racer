@@ -647,7 +647,7 @@ struct TrafficSystem: Equatable, Sendable {
         case .hauler: meters = 1.28
         case .rival: meters = 1.02
         }
-        return (meters / max(roadHalfWidth, 1)).clamped(to: 0.08...0.34)
+        return (meters / max(roadHalfWidth, 1)).clamped(to: 0.01...0.34)
     }
 
     private func obstacleHalfWidth(for kind: TrackObstacleKind, roadHalfWidth: Double) -> Double {

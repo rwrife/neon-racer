@@ -186,12 +186,16 @@ final class NeonTerrain3D {
     ) -> [TerrainVertex] {
         let frame = mapper.frame(atRunDistance: distance)
         let absoluteCenter = frame.position + mapper.originWorldPosition
+        let cross = mapper.layout.splitCrossSection(stageID: frame.stageID, distanceInStage: frame.distanceInStage)
+        // The terrain floor must clear the lower branch too, rather than burying
+        // a descending road under the original centerline's flat apron.
+        let roadFloor = frame.position.y + Float(min(cross?.leftElevation ?? 0, cross?.rightElevation ?? 0))
         let apron = max(frame.roadHalfWidth + frame.shoulderWidth + 5.0, frame.roadHalfWidth * 1.72 + 2.0)
         return lateralOffsets.map { lateral in
             let basePosition = frame.position + frame.right * lateral
             let absolutePosition = absoluteCenter + frame.right * lateral
             let y = height(
-                roadY: frame.position.y,
+                roadY: roadFloor,
                 absoluteX: absolutePosition.x,
                 absoluteZ: absolutePosition.z,
                 runDistance: Float(distance),
