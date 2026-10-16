@@ -1,12 +1,12 @@
 # App Store metadata and release notes
 
-The version 1.0 listing and screenshots live in [`AppStoreAssets`](../../AppStoreAssets/README.md). Use that listing as the source for App Store Connect.
+The version 1.1 listing and screenshots live in [`AppStoreAssets`](../../AppStoreAssets/README.md). Use that listing as the source for App Store Connect.
 
 All copy is draft text pending owner, product, IP, privacy, and App Review validation.
 
 ## Listing
 
-- **Name:** CyberRun
+- **Name:** Neon Racer
 - **Subtitle (30 characters max):** Neon arcade racing
 - **Primary category:** Games
 - **Secondary category:** Racing
@@ -15,7 +15,7 @@ All copy is draft text pending owner, product, IP, privacy, and App Review valid
 
 ### Description
 
-See the final version 1.0 description in [`AppStoreAssets/listing.md`](../../AppStoreAssets/listing.md).
+See the final version 1.1 description in [`AppStoreAssets/listing.md`](../../AppStoreAssets/listing.md).
 
 **Features**
 
@@ -43,7 +43,7 @@ Do not submit placeholder values.
 
 Complete Apple's current questionnaire against the final content. Expected current inputs are no realistic violence, fear, sexual content, profanity, gambling, contests, alcohol/drugs, medical content, user-generated content, messaging, unrestricted web access, advertising, loot boxes, or external purchases. Reassess flashing visuals, collision effects, and any future story/audio content before submission.
 
-- iPhone and iPad; landscape left and right.
+- iPhone only; landscape left and right.
 - Internet connection and account are not required.
 - Game controller: do not claim support until controller navigation and gameplay pass TestFlight testing.
 - Accessibility: do not claim App Store accessibility features until each claimed feature is tested in the release build.
@@ -54,7 +54,7 @@ Store metadata should say touch input is supported. Controller support remains u
 
 ## Screenshot and preview plan
 
-The current 6.5-inch iPhone and 13-inch iPad capture sets are in [`AppStoreAssets/screenshots`](../../AppStoreAssets/screenshots). Review the final signed build on both devices before upload.
+The existing 6.5-inch iPhone draft capture set is in [`AppStoreAssets/screenshots`](../../AppStoreAssets/screenshots). Its title capture shows the old CyberRun wordmark; recapture Neon Racer title and gameplay on the final signed iPhone-only build before upload. Do not upload the old title capture.
 
 Further optional captures could show:
 

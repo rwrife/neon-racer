@@ -313,7 +313,7 @@ private struct TitleArtBackground: View {
         }
         .ignoresSafeArea()
         .accessibilityElement()
-        .accessibilityLabel("CyberRun title art")
+        .accessibilityLabel("Neon Racer title art")
         .accessibilityAddTraits([.isImage, .isHeader])
     }
 }
