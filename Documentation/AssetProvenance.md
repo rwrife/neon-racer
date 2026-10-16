@@ -33,7 +33,7 @@ For generated assets, record the generator/model and version, prompt or source i
 
 ## Product IP checklist
 
-- [ ] Search “CyberRun” and proposed subtitle in relevant trademark classes, app stores, game stores, domains, and social channels; owner/legal reviewer approves the name.
+- [ ] Search “Neon Racer” and proposed subtitle in relevant trademark classes, app stores, game stores, domains, and social channels; owner/legal reviewer approves the name.
 - [ ] App icon, logo, typography, UI, vehicles, routes, teams, sponsors, signage, and liveries are original and not confusingly similar to real products or racing properties.
 - [ ] Fictional vehicle silhouettes do not reproduce distinctive protected designs.
 - [ ] Route names/layouts do not imply affiliation with real venues, roads, events, cities, teams, or sponsors.
