@@ -1,21 +1,35 @@
-# CyberRun performance budgets
+# Neon Racer performance budgets
 
-CyberRun targets a sustained 60 FPS race on the minimum supported class: an A17 Pro-class iPhone with 8 GB RAM or better, running the current iOS deployment target. Simulator runs are useful for regressions, but final sign-off must be on a physical device because Simulator GPU, thermal, and MSAA behavior differ.
+Neon Racer targets a sustained 60 FPS race on the minimum **performance sign-off**
+class: an A17 Pro-class iPhone with 8 GB RAM or better, running the current iOS
+deployment target. This is a performance test target, not an OS-level minimum-device
+restriction; other iPhone models on iOS 26 remain installable. Simulator runs are
+useful for regressions, but final sign-off must be on a physical device because
+Simulator GPU, thermal, and MSAA behavior differ. See the
+[profiling companion](../Documentation/Performance.md) for instrumentation steps;
+this file alone sets the numeric budgets and device class.
 
-## Budgets
+## Budgets (unmeasured pending physical-device run)
 
 | Area | Budget |
 | --- | --- |
 | Frame pacing | 16.67 ms/frame target, no sustained periods below 55 FPS in a full race |
 | CPU simulation | 2 ms/frame for simulation, AI, collision, scoring, and HUD update batching |
 | Render submission | 5 ms/frame CPU side for road projection, streamer updates, traffic, particles, and effects |
-| GPU | 8 ms/frame for SceneKit render, bloom/post, particles, skyline, and translucent grid |
+| GPU | 8 ms/frame for native render, bloom/post, particles, skyline, and translucent grid |
 | Nodes/draw-ish count | Keep active recursive nodes under 650 and geometry/draw-ish nodes under 420 in medium tier |
 | Road/props | 14 road chunks; streamed props/traffic only inside the tier draw distance |
 | Memory | App resident memory under 650 MB after loading; no sustained growth over three race/retry loops |
 | Texture/transient allocations | Avoid per-frame texture/image allocation; transient allocations under 5 MB/s during races |
 | Load time | Title-to-race interactive in under 3 seconds on the minimum device |
 | Thermal | No escalation beyond `.fair` during a representative Release run; `.serious` or `.critical` must force low tier cosmetics |
+
+Record actual sign-off baselines in the table below. Do not mark performance
+sign-off complete while any entry is `pending`.
+
+| Build / commit | Device / OS | Scenario | FPS | CPU sim | CPU render | GPU | Peak memory | Thermal | Result |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| pending | A17 Pro-class / iOS 26 | Full race + 2 retries | pending | pending | pending | pending | pending | pending | pending |
 
 ## Render quality tiers
 
