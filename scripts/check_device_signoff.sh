@@ -13,8 +13,8 @@
 #   * each Measured cell is a plausible measurement for that metric: a
 #     decimal with the metric's exact unit inside its budget bound, or a
 #     value from the allowed verdict vocabulary for word-valued rows;
-#   * the record contains no code fences (the table must be rendered
-#     content, not fenced text).
+#   * the record contains no code fences or measurement rows inside HTML
+#     comments (the table must render).
 #
 # Trust model: this gate proves the RECORD is complete, consistent, and
 # dated. The authenticity of the underlying device run remains a human
@@ -109,8 +109,8 @@ BEGIN {
     add("CPU simulation p95", "<= 2 ms/frame", "num", "", 2, 1, 1, "ms/frame")
     add("Render submission p95", "<= 5 ms/frame", "num", "", 5, 1, 1, "ms/frame")
     add("GPU p95", "<= 8 ms/frame", "num", "", 8, 1, 1, "ms/frame")
-    add("Recursive nodes (medium tier)", "<= 650", "num", "", 650, 1, 1, "")
-    add("Geometry/draw-ish nodes (medium tier)", "<= 420", "num", "", 420, 1, 1, "")
+    add("Recursive nodes (medium tier)", "< 650", "num", "", 650, 1, 0, "")
+    add("Geometry/draw-ish nodes (medium tier)", "< 420", "num", "", 420, 1, 0, "")
     add("Road chunks (medium tier)", "14", "num", 14, 14, 1, 1, "")
     add("Resident memory", "< 650 MB", "num", "", 650, 0, 0, "MB")
     add("Transient allocation", "< 5 MB/s", "num", "", 5, 0, 0, "MB/s")
@@ -133,8 +133,27 @@ function add(name, threshold, kind, lo, hi, loinc, hinc, unit) {
 }
 function trim(s) { gsub(/^[ \t]+|[ \t]+$/, "", s); return s }
 { sub(/\r$/, "") }
-/^```/ { fences++ }
+/^[ \t]*(```|~~~)/ { fences++ }
+{
+    startComment = inComment
+    rest = $0
+    while (1) {
+        if (!inComment) {
+            i = index(rest, "<!--")
+            if (!i) break
+            inComment = 1
+            rest = substr(rest, i + 4)
+        } else {
+            i = index(rest, "-->")
+            if (!i) break
+            inComment = 0
+            rest = substr(rest, i + 3)
+        }
+    }
+}
 /^[ \t]*\|/ {
+    if (startComment) { print "measurement table inside HTML comment"; bad = 1 }
+    if ($0 ~ /^(    |\t)/) { print "indented table row would render as a code block"; bad = 1 }
     f2 = trim($2); f3 = trim($3); f4 = trim($4); f5 = trim($5)
     if (f2 == "Metric" && f3 == "Threshold" && f4 == "Measured" && f5 == "Result") {
         header++

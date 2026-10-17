@@ -50,6 +50,10 @@ class ReleaseIdentityTests(unittest.TestCase):
                      "docs/app-store/metadata.md"):
             self.assertNotIn("version 1.0", (ROOT / name).read_text())
 
+    def test_signoff_checklist_archive_version_matches_project(self):
+        checklist = (ROOT / "docs/performance-device-signoff.md").read_text()
+        self.assertEqual(re.findall(r'^VERSION=(.+?)\s*(?:#.*)?$', checklist, re.M), ["1.1"])
+
     def test_one_authoritative_performance_contract(self):
         performance = (ROOT / "docs/performance.md").read_text()
         pointer = (ROOT / "Documentation/Performance.md").read_text()

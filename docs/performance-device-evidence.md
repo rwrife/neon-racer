@@ -25,8 +25,8 @@ Procedure and thresholds: see [Performance device sign-off](performance-device-s
 | CPU simulation p95 | <= 2 ms/frame | PENDING | PENDING |
 | Render submission p95 | <= 5 ms/frame | PENDING | PENDING |
 | GPU p95 | <= 8 ms/frame | PENDING | PENDING |
-| Recursive nodes (medium tier) | <= 650 | PENDING | PENDING |
-| Geometry/draw-ish nodes (medium tier) | <= 420 | PENDING | PENDING |
+| Recursive nodes (medium tier) | < 650 | PENDING | PENDING |
+| Geometry/draw-ish nodes (medium tier) | < 420 | PENDING | PENDING |
 | Road chunks (medium tier) | 14 | PENDING | PENDING |
 | Resident memory | < 650 MB | PENDING | PENDING |
 | Retry-loop memory growth | no sustained growth | PENDING | PENDING |

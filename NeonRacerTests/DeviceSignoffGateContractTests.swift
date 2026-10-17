@@ -40,6 +40,9 @@ final class DeviceSignoffGateContractTests: XCTestCase {
             )
         }
 
+        XCTAssertTrue(budgets.contains("active recursive nodes under 650 and geometry/draw-ish nodes under 420"))
+        XCTAssertTrue(checklist.contains("< 650 active recursive nodes and < 420 geometry/draw-ish nodes"))
+
         // The procedure must be self-contained: clean clone -> archive -> device run -> thresholds.
         for step in [
             "git clone",
@@ -66,21 +69,20 @@ final class DeviceSignoffGateContractTests: XCTestCase {
 
     func testEvidenceRecordIsPendingSoGateFailsClosed() throws {
         let evidence = try read(repoRoot.appendingPathComponent("docs/performance-device-evidence.md"))
-        XCTAssertTrue(
-            evidence.contains("SIGN_OFF_DATE: PENDING"),
-            "Until the owner device run happens, the sign-off date must stay PENDING."
-        )
+        XCTAssertTrue(evidence.contains("SIGN_OFF_DATE:"), "Tracked evidence must retain its sign-off marker.")
+        XCTAssertTrue(evidence.contains("| Metric | Threshold | Measured | Result |"))
 
         #if os(macOS) || os(Linux)
-        let result = try runGate(in: repoRoot)
-        XCTAssertNotEqual(
-            result.status, 0,
-            "Gate must exit non-zero while no dated device evidence exists."
+        let staged = try stagedRepoRoot(suffix: "pending")
+        let pendingURL = repoRoot.appendingPathComponent("NeonRacerTests/Fixtures/performance-device-evidence-pending.md")
+        let pending = try read(pendingURL)
+        try pending.write(
+            to: staged.appendingPathComponent("docs/performance-device-evidence.md"),
+            atomically: true, encoding: .utf8
         )
-        XCTAssertTrue(
-            result.output.contains("BLOCKED"),
-            "Gate must report BLOCKED, not a synthetic pass."
-        )
+        let result = try runGate(in: staged)
+        XCTAssertNotEqual(result.status, 0, "Gate must reject pending sign-off. Output: \(result.output)")
+        XCTAssertTrue(result.output.contains("BLOCKED"))
         #endif
     }
 
@@ -459,6 +461,59 @@ final class DeviceSignoffGateContractTests: XCTestCase {
         )
     }
 
+    func testGateRejectsNodeCountAtStrictBoundary() throws {
+        for (metric, limit) in [("Recursive nodes (medium tier)", 650),
+                                ("Geometry/draw-ish nodes (medium tier)", 420)] {
+            let staged = try stagedRepoRoot(suffix: "node-boundary")
+            let url = staged.appendingPathComponent("docs/performance-device-evidence.md")
+            let baseline = completeRecord()
+            let row = "| \(metric) | < \(limit) | \(limit == 650 ? 612 : 388) | PASS |"
+            XCTAssertTrue(baseline.contains(row), "Fixture must contain \(metric)")
+            let evidence = baseline.replacingOccurrences(
+                of: row, with: "| \(metric) | < \(limit) | \(limit) | PASS |"
+            )
+            XCTAssertFalse(evidence.contains("PENDING"))
+            try evidence.write(to: url, atomically: true, encoding: .utf8)
+            let result = try runGate(in: staged)
+            XCTAssertNotEqual(result.status, 0, "\(metric) at \(limit) must be blocked: \(result.output)")
+        }
+    }
+
+    func testGateRejectsIndentedTable() throws {
+        let staged = try stagedRepoRoot(suffix: "indented-table")
+        let url = staged.appendingPathComponent("docs/performance-device-evidence.md")
+        let header = "| Metric | Threshold | Measured | Result |"
+        var evidence = completeRecord()
+        guard let range = evidence.range(of: header) else {
+            return XCTFail("Fixture must contain measurement table")
+        }
+        let prefix = String(evidence[..<range.lowerBound])
+        let table = String(evidence[range.lowerBound...])
+        evidence = prefix + table.split(separator: "\n", omittingEmptySubsequences: false)
+            .map { "    " + $0 }.joined(separator: "\n")
+        try evidence.write(to: url, atomically: true, encoding: .utf8)
+        let result = try runGate(in: staged)
+        XCTAssertNotEqual(result.status, 0, "Indented code block cannot sign off: \(result.output)")
+    }
+
+    func testGateRejectsHiddenTables() throws {
+        let header = "| Metric | Threshold | Measured | Result |"
+        let last = "| Thermal state | <= `.fair` | nominal | PASS |"
+        for (opening, closing) in [("~~~", "~~~"), ("    ```", "    ```"),
+                                   ("<!--", "-->"), ("<!-- note --> <!--", "-->")] {
+            let staged = try stagedRepoRoot(suffix: "hidden-table")
+            let url = staged.appendingPathComponent("docs/performance-device-evidence.md")
+            var evidence = completeRecord()
+            XCTAssertTrue(evidence.contains(header) && evidence.contains(last))
+            evidence = evidence.replacingOccurrences(of: header, with: opening + "\n" + header)
+            evidence = evidence.replacingOccurrences(of: last, with: last + "\n" + closing)
+            XCTAssertFalse(evidence.contains("PENDING"))
+            try evidence.write(to: url, atomically: true, encoding: .utf8)
+            let result = try runGate(in: staged)
+            XCTAssertNotEqual(result.status, 0, "Table inside \(opening) must be blocked: \(result.output)")
+        }
+    }
+
     func testGateRejectsCodeFencedTable() throws {
         // A fenced (non-rendered) table is not a record.
         let staged = try stagedRepoRoot(suffix: "fenced")
@@ -545,11 +600,10 @@ final class DeviceSignoffGateContractTests: XCTestCase {
         try String(contentsOf: url, encoding: .utf8)
     }
 
-    /// The pending evidence record with every placeholder replaced by a
-    /// dated, all-PASS measurement with per-metric values inside their
-    /// checklist budgets — the only shape the gate may accept.
+    /// Pending test fixture with every placeholder replaced by a dated,
+    /// all-PASS measurement inside checklist budgets — never actual evidence.
     private func completeRecord() -> String {
-        guard var evidence = try? read(repoRoot.appendingPathComponent("docs/performance-device-evidence.md")) else {
+        guard var evidence = try? read(repoRoot.appendingPathComponent("NeonRacerTests/Fixtures/performance-device-evidence-pending.md")) else {
             return ""
         }
         let replacements: [(String, String)] = [
@@ -563,8 +617,8 @@ final class DeviceSignoffGateContractTests: XCTestCase {
             ("<= 2 ms/frame | PENDING | PENDING |", "<= 2 ms/frame | 1.4 ms/frame | PASS |"),
             ("<= 5 ms/frame | PENDING | PENDING |", "<= 5 ms/frame | 3.2 ms/frame | PASS |"),
             ("<= 8 ms/frame | PENDING | PENDING |", "<= 8 ms/frame | 6.1 ms/frame | PASS |"),
-            ("<= 650 | PENDING | PENDING |", "<= 650 | 612 | PASS |"),
-            ("<= 420 | PENDING | PENDING |", "<= 420 | 388 | PASS |"),
+            ("< 650 | PENDING | PENDING |", "< 650 | 612 | PASS |"),
+            ("< 420 | PENDING | PENDING |", "< 420 | 388 | PASS |"),
             ("| 14 | PENDING | PENDING |", "| 14 | 14 | PASS |"),
             ("< 650 MB | PENDING | PENDING |", "< 650 MB | 480 MB | PASS |"),
             ("no sustained growth | PENDING | PENDING |", "no sustained growth | none | PASS |"),

@@ -28,7 +28,7 @@ per-frame time.
 | CPU simulation | <= 2 ms/frame for simulation, AI, collision, scoring, and HUD batching |
 | Render submission | <= 5 ms/frame CPU side (road projection, streamer, traffic, particles, effects) |
 | GPU | <= 8 ms/frame (SceneKit render, bloom/post, particles, skyline, grid) |
-| Scene complexity | <= 650 active recursive nodes and <= 420 geometry/draw-ish nodes in medium tier |
+| Scene complexity | < 650 active recursive nodes and < 420 geometry/draw-ish nodes in medium tier |
 | Road/props | 14 road chunks; streamed props/traffic only inside the tier draw distance |
 | Memory | < 650 MB resident after load; no sustained growth over three race/retry loops |
 | Transient allocation | < 5 MB/s during races; no per-frame texture/image allocation |
@@ -47,7 +47,7 @@ cd neon-racer
 git status --short            # must print nothing
 export DEVELOPER_DIR=/Applications/Xcode_26.6.app/Contents/Developer
 sudo xcode-select -s "$DEVELOPER_DIR"
-VERSION=1.0
+VERSION=1.1
 BUILD_NUMBER=42               # next monotonic build number
 xcodebuild archive \
   -project NeonRacer.xcodeproj \
