@@ -933,23 +933,16 @@ private struct GarageVehiclePalette {
     let warmAccent: UIColor
 
     init(id: String) {
-        switch id {
-        case "solar-flare":
-            paint = UIColor(red: 1.00, green: 0.29, blue: 0.04, alpha: 1)
-            paintEmission = UIColor(red: 0.24, green: 0.08, blue: 0.00, alpha: 1)
-            accent = UIColor(red: 1.00, green: 0.89, blue: 0.37, alpha: 1)
-            warmAccent = UIColor(red: 1.00, green: 0.78, blue: 0.18, alpha: 1)
-        case "ion-storm":
-            paint = UIColor(red: 0.36, green: 0.23, blue: 0.95, alpha: 1)
-            paintEmission = UIColor(red: 0.08, green: 0.04, blue: 0.28, alpha: 1)
-            accent = UIColor(red: 0.20, green: 0.83, blue: 0.60, alpha: 1)
-            warmAccent = UIColor(red: 1.00, green: 0.26, blue: 0.58, alpha: 1)
-        default:
-            paint = UIColor(red: 0.816, green: 0.063, blue: 0.165, alpha: 1)
-            paintEmission = UIColor.black
-            accent = UIColor(red: 0.13, green: 0.83, blue: 0.93, alpha: 1)
-            warmAccent = UIColor(red: 1.00, green: 0.23, blue: 0.54, alpha: 1)
+        let palette = ProgressionCatalog.palette(id: id)
+        func color(_ hex: UInt32) -> UIColor {
+            UIColor(red: CGFloat((hex >> 16) & 0xff) / 255,
+                    green: CGFloat((hex >> 8) & 0xff) / 255,
+                    blue: CGFloat(hex & 0xff) / 255, alpha: 1)
         }
+        paint = color(palette.primaryHex)
+        paintEmission = paint
+        accent = color(palette.secondaryHex)
+        warmAccent = paint
     }
 }
 

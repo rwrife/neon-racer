@@ -26,6 +26,7 @@ final class RaceScene3D: NSObject {
     private let mapper: TrackWorldMapper3D
     private let terrain = NeonTerrain3D()
     private let roadBuilder = RoadMeshBuilder3D()
+    private let tunnelBuilder = TunnelMeshBuilder3D()
     private let markerBuilder = TrackMarkers3D()
     private let chaseCamera = ChaseCamera3D()
     private let environment: NeonEnvironment3D
@@ -68,7 +69,8 @@ final class RaceScene3D: NSObject {
         configuration: RaceConfiguration = .standard,
         routeGraph: RouteGraph? = nil,
         routeName: String = "Neon Causeway",
-        garagePalette: GaragePaletteDefinition = ProgressionCatalog.palettes[0]
+        garagePalette: GaragePaletteDefinition = ProgressionCatalog.palettes[0],
+        selectedVehicleID: String = "prototype-zero"
     ) {
         self.init(
             quality: .environmentDefault,
@@ -76,7 +78,8 @@ final class RaceScene3D: NSObject {
             configuration: configuration,
             routeGraph: routeGraph,
             routeName: routeName,
-            garagePalette: garagePalette
+            garagePalette: garagePalette,
+            selectedVehicleID: selectedVehicleID
         )
     }
 
@@ -86,7 +89,8 @@ final class RaceScene3D: NSObject {
         configuration: RaceConfiguration = .standard,
         routeGraph: RouteGraph? = nil,
         routeName: String = "Neon Causeway",
-        garagePalette: GaragePaletteDefinition = ProgressionCatalog.palettes[0]
+        garagePalette: GaragePaletteDefinition = ProgressionCatalog.palettes[0],
+        selectedVehicleID: String = "prototype-zero"
     ) {
         let selectedRenderQuality = if renderQualityPreference == .automatic,
                                        ProcessInfo.processInfo.environment["NEON_RACER_QUALITY_TIER"] != nil {
@@ -103,7 +107,7 @@ final class RaceScene3D: NSObject {
         self.simulation = RaceSimulation(configuration: configuration, routeGraph: routeGraph)
         self.mapper = TrackWorldMapper3D(layout: simulation.trackLayout)
         self.environment = NeonEnvironment3D(quality: quality.tier)
-        self.carNode = VehicleModels3D.makeHeroCar(vehicleID: "hero", paletteID: garagePalette.id)
+        self.carNode = VehicleModels3D.makeHeroCar(vehicleID: selectedVehicleID, paletteID: garagePalette.id)
         super.init()
         buildScene()
     }
@@ -265,6 +269,7 @@ final class RaceScene3D: NSObject {
         )
         scene.rootNode.addChildNode(carNode)
         scene.rootNode.addChildNode(chaseCamera.cameraNode)
+        scene.rootNode.addChildNode(tunnelBuilder.rootNode)
         environment.attach(to: scene)
         if let camera = chaseCamera.cameraNode.camera {
             effects.configure(camera: camera)
@@ -364,6 +369,11 @@ final class RaceScene3D: NSObject {
     private func debugAutoDriveCommand() -> PlayerCommand {
         let state = simulation.state
         var target = 0.0
+        if let cross = simulation.trackLayout.splitCrossSection(stageID: state.currentStageID,
+                                                                distanceInStage: state.currentStageDistance + 35) {
+            let useRight = ProcessInfo.processInfo.arguments.contains("UITestSplitRight")
+            target = (useRight ? cross.rightCenter : cross.leftCenter) / cross.roadHalfWidth
+        }
         let threats = state.traffic.map { ($0.distance, $0.lateralPosition) }
             + state.obstacles.filter { !$0.isHit && abs($0.lateralPosition) < 1 }.map { ($0.distance, $0.lateralPosition) }
         if let threat = threats
@@ -371,9 +381,23 @@ final class RaceScene3D: NSObject {
             .min(by: { $0.0 < $1.0 }) {
             target = threat.1 > 0 ? -0.5 : 0.5
         }
-        let steering = min(max((target - state.lateralPosition) * 2.2, -1), 1)
+        let sample = simulation.trackLayout.drivingSample(stageID: state.currentStageID,
+                                                          distanceInStage: state.currentStageDistance,
+                                                          splitSide: state.splitRoadSide)
+        let speedRatio = min(state.speed / configuration.maximumSpeed, 1)
+        let authority = configuration.driving.steeringAtRestRatio + (1 - configuration.driving.steeringAtRestRatio) * speedRatio
+        var lateralError = target - state.lateralPosition
+        if let side = state.splitRoadSide,
+           let path = simulation.trackLayout.splitPath(stageID: state.currentStageID, distanceInStage: state.currentStageDistance, side: side) {
+            let cross = simulation.trackLayout.sample(stageID: state.currentStageID, distanceInStage: state.currentStageDistance)
+            lateralError = -(state.lateralPosition * cross.roadHalfWidth - path.center) / path.halfWidth
+        }
+        let counterSteer = sample.curvature * state.speed * state.speed * configuration.driving.centrifugalForce
+            / max(0.1, configuration.steeringRate * authority)
+        let steering = min(max(counterSteer + lateralError * 2.2, -1), 1)
         return PlayerCommand(steering: steering, throttle: 1, brake: 0, isBoosting: state.boostCharge > 1.5)
     }
+
 #endif
 
     private func publishHUDIfNeeded(currentTime: TimeInterval) {
@@ -411,7 +435,7 @@ final class RaceScene3D: NSObject {
         let speed = finishCruise.isActive
             ? finishCruise.presentationSpeed
             : interpolate(snapshot.previous.speed, snapshot.current.speed, alpha)
-        let carFrame = mapper.frame(atRunDistance: distance, lateralPosition: lateral)
+        let carFrame = mapper.actorFrame(atRunDistance: distance, lateralPosition: lateral, splitSide: state.splitRoadSide)
         carNode.position = carFrame.position
         carNode.eulerAngles = SCNVector3(
             carFrame.pitch,
@@ -428,6 +452,7 @@ final class RaceScene3D: NSObject {
             time: currentTime
         )
         roadBuilder.update(playerDistance: distance, mapper: mapper)
+        tunnelBuilder.update(playerDistance: distance, mapper: mapper)
         terrain.update(playerDistance: distance, mapper: mapper, renderQuality: renderQuality)
         roadsideProps.update(
             playerDistance: distance,
@@ -452,7 +477,8 @@ final class RaceScene3D: NSObject {
             isBoosting: state.isBoostActive,
             steering: command.steering,
             deltaTime: frameDelta,
-            time: currentTime
+            time: currentTime,
+            tunnelBlend: mapper.layout.tunnel(for: carFrame.stageID)?.cameraBlend(at: carFrame.distanceInStage) ?? 0
         )
         environment.groundLevel = carFrame.position.y
         environment.update(
@@ -577,7 +603,7 @@ final class RaceScene3D: NSObject {
             let old = previous[current.id] ?? current
             let distance = interpolate(old.distance, current.distance, alpha)
             let lateral = interpolate(old.lateralPosition, current.lateralPosition, alpha)
-            let frame = mapper.frame(atRunDistance: distance, lateralPosition: lateral)
+            let frame = mapper.actorFrame(atRunDistance: distance, lateralPosition: lateral)
             node.position = frame.position
             node.eulerAngles = SCNVector3(frame.pitch, frame.yaw - Float(current.steering) * 0.08, 0)
             node.update(steering: current.steering, speed: current.speed, isBoosting: false, isBraking: current.isBraking, slipAngle: 0, time: CACurrentMediaTime())
@@ -603,7 +629,7 @@ final class RaceScene3D: NSObject {
             let old = previous[current.id] ?? current
             let distance = interpolate(old.distance, current.distance, alpha)
             let lateral = interpolate(old.lateralPosition, current.lateralPosition, alpha)
-            let frame = mapper.frame(atRunDistance: distance, lateralPosition: lateral)
+            let frame = mapper.actorFrame(atRunDistance: distance, lateralPosition: lateral)
             node.position = frame.position
             node.eulerAngles = SCNVector3(frame.pitch, frame.yaw, 0)
             node.opacity = current.isHit ? 0.22 : 1
@@ -814,6 +840,8 @@ final class RoadsidePropStreamer3D {
                 let seed = Self.seed(environmentID: themeID, index: index)
                 let stationDistance = Double(index) * spacing + Double(seed % 17) * 0.73
                 guard stationDistance >= visibleStart, stationDistance < visibleEnd else { continue }
+                if let tunnel = mapper.layout.tunnel(for: placement.stage.id),
+                   tunnel.contains(stationDistance - placement.startRunDistance) { continue }
                 let wantsBillboard = abs(index) <= 6 || index.isMultiple(of: 4)
                 let selectableKinds = wantsBillboard && !billboardKinds.isEmpty ? billboardKinds : kinds
                 let kind = selectableKinds[Int(seed % UInt64(selectableKinds.count))]
@@ -883,7 +911,7 @@ final class RoadsidePropStreamer3D {
             node = made
         }
         activeKeys.insert(key)
-        let frame = mapper.frame(atRunDistance: distance, lateralPosition: lateral)
+        let frame = mapper.actorFrame(atRunDistance: distance, lateralPosition: lateral)
         node.position = frame.position
         node.eulerAngles = SCNVector3(frame.pitch, frame.yaw + yawOffset, 0)
         node.opacity = 1

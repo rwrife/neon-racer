@@ -7,6 +7,48 @@ import UIKit
 @MainActor
 struct InputServiceCommandTests {
     @Test
+    func touchBoostAloneAcceleratesAndReleasesCleanly() {
+        let service = InputService()
+        service.setTouchSteering(-0.5)
+        service.setTouchAction(.boost, isPressed: true)
+        #expect(service.currentCommand.throttle == 1)
+        #expect(service.currentCommand.isBoosting)
+        #expect(service.currentCommand.steering == -0.5)
+
+        service.setTouchAction(.boost, isPressed: false)
+        #expect(service.currentCommand.throttle == 0)
+        #expect(!service.currentCommand.isBoosting)
+    }
+
+    @Test(arguments: [PlayerAction.boost, .throttle])
+    func releasingOneTouchButtonKeepsTheOtherAccelerating(released: PlayerAction) {
+        let service = InputService()
+        service.setTouchAction(.throttle, isPressed: true)
+        service.setTouchAction(.boost, isPressed: true)
+        service.setTouchAction(released, isPressed: false)
+        #expect(service.currentCommand.throttle == 1)
+        #expect(service.currentCommand.isBoosting == (released == .throttle))
+
+        service.setTouchAction(.throttle, isPressed: false)
+        service.setTouchAction(.boost, isPressed: false)
+        #expect(service.currentCommand == .idle)
+    }
+
+    @Test
+    func hardwareBoostKeepsIndependentThrottleAndResetClearsTouchBoost() {
+        let service = InputService()
+        service.simulateKeyboard(.space, isPressed: true)
+        #expect(service.currentCommand.throttle == 0)
+        service.resetDrivingState()
+        service.simulateController(throttle: 0, isBoosting: true)
+        #expect(service.currentCommand.throttle == 0)
+        service.resetDrivingState()
+        service.setTouchAction(.boost, isPressed: true)
+        service.resetDrivingState()
+        #expect(service.currentCommand == .idle)
+    }
+
+    @Test
     func touchKeyboardAndControllerNormalizeDigitalDrivingCommandsEquivalently() {
         let service = InputService()
 

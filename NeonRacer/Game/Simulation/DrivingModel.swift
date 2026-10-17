@@ -36,11 +36,7 @@ struct DrivingModel: Sendable {
         }
 
         let driving = configuration.driving
-        let shoulderFraction = trackSample.roadHalfWidth > 0
-            ? max(0, trackSample.shoulderWidth / trackSample.roadHalfWidth)
-            : 0
-        let offRoadThreshold = 1 + shoulderFraction
-        let initialOffRoad = abs(vehicle.roadPosition.lateralOffset) > offRoadThreshold
+        let initialOffRoad = trackSample.isOffRoad(lateralPosition: vehicle.roadPosition.lateralOffset)
 
         let throttle = command.throttle.finiteOrZero.clamped(to: 0...1)
         let brake = command.brake.finiteOrZero.clamped(to: 0...1)
@@ -105,7 +101,7 @@ struct DrivingModel: Sendable {
             * deltaTime
         lateral += steeringDelta * deltaTime + centrifugalDelta
 
-        var finalOffRoad = abs(lateral) > offRoadThreshold
+        var finalOffRoad = trackSample.isOffRoad(lateralPosition: lateral)
         if finalOffRoad {
             let offRoadSpeedLimit = configuration.maximumSpeed
                 * driving.offRoadSpeedLimitRatio
@@ -116,7 +112,7 @@ struct DrivingModel: Sendable {
         if abs(lateral) > lateralLimit {
             lateral = lateral < 0 ? -lateralLimit : lateralLimit
             speed = max(0, speed - driving.wallSpeedLossPerSecond * deltaTime)
-            finalOffRoad = abs(lateral) > offRoadThreshold
+            finalOffRoad = trackSample.isOffRoad(lateralPosition: lateral)
         }
 
         if driftUpdate.isDrifting {

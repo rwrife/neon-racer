@@ -95,6 +95,26 @@ final class TrackWorldMapper3D {
             )
         }
 
+        // Extend the launch road behind the car instead of collapsing negative
+        // distances onto the first sample (which produces degenerate road chunks).
+        if let first = centerSamples.first, runDistance < first.runDistance {
+            let forward = SCNVector3(sin(first.heading), 0, -cos(first.heading))
+            let right = SCNVector3(cos(first.heading), 0, sin(first.heading))
+            let worldCenter = first.worldPosition + forward * Float(runDistance - first.runDistance)
+            return TrackWorldFrame3D(
+                runDistance: runDistance,
+                stageID: first.stageID,
+                distanceInStage: runDistance,
+                position: worldCenter - originWorldPosition + right * (Float(lateralPosition) * first.roadHalfWidth),
+                heading: first.heading,
+                pitch: 0,
+                roadHalfWidth: first.roadHalfWidth,
+                shoulderWidth: first.shoulderWidth,
+                laneCount: first.laneCount,
+                laneWidth: first.laneWidth
+            )
+        }
+
         // Past the last authored sample (e.g. the finish-line cruise), extrapolate a straight,
         // level extension of the final heading so the road keeps going to the horizon.
         if let last = centerSamples.last, runDistance > last.runDistance {
@@ -149,6 +169,36 @@ final class TrackWorldMapper3D {
         )
     }
 
+    /// Car/camera/actors use the chosen road's own tangent and elevation.
+    /// Mesh and terrain callers continue to use the common route frame.
+    func actorFrame(atRunDistance distance: Double, lateralPosition: Double, splitSide: Int? = nil) -> TrackWorldFrame3D {
+        let base = frame(atRunDistance: distance)
+        guard let cross = layout.splitCrossSection(stageID: base.stageID, distanceInStage: base.distanceInStage) else {
+            return frame(atRunDistance: distance, lateralPosition: lateralPosition)
+        }
+        let meters = lateralPosition * cross.roadHalfWidth
+        let side = splitSide ?? (abs(meters - cross.leftCenter) < abs(meters - cross.rightCenter) ? -1 : 1)
+        let center = side < 0 ? cross.leftCenter : cross.rightCenter
+        let halfWidth = side < 0 ? cross.leftHalfWidth : cross.rightHalfWidth
+        return branchFrame(atRunDistance: distance, side: side, lateralPosition: (meters - center) / halfWidth)
+    }
+
+    func branchFrame(atRunDistance distance: Double, side: Int, lateralPosition: Double = 0) -> TrackWorldFrame3D {
+        let base = frame(atRunDistance: distance)
+        guard let path = layout.splitPath(stageID: base.stageID, distanceInStage: base.distanceInStage, side: side) else { return base }
+        let heading = base.heading + Float(path.headingOffset)
+        let branchRight = SCNVector3(cos(heading), 0, sin(heading))
+        let position = base.position + base.right * Float(path.center)
+            + SCNVector3(0, Float(path.elevationOffset), 0)
+            + branchRight * Float(lateralPosition * path.halfWidth)
+        return TrackWorldFrame3D(runDistance: distance, stageID: base.stageID, distanceInStage: base.distanceInStage,
+                                 position: position, heading: heading,
+                                 pitch: Float(atan(layout.sample(stageID: base.stageID, distanceInStage: base.distanceInStage).grade + path.gradeOffset)),
+                                 roadHalfWidth: Float(path.halfWidth), shoulderWidth: base.shoulderWidth,
+                                 laneCount: side < 0 ? 3 : layout.split(for: base.stageID)!.narrowLaneCount,
+                                 laneWidth: base.laneWidth)
+    }
+
     func runDistance(stageID: String, distanceInStage: Double) -> Double? {
         placements.first { $0.stage.id == stageID }.map { placement in
             placement.startRunDistance + distanceInStage.clamped(to: 0...placement.stage.distance)
@@ -187,14 +237,13 @@ final class TrackWorldMapper3D {
             let elevationOffset = centerSamples.isEmpty ? 0 : worldPosition.y - stageStartElevation
             while distance <= placement.stage.distance + 0.001 {
                 let runDistance = placement.startRunDistance + distance
-                let profile = layout.profile(for: placement.stage.id)
                 let sample = layout.sample(stageID: placement.stage.id, distanceInStage: distance)
                 if centerSamples.isEmpty {
                     worldPosition.y = Float(sample.elevation) + elevationOffset
                 } else {
                     let delta = runDistance - previousRunDistance
                     let midDistance = max(0, distance - delta * 0.5)
-                    let curvature = profile.curvature(at: midDistance)
+                    let curvature = layout.sample(stageID: placement.stage.id, distanceInStage: midDistance).curvature
                     heading += Float(curvature * TrackSectionProfile.radiansPerMeterAtFullCurve * delta)
                     worldPosition.x += sin(heading) * Float(delta)
                     worldPosition.z -= cos(heading) * Float(delta)

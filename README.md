@@ -1,6 +1,6 @@
-# CyberRun
+# Neon Racer
 
-CyberRun is an original native iOS arcade racing game with a retro-futurist neon visual style.
+Neon Racer is an original native iOS arcade racing game with a retro-futurist neon visual style.
 
 ## Requirements
 
@@ -8,7 +8,7 @@ CyberRun is an original native iOS arcade racing game with a retro-futurist neon
 - iOS 26 or later
 - Swift 6
 
-The app supports iPhone and iPad in landscape orientation.
+The app targets iPhone only in landscape orientation. iPad is not a supported device family.
 
 CI pins Xcode 26.6 (`17F113`) and the iOS 26.5 simulator SDK on GitHub's
 `macos-26` runner rather than following the runner's changing default Xcode.
@@ -74,7 +74,9 @@ xcodebuild test \
 ```
 
 Performance budgets, quality tiers, and the physical-device Instruments procedure are
-documented in [`Documentation/Performance.md`](Documentation/Performance.md).
+documented in [`docs/performance.md`](docs/performance.md) (authoritative contract);
+profiling-workflow details live in
+[`Documentation/Performance.md`](Documentation/Performance.md).
 
 The launch route's three typed themes, fork/reconnect graph, transition contract, and
 renderer integration gaps are documented in
@@ -88,9 +90,9 @@ renderer integration gaps are documented in
 - [TestFlight smoke and rollback checklist](docs/testflight.md)
 - [App Store listing and screenshots](AppStoreAssets/README.md)
 
-The project intentionally contains no signing secrets or team identifier. Owner approval
-of the icon, public support/privacy URLs, legal-owner metadata, device testing, and
-owner-approved signing remain release gates.
+The project contains a preconfigured team identifier, but no signing secrets. Owner
+approval of the team, icon, public support/privacy URLs, legal-owner metadata,
+device testing, and signing remain release gates.
 
 ## Adding content
 

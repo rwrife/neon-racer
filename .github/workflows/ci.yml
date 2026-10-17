@@ -44,6 +44,9 @@ jobs:
           test "$(xcodebuild -version | sed -n '2s/^Build version //p')" = "$PINNED_XCODE_BUILD"
           test "$(xcrun --sdk iphonesimulator --show-sdk-version)" = "$PINNED_IOS_SIMULATOR_SDK"
 
+      - name: Verify release identity contract
+        run: python3 -m unittest -v scripts.test_release_identity
+
       - name: Swift version
         run: swift --version
 
@@ -145,14 +148,14 @@ jobs:
           set -euo pipefail
           APP=$(find "$HOME/Library/Developer/Xcode/DerivedData" -path '*Build/Products/Debug-iphonesimulator/NeonRacer.app' -print -quit)
           test -n "$APP"
-          test "$(plutil -extract CFBundleIdentifier raw "$APP/Info.plist")" = "com.infinityball.neon-racer"
-          test "$(plutil -extract CFBundleDisplayName raw "$APP/Info.plist")" = "CyberRun"
-          test "$(plutil -extract CFBundleShortVersionString raw "$APP/Info.plist")" = "1.0"
+          test "$(plutil -extract CFBundleIdentifier raw "$APP/Info.plist")" = "com.infinityball.neonracer"
+          test "$(plutil -extract CFBundleDisplayName raw "$APP/Info.plist")" = "Neon Racer"
+          test "$(plutil -extract CFBundleShortVersionString raw "$APP/Info.plist")" = "1.1"
           FAMILY=$(plutil -extract UIDeviceFamily json -o - "$APP/Info.plist")
-          test "$FAMILY" = '[1,2]'
+          test "$FAMILY" = '[1]'
           test -f "$APP/PrivacyInfo.xcprivacy"
           echo "Built bundle: $APP"
-          echo "CFBundleIdentifier: com.infinityball.neon-racer"
+          echo "CFBundleIdentifier: com.infinityball.neonracer"
           echo "UIDeviceFamily: $FAMILY"
           echo "Privacy manifest: present"
 

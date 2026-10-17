@@ -7,6 +7,48 @@ import Testing
 @testable import NeonRacer
 #endif
 
+struct StartRoadTransitionTests {
+    @Test
+    func launchRoadIsThreeLanesStraightAndLevelThroughTheStartLine() {
+        let layout = TrackLayout.initialContent()
+        let stageID = layout.routeGraph.startStageID
+        let baseElevation = layout.profile(for: stageID).elevationStart
+        for distance in stride(from: 0.0, through: TrackLayout.startGridLength, by: 1) {
+            let sample = layout.sample(stageID: stageID, distanceInStage: distance)
+            #expect(sample.laneCount == 3)
+            #expect(sample.roadHalfWidth == 6)
+            #expect(sample.curvature == 0)
+            #expect(sample.elevation == baseElevation)
+            #expect(sample.grade == 0)
+        }
+    }
+
+    @Test
+    func launchBlendHasNoStepInHeightGradeOrCurvature() {
+        let layout = TrackLayout.initialContent()
+        let stageID = layout.routeGraph.startStageID
+        let profile = layout.profile(for: stageID)
+        let end = TrackLayout.startGridLength + TrackLayout.startTransitionLength
+        for boundary in [TrackLayout.startLineDistance, TrackLayout.startGridLength, 80, end] {
+            let before = layout.sample(stageID: stageID, distanceInStage: boundary - 0.001)
+            let after = layout.sample(stageID: stageID, distanceInStage: boundary + 0.001)
+            #expect(abs(after.elevation - before.elevation) < 0.001)
+            #expect(abs(after.grade - before.grade) < 0.0001)
+            #expect(abs(after.curvature - before.curvature) < 0.0001)
+        }
+        for distance in stride(from: TrackLayout.startGridLength + 1, to: end, by: 1) {
+            let sample = layout.sample(stageID: stageID, distanceInStage: distance)
+            let before = layout.sample(stageID: stageID, distanceInStage: distance - 0.01)
+            let after = layout.sample(stageID: stageID, distanceInStage: distance + 0.01)
+            #expect(abs(sample.grade - (after.elevation - before.elevation) / 0.02) < 0.00001)
+        }
+        let merged = layout.sample(stageID: stageID, distanceInStage: end)
+        #expect(merged.elevation == profile.elevation(at: end))
+        #expect(merged.curvature == profile.curvature(at: end))
+        #expect(merged.grade == profile.grade(at: end))
+    }
+}
+
 struct FinishSequenceTests {
     @Test
     func finishedRaceBeginsAnAutomaticCruiseAtAVisibleSpeed() {
@@ -64,6 +106,24 @@ import SceneKit
 
 @MainActor
 struct FinishRoadExtensionTests {
+    @Test
+    func launchRoadExtendsBehindTheGridAndStaysContinuousWhenRebased() {
+        let layout = TrackLayout.initialContent()
+        let mapper = TrackWorldMapper3D(layout: layout)
+        var state = RaceState(currentStageID: layout.routeGraph.startStageID)
+        mapper.updateRoute(for: state)
+        let behind = mapper.frame(atRunDistance: -48)
+        let start = mapper.frame(atRunDistance: 0)
+        #expect(abs(behind.position.z - start.position.z - 48) < 0.001)
+        #expect(behind.roadHalfWidth == 6)
+        #expect(behind.laneCount == 3)
+        let before = mapper.frame(atRunDistance: 90).position + mapper.originWorldPosition
+        state.distance = 90
+        mapper.updateRoute(for: state)
+        let after = mapper.frame(atRunDistance: 90).position + mapper.originWorldPosition
+        #expect((after - before).length < 0.001)
+    }
+
     @Test
     func finishRoadExtrapolatesBeyondTheAuthoredRoute() {
         let layout = TrackLayout(routeGraph: .linearFixture(distance: 200))

@@ -8,6 +8,114 @@ import Testing
 #endif
 
 struct DrivingModelTests {
+    @Test(arguments: [1, 2])
+    func splitLaneCentersPreserveBranchSpacing(narrowLanes: Int) {
+        let cross = TrackSplitCrossSection(blend: 1, leftCenter: -50, rightCenter: 50,
+                                          leftHalfWidth: 6, rightHalfWidth: Double(narrowLanes) * 2,
+                                          narrowLaneCount: narrowLanes, leftElevation: 0, rightElevation: 0)
+        let lanes = cross.laneCenters.map { $0 * cross.roadHalfWidth }
+        #expect(lanes.count == 3 + narrowLanes)
+        for (actual, expected) in zip(lanes.prefix(3), [-54.0, -50.0, -46.0]) {
+            #expect(abs(actual - expected) < 0.000001)
+        }
+        let expectedRight = narrowLanes == 1 ? [50.0] : [48.0, 52.0]
+        for (actual, expected) in zip(lanes.suffix(narrowLanes), expectedRight) {
+            #expect(abs(actual - expected) < 0.000001)
+        }
+    }
+
+    @Test(arguments: [-1, 1])
+    func simulationChoosesAndFollowsTheSeparatePathThenRejoins(side: Int) throws {
+        let base = RaceConfiguration.standard
+        let configuration = RaceConfiguration(
+            fixedTimeStep: base.fixedTimeStep, maximumFrameDelta: base.maximumFrameDelta,
+            maximumSimulationStepsPerFrame: base.maximumSimulationStepsPerFrame,
+            acceleration: base.acceleration, braking: base.braking, drag: base.drag,
+            maximumSpeed: base.maximumSpeed, steeringRate: base.steeringRate,
+            driving: base.driving, crashPenalties: base.crashPenalties, stageLength: base.stageLength,
+            raceDuration: base.raceDuration, profile: base.profile,
+            traffic: base.traffic.withSpawningEnabled(false), boost: base.boost, scoring: base.scoring
+        )
+        let graph = RouteGraph(startStageID: "coast-solar-sweep",
+                               stages: [RouteStage(id: "coast-solar-sweep", displayName: "Split",
+                                                   environmentID: "sunset-coast", distance: 1_050,
+                                                   checkpointTimeAward: 0, branches: [])],
+                               forkDecisionDistance: 0, minimumForkDecisionTime: 0)
+        var simulation = RaceSimulation(configuration: configuration, routeGraph: graph, countdownDuration: 0)
+        var sawChoice = false
+        var offRoadFrames = 0
+        for _ in 0..<4_000 where simulation.state.distance < 1_000 {
+            let state = simulation.state
+            let layout = simulation.trackLayout
+            let sample = layout.drivingSample(stageID: state.currentStageID, distanceInStage: state.distance,
+                                              splitSide: state.splitRoadSide)
+            let target = (120...210).contains(state.distance) ? Double(side) * 0.3 : 0
+            var lateral = state.lateralPosition
+            if let choice = state.splitRoadSide,
+               let path = layout.splitPath(stageID: state.currentStageID, distanceInStage: state.distance, side: choice) {
+                let aggregate = layout.sample(stageID: state.currentStageID, distanceInStage: state.distance)
+                lateral = (lateral * aggregate.roadHalfWidth - path.center) / path.halfWidth
+                sawChoice = true
+                #expect(choice == side)
+                if state.vehicle.isOffRoad { offRoadFrames += 1 }
+            }
+            let authority = configuration.driving.steeringAtRestRatio
+                + (1 - configuration.driving.steeringAtRestRatio) * min(state.speed / configuration.maximumSpeed, 1)
+            let counter = sample.curvature * state.speed * state.speed * configuration.driving.centrifugalForce
+                / max(0.1, configuration.steeringRate * authority)
+            simulation.advance(frameDelta: 1.0 / 120, command: PlayerCommand(
+                steering: min(max(counter + (target - lateral) * 3, -1), 1), throttle: 1, brake: 0, isBoosting: false
+            ))
+        }
+        #expect(sawChoice)
+        #expect(offRoadFrames == 0)
+        #expect(simulation.state.distance >= 1_000)
+        #expect(simulation.state.splitRoadSide == nil)
+        #expect(abs(simulation.state.lateralPosition) < 0.1)
+    }
+
+    @Test(arguments: [-1.0, 1.0])
+    func bothSplitPathsCanBeDrivenAndMergeWithoutTeleporting(side: Double) {
+        let layout = TrackLayout.initialContent()
+        let configuration = RaceConfiguration.standard
+        var vehicle = VehicleState()
+        vehicle.speed = 80
+        var runtime = DrivingModel.RuntimeState()
+        var distance = 100.0
+        var sawSeparatedRoad = false
+        var offRoadFrames = 0
+        for _ in 0..<3_000 where distance < 1_000 {
+            let sample = layout.sample(stageID: "coast-solar-sweep", distanceInStage: distance)
+            let cross = layout.splitCrossSection(stageID: "coast-solar-sweep", distanceInStage: distance + 30)
+            let target = cross.map { (side < 0 ? $0.leftCenter : $0.rightCenter) / $0.roadHalfWidth } ?? 0
+            let speedRatio = min(vehicle.speed / configuration.maximumSpeed, 1)
+            let authority = configuration.driving.steeringAtRestRatio
+                + (1 - configuration.driving.steeringAtRestRatio) * speedRatio
+            let counterSteer = sample.curvature * vehicle.speed * vehicle.speed
+                * configuration.driving.centrifugalForce / max(0.1, configuration.steeringRate * authority)
+            let steering = min(max(counterSteer + (target - vehicle.roadPosition.lateralOffset) * 3, -1), 1)
+            let before = vehicle.roadPosition.lateralOffset
+            let update = DrivingModel.update(
+                vehicle: vehicle,
+                command: PlayerCommand(steering: steering, throttle: 1, brake: 0, isBoosting: false),
+                trackSample: sample, configuration: configuration, isBoostActive: false,
+                deltaTime: 1.0 / 120, runtime: &runtime
+            )
+            vehicle = update.vehicle
+            distance += update.distanceDelta
+            #expect(abs(vehicle.roadPosition.lateralOffset - before) < 0.04)
+            if (400...700).contains(distance) {
+                sawSeparatedRoad = true
+                #expect(vehicle.roadPosition.lateralOffset * side > 0.1)
+                if vehicle.isOffRoad { offRoadFrames += 1 }
+            }
+        }
+        #expect(sawSeparatedRoad)
+        #expect(offRoadFrames == 0)
+        #expect(distance >= 1_000)
+        #expect(abs(vehicle.roadPosition.lateralOffset) < 0.1)
+    }
+
     @Test
     func centrifugalPushUsesCurveDirectionAndScalesWithMagnitude() {
         var runtime = DrivingModel.RuntimeState()

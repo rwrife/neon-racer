@@ -9,6 +9,37 @@ import Testing
 
 struct TrafficSystemTests {
     @Test
+    func splitTrafficSpawnsOnBothBranchesAndNeverInTheMedian() throws {
+        let layout = TrackLayout.initialContent()
+        let stage = try #require(layout.routeGraph.stage(id: "coast-solar-sweep"))
+        var sawLeft = false
+        var sawRight = false
+        for seed in 1...24 {
+            var system = TrafficSystem(seed: UInt64(seed))
+            var state = RaceState(timerRemaining: 90, stageProgress: 0.3, trafficDensity: 0.9,
+                                  phase: .racing, currentStageID: stage.id, currentStageDistance: 250,
+                                  currentEnvironmentID: stage.environmentID)
+            state.distance = 250
+            state.speed = 80
+            system.update(state: &state, configuration: .standard, trackLayout: layout,
+                          currentStage: stage, stageStartDistance: 0, deltaTime: 0)
+            for actor in state.traffic {
+                let sample = layout.sample(stageID: stage.id, distanceInStage: actor.distance)
+                if sample.drivableRanges != nil {
+                    #expect(!sample.isOffRoad(lateralPosition: actor.lateralPosition))
+                    sawLeft = sawLeft || actor.lateralPosition < 0
+                    sawRight = sawRight || actor.lateralPosition > 0
+                }
+            }
+            for obstacle in state.obstacles where abs(obstacle.lateralPosition) <= 1 {
+                let sample = layout.sample(stageID: stage.id, distanceInStage: obstacle.distance)
+                #expect(!sample.isOffRoad(lateralPosition: obstacle.lateralPosition))
+            }
+        }
+        #expect(sawLeft && sawRight)
+    }
+
+    @Test
     func spawningIsDeterministicForSameSeed() throws {
         let first = try sampledTraffic(seed: 0xCAFE)
         let second = try sampledTraffic(seed: 0xCAFE)

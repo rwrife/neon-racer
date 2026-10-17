@@ -2,6 +2,68 @@ import XCTest
 
 final class NeonRacerUITests: XCTestCase {
     @MainActor
+    func testRightSplitRoadAndMergeRemainVisible() {
+        let app = XCUIApplication()
+        app.launchArguments = ["UITestDisableRunRecovery", "UITestStartRace", "UITestAutoDrive", "UITestSplitPreview", "UITestSplitRight"]
+        XCUIDevice.shared.orientation = .landscapeLeft
+        app.launch()
+        XCTAssertTrue(app.buttons["Pause race"].waitForExistence(timeout: 10))
+        sleep(5)
+        let branch = XCTAttachment(screenshot: XCUIScreen.main.screenshot())
+        branch.name = "right-branch-ridge-road"
+        branch.lifetime = .keepAlways
+        add(branch)
+        sleep(4)
+        let merge = XCTAttachment(screenshot: XCUIScreen.main.screenshot())
+        merge.name = "right-branch-reconnected-road"
+        merge.lifetime = .keepAlways
+        add(merge)
+    }
+
+    @MainActor
+    func testSplitRoadChoice() {
+        let app = XCUIApplication()
+        app.launchArguments = ["UITestDisableRunRecovery", "UITestStartRace", "UITestAutoDrive", "UITestSplitPreview"]
+        XCUIDevice.shared.orientation = .landscapeLeft
+        app.launch()
+        XCTAssertTrue(app.buttons["Pause race"].waitForExistence(timeout: 10))
+        sleep(5)
+        let choice = XCTAttachment(screenshot: XCUIScreen.main.screenshot())
+        choice.name = "split-road-choice"
+        choice.lifetime = .keepAlways
+        add(choice)
+    }
+
+    @MainActor
+    func testTunnelInterior() {
+        let app = XCUIApplication()
+        app.launchArguments = ["UITestDisableRunRecovery", "UITestStartRace", "UITestAutoDrive", "UITestTunnelPreview"]
+        XCUIDevice.shared.orientation = .landscapeLeft
+        app.launch()
+        XCTAssertTrue(app.buttons["Pause race"].waitForExistence(timeout: 10))
+        sleep(3)
+        let interior = XCTAttachment(screenshot: XCUIScreen.main.screenshot())
+        interior.name = "tunnel-interior"
+        interior.lifetime = .keepAlways
+        add(interior)
+    }
+
+    @MainActor
+    func testGarageCarPreviews() {
+        let app = XCUIApplication()
+        app.launchArguments = ["UITestDisableRunRecovery"]
+        XCUIDevice.shared.orientation = .landscapeLeft
+        app.launch()
+        app.buttons["GARAGE"].tap()
+        XCTAssertTrue(app.navigationBars["Garage"].waitForExistence(timeout: 5))
+        sleep(2)
+        let preview = XCTAttachment(screenshot: XCUIScreen.main.screenshot())
+        preview.name = "garage-car-previews"
+        preview.lifetime = .keepAlways
+        add(preview)
+    }
+
+    @MainActor
     func testHighQualityRaceOrientation() {
         let app = XCUIApplication()
         app.launchArguments = ["UITestDisableRunRecovery", "UITestStartRace", "UITestHideHUD"]

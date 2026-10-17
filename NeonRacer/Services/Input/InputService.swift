@@ -37,9 +37,12 @@ final class InputService: NSObject, ObservableObject {
         let steering = abs(preferred.steering) > deadzone
             ? preferred.steering
             : commands.first { abs($0.steering) > deadzone }?.steering ?? 0
+        // Touch Boost also holds the accelerator. Derive it independently of GO
+        // so releasing either button cannot cancel the other button's throttle.
+        let touchBoostThrottle = states[.touch, default: InputState()].isBoosting ? 1.0 : 0.0
         return PlayerCommand(
             steering: steering,
-            throttle: commands.map(\.throttle).max() ?? 0,
+            throttle: max(commands.map(\.throttle).max() ?? 0, touchBoostThrottle),
             brake: commands.map(\.brake).max() ?? 0,
             isBoosting: commands.contains { $0.isBoosting }
         )

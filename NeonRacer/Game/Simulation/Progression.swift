@@ -7,6 +7,14 @@ struct VehicleDefinition: Identifiable, Equatable, Sendable {
     let configurationProfile: DifficultyProfile
     let unlockRequirement: UnlockRequirement
 
+    var defaultPaletteID: String {
+        switch id {
+        case "vector-sprint": "electric-blue"
+        case "apex-phantom": "arctic-white"
+        default: "synthwave"
+        }
+    }
+
     var configuration: RaceConfiguration {
         RaceConfiguration.configuration(for: configurationProfile)
     }
@@ -91,6 +99,16 @@ enum ProgressionCatalog {
             displayName: "Synthwave",
             primaryHex: 0xFF2D95,
             secondaryHex: 0x22D3EE,
+            unlockRequirement: .starter
+        ),
+        GaragePaletteDefinition(
+            id: "electric-blue", displayName: "Electric Blue",
+            primaryHex: 0x168BFF, secondaryHex: 0x22D3EE,
+            unlockRequirement: .starter
+        ),
+        GaragePaletteDefinition(
+            id: "arctic-white", displayName: "Arctic White",
+            primaryHex: 0xE8F0FF, secondaryHex: 0x8B5CF6,
             unlockRequirement: .starter
         ),
         GaragePaletteDefinition(
