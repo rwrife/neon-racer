@@ -143,7 +143,7 @@ function trim(s) { gsub(/^[ \t]+|[ \t]+$/, "", s); return s }
     #  - <pre>/<script>/<style>/<textarea> additionally consume content until
     #    their closing tag; tracked as depth, case-insensitive, whitespace-
     #    tolerant ("< pre >" and tags split across lines still match).
-    if (type6 == 0 && $0 ~ /^[ \t]*<[ \t]*[/a-zA-Z]/) type6 = 1
+    if (type6 == 0 && ($0 ~ /^[ \t]*<[ \t]*\// || $0 ~ /^[ \t]*<[ \t]*[a-zA-Z]/)) type6 = 1
     else if (type6 == 1 && $0 ~ /^[ \t]*$/) type6 = 0
     htmlRest = tolower($0)
     while (match(htmlRest, /<[^>]*>/)) {
