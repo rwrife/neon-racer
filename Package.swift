@@ -44,7 +44,8 @@ let package = Package(
         .testTarget(
             name: "NeonRacerCoreTests",
             dependencies: ["NeonRacerCore"],
-            path: "NeonRacerTests"
+            path: "NeonRacerTests",
+            exclude: ["Fixtures"]
         )
     ]
 )

@@ -67,4 +67,5 @@ The operator must be signed into Xcode and authorized for the selected team. Pre
 3. Privacy review, asset provenance, IP review, App Store metadata, screenshot plan, and TestFlight checklist are signed off.
 4. Archive validation reports no missing icons, privacy manifest, signing, entitlement, or SDK errors.
 5. Exported artifact version/build match the release record.
-6. Upload to TestFlight, complete smoke testing, then submit with explicit owner approval.
+6. Physical-device performance sign-off passes: follow `docs/performance-device-signoff.md`, record the measurement in `docs/performance-device-evidence.md`, and confirm `bash scripts/check_device_signoff.sh` exits 0. Until a dated device run exists, this gate fails closed and release must not proceed.
+7. Upload to TestFlight, complete smoke testing, then submit with explicit owner approval.
