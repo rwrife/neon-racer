@@ -514,6 +514,42 @@ final class DeviceSignoffGateContractTests: XCTestCase {
         }
     }
 
+    func testGateRejectsHtmlBlockTabIndentAndSplitTables() throws {
+        let header = "| Metric | Threshold | Measured | Result |"
+        let separator = "| --- | --- | --- | --- |"
+        let first = "| Sustained FPS (full race) |"
+        let cases: [(String, (String) -> String)] = [
+            ("html pre block", { "<pre>\n" + $0 + "\n</pre>" }),
+            ("uppercase HTML block", { "<PRE>\n" + $0 + "\n</PRE>" }),
+            ("unmatched closing HTML block", { "</pre>\n<pre>\n" + $0 + "\n</pre>" }),
+            ("adjacent div block", { $0.replacingOccurrences(of: header, with: "<div>\n" + header) + "\n</div>" }),
+            ("adjacent section block", { $0.replacingOccurrences(of: header, with: "<section>\n" + header) + "\n</section>" }),
+            ("multiline pre tag", { $0.replacingOccurrences(of: header, with: "<pre\n>\n" + header) + "\n</pre>" }),
+            ("tab indent", { $0.replacingOccurrences(of: "\n|", with: "\n\t|")
+                .replacingOccurrences(of: header, with: "\t" + header) }),
+            ("blank line splits table", { $0.replacingOccurrences(of: first, with: "\n" + first) }),
+            ("blank line before separator", { $0.replacingOccurrences(of: separator, with: "\n" + separator) }),
+        ]
+        for (name, mutate) in cases {
+            let staged = try stagedRepoRoot(suffix: "structural-table")
+            let url = staged.appendingPathComponent("docs/performance-device-evidence.md")
+            let evidence = mutate(completeRecord())
+            XCTAssertNotEqual(evidence, completeRecord(), "\(name) mutation must change the fixture")
+            try evidence.write(to: url, atomically: true, encoding: .utf8)
+            let result = try runGate(in: staged)
+            XCTAssertNotEqual(result.status, 0, "\(name) must be blocked: \(result.output)")
+        }
+    }
+
+    func testGateAllowsUnrelatedHtmlBlockSeparatedByBlankLine() throws {
+        let staged = try stagedRepoRoot(suffix: "benign-html-block")
+        let url = staged.appendingPathComponent("docs/performance-device-evidence.md")
+        let evidence = "<div>Unrelated note</div>\n\n" + completeRecord()
+        try evidence.write(to: url, atomically: true, encoding: .utf8)
+        let result = try runGate(in: staged)
+        XCTAssertEqual(result.status, 0, "Blank-separated HTML must not hide table: \(result.output)")
+    }
+
     func testGateRejectsCodeFencedTable() throws {
         // A fenced (non-rendered) table is not a record.
         let staged = try stagedRepoRoot(suffix: "fenced")

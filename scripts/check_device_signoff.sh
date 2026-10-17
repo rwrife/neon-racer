@@ -135,6 +135,28 @@ function trim(s) { gsub(/^[ \t]+|[ \t]+$/, "", s); return s }
 { sub(/\r$/, "") }
 /^[ \t]*(```|~~~)/ { fences++ }
 {
+    # Block-level HTML tracking (CommonMark):
+    #  - type-6 rule: a line whose first non-space chars are "<" + optional
+    #    spaces + "/" or a letter opens an HTML block that runs until the
+    #    next blank line — a table glued below an adjacent <div>/<section>/
+    #    incomplete "<pre" line renders as raw HTML, not as a table.
+    #  - <pre>/<script>/<style>/<textarea> additionally consume content until
+    #    their closing tag; tracked as depth, case-insensitive, whitespace-
+    #    tolerant ("< pre >" and tags split across lines still match).
+    if (type6 == 0 && $0 ~ /^[ \t]*<[ \t]*[/a-zA-Z]/) type6 = 1
+    else if (type6 == 1 && $0 ~ /^[ \t]*$/) type6 = 0
+    htmlRest = tolower($0)
+    while (match(htmlRest, /<[^>]*>/)) {
+        tag = substr(htmlRest, RSTART, RLENGTH)
+        if (tag ~ /^<\/[ \t]*(pre|script|style|textarea)[ \t>]*$/) {
+            if (htmlBlocks > 0) htmlBlocks--
+        } else if (tag ~ /^<[ \t]*(pre|script|style|textarea)[ \t>]*$/) {
+            htmlBlocks++
+        }
+        htmlRest = substr(htmlRest, RSTART + RLENGTH)
+    }
+}
+{
     startComment = inComment
     rest = $0
     while (1) {
@@ -153,20 +175,35 @@ function trim(s) { gsub(/^[ \t]+|[ \t]+$/, "", s); return s }
 }
 /^[ \t]*\|/ {
     if (startComment) { print "measurement table inside HTML comment"; bad = 1 }
-    if ($0 ~ /^(    |\t)/) { print "indented table row would render as a code block"; bad = 1 }
+    if (htmlBlocks > 0 || type6 > 0) { print "measurement table inside HTML block"; bad = 1 }
+    # CommonMark table rules: row cannot be indented 4+ spaces or a tab.
+    # Expand tabs with 4-space tab stops to detect mixed whitespace.
+    col = 0
+    leadingIndent = 0
+    for (i = 1; i <= length($0); i++) {
+        c = substr($0, i, 1)
+        if (c == " ") { col++ }
+        else if (c == "\t") { col = int(col / 4) * 4 + 4 }
+        else { leadingIndent = col; break }
+    }
+    if (leadingIndent >= 4) { print "indented table row would render as a code block"; bad = 1 }
     f2 = trim($2); f3 = trim($3); f4 = trim($4); f5 = trim($5)
     if (f2 == "Metric" && f3 == "Threshold" && f4 == "Measured" && f5 == "Result") {
         header++
+        tableState = 1
         if (NF != 6) { print "header row is malformed"; bad = 1 }
         next
     }
     if (f2 != "" && f2 ~ /^:?-+:?$/ && f3 ~ /^:?-+:?$/ && f4 ~ /^:?-+:?$/ && f5 ~ /^:?-+:?$/) {
         separator++
+        if (tableState != 1) { print "separator row must immediately follow the header row"; bad = 1 }
+        tableState = 2
         if (NF != 6) { print "separator row is malformed"; bad = 1 }
         next
     }
-    # Any other pipe row (indented, empty-named, wrong-width) is a data row
-    # and must satisfy the acceptance surface exactly.
+    # Any other pipe row is a data row and must be part of the contiguous table
+    if (tableState < 2) { print "data row appears before separator row"; bad = 1 }
+    else if (tableState == 3) { print "split or non-contiguous measurement table"; bad = 1 }
     rows++
     if (NF != 6) { print "table row has wrong column count: \"" f2 "\""; bad = 1 }
     if (f2 == "") { print "table row with empty metric name"; bad = 1 }
@@ -193,6 +230,12 @@ function trim(s) { gsub(/^[ \t]+|[ \t]+$/, "", s); return s }
             print "row \"" f2 "\" measured \"" f4 "\" is outside the allowed verdict vocabulary"; bad = 1
         }
     }
+}
+!/^[ \t]*\|/ {
+    # Any non-table line ends the table: a blank line between header and
+    # separator breaks it; a blank/prose line after the separator closes it.
+    if (tableState == 1) tableState = 0
+    else if (tableState == 2) tableState = 3
 }
 END {
     if (fences > 0) { print "code fences are not allowed in the evidence record"; exit 1 }
