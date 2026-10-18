@@ -138,6 +138,10 @@ final class RaceScene3D: NSObject {
         accessibilitySettings = settings
         self.systemReduceMotion = systemReduceMotion
         let reduceMotion = settings.resolvedReduceMotion(systemReduceMotion: systemReduceMotion)
+        carNode.apply(reduceMotion: reduceMotion, reduceFlashes: settings.reduceFlashes)
+        for node in trafficNodes.values {
+            node.apply(reduceMotion: reduceMotion, reduceFlashes: settings.reduceFlashes)
+        }
         chaseCamera.apply(reduceMotion: reduceMotion)
         environment.apply(reduceMotion: reduceMotion, highContrast: settings.highContrast)
         effects.apply(
@@ -596,6 +600,10 @@ final class RaceScene3D: NSObject {
             active.insert(current.id)
             let node = trafficNodes[current.id] ?? {
                 let made = VehicleModels3D.makeTrafficVehicle(kind: current.kind, seed: current.id)
+                made.apply(
+                    reduceMotion: accessibilitySettings.resolvedReduceMotion(systemReduceMotion: systemReduceMotion),
+                    reduceFlashes: accessibilitySettings.reduceFlashes
+                )
                 trafficNodes[current.id] = made
                 scene.rootNode.addChildNode(made)
                 return made

@@ -1,4 +1,7 @@
+import ModelIO
 import SceneKit
+import SceneKit.ModelIO
+import simd
 import UIKit
 
 @MainActor
@@ -6,14 +9,15 @@ final class NeonCarNode: SCNNode {
     private let animatedRoot = SCNNode()
     private let bodyYawNode = SCNNode()
     private var frontAxleNodes: [SCNNode] = []
-    private var wheelAxleNodes: [SCNNode] = []
     private var wheelSpinNodes: [SCNNode] = []
     private var brakeLightMaterials: [SCNMaterial] = []
     private var boostFlameNodes: [SCNNode] = []
     private var boostMaterials: [SCNMaterial] = []
     private var underglowLight: SCNLight?
     private var underglowMaterial: SCNMaterial?
-    private var baseRideHeight: Float = 0
+    private var neonTrimMaterials: [SCNMaterial] = []
+    private var reduceMotion = false
+    private var reduceFlashes = false
 
     nonisolated override init() {
         super.init()
@@ -23,6 +27,11 @@ final class NeonCarNode: SCNNode {
         fatalError("init(coder:) has not been implemented")
     }
 
+    func apply(reduceMotion: Bool, reduceFlashes: Bool) {
+        self.reduceMotion = reduceMotion
+        self.reduceFlashes = reduceFlashes
+    }
+
     func update(steering: Double, speed: Double, isBoosting: Bool, isBraking: Bool, slipAngle: Double, time: TimeInterval) {
         let clampedSteering = max(-1, min(1, steering))
         let clampedSlip = max(-0.65, min(0.65, slipAngle))
@@ -30,11 +39,11 @@ final class NeonCarNode: SCNNode {
         let wheelRotation = Float(time) * Float(max(abs(speed), 0)) / 0.34
         let brakePitch: Float = isBraking ? -0.045 : 0
         let boostPitch: Float = isBoosting ? 0.02 : 0
-        let hoverBob = Float(sin(time * 3.1 + Double(abs(speed)) * 0.025)) * (isBoosting ? 0.032 : 0.018)
+        let hoverBob = reduceMotion ? 0 : Float(sin(time * 3.1 + Double(abs(speed)) * 0.025)) * (isBoosting ? 0.032 : 0.018)
 
-        animatedRoot.position.y = baseRideHeight + hoverBob
-        animatedRoot.eulerAngles.x = brakePitch + boostPitch
-        animatedRoot.eulerAngles.z = -Float(clampedSteering) * 0.085 - Float(clampedSlip) * 0.025
+        animatedRoot.position.y = hoverBob
+        animatedRoot.eulerAngles.x = reduceMotion ? 0 : brakePitch + boostPitch
+        animatedRoot.eulerAngles.z = reduceMotion ? 0 : -Float(clampedSteering) * 0.085 - Float(clampedSlip) * 0.025
         bodyYawNode.eulerAngles.y = Float(clampedSlip) * 0.38
 
         for axle in frontAxleNodes {
@@ -51,7 +60,7 @@ final class NeonCarNode: SCNNode {
             material.diffuse.intensity = brakeDiffuseIntensity
         }
 
-        let boostPulse = CGFloat(0.78 + sin(time * 31) * 0.18)
+        let boostPulse = CGFloat(0.78 + (reduceFlashes || reduceMotion ? 0 : sin(time * 31) * 0.18))
         let flameWidth = Float(isBoosting ? 0.48 + boostPulse * 0.08 : 0.22)
         let speedStretch = Float(min(max(abs(speed) / 55, 0), 1.6))
         let flameLength = Float(isBoosting ? 0.62 + speedStretch * 0.24 : 0.24)
@@ -66,6 +75,10 @@ final class NeonCarNode: SCNNode {
         }
         underglowMaterial?.emission.intensity = isBoosting ? 2.0 + boostPulse * 0.4 : 1.1
         underglowLight?.intensity = isBoosting ? 720 + boostPulse * 160 : 360
+        let trimPulse = reduceFlashes || reduceMotion ? 0 : CGFloat(sin(time * 2)) * 0.12
+        for material in neonTrimMaterials {
+            material.emission.intensity = (isBoosting ? 2.8 : 1.65) + trimPulse
+        }
     }
 
     fileprivate func build(profile: VehicleModelProfile) {
@@ -77,330 +90,126 @@ final class NeonCarNode: SCNNode {
         animatedRoot.addChildNode(bodyYawNode)
 
         switch profile.role {
-        case .hero:
-            buildHero(profile: profile)
-        case .commuter:
-            buildCommuter(profile: profile)
+        case .hero, .commuter, .rival:
+            buildRoadster(profile: profile)
         case .hauler:
             buildHauler(profile: profile)
-        case .rival:
-            buildRival(profile: profile)
-        }
-        if profile.role == .hero {
-            flattenStaticBodyNodes()
-            animatedRoot.scale.x = 1.0
-            animatedRoot.scale.y = 0.94
         }
     }
 
-    private func buildHero(profile: VehicleModelProfile) {
+    private func buildRoadster(profile: VehicleModelProfile) {
         let paint = VehicleMaterialFactory.paint(profile.paint, emission: profile.paintEmission)
-        let chrome = VehicleMaterialFactory.chrome(accent: profile.accent)
-        let glass = VehicleMaterialFactory.glass(accent: profile.accent)
-        let glassEdge = VehicleMaterialFactory.glassEdge
-        let accent = VehicleMaterialFactory.neon(profile.accent)
-        let redGlow = VehicleMaterialFactory.brakeLight()
-        let smokedLens = VehicleMaterialFactory.redGlassLens()
-        let dark = VehicleMaterialFactory.darkBody
-        let grilleSlat = VehicleMaterialFactory.grilleSlat
-        let exhaustBlue = VehicleMaterialFactory.neon(UIColor(red: 0.08, green: 0.72, blue: 1.0, alpha: 1))
-        let plateMaterial = VehicleMaterialFactory.licensePlate
-        brakeLightMaterials.append(redGlow)
+        // Keep the OBJ's baked shading and dark details, not its original purple hue.
+        paint.shaderModifiers = [.geometry: """
+            #pragma body
+            float shade = dot(_geometry.color.rgb, float3(0.2126, 0.7152, 0.0722));
+            _geometry.color.rgb = float3(clamp(pow(shade, 0.65) * 1.6, 0.025, 1.0));
+            """]
+        let mesh = SCNNode(geometry: VehicleGeometryFactory.instance(
+            VehicleGeometryFactory.roadster, materials: [paint]
+        ))
+        mesh.name = "roadster-imported-body"
+        let bounds = VehicleGeometryFactory.roadster.boundingBox
+        let size = bounds.max - bounds.min
+        mesh.scale = SCNVector3(profile.width / size.x, profile.length * profile.heightScale, profile.length / size.z)
+        mesh.position = SCNVector3(
+            -(bounds.min.x + bounds.max.x) * mesh.scale.x / 2,
+            -bounds.min.y * mesh.scale.y,
+            -(bounds.min.z + bounds.max.z) * mesh.scale.z / 2
+        )
+        bodyYawNode.addChildNode(mesh)
 
-        baseRideHeight = 0
+        let accent = VehicleMaterialFactory.neon(profile.accent)
+        let warm = VehicleMaterialFactory.neon(profile.warmAccent)
+        neonTrimMaterials = [accent, warm]
+        let tail = VehicleMaterialFactory.brakeLight()
+        brakeLightMaterials.append(tail)
         let width = profile.width
         let length = profile.length
-        let rearZ = length / 2
-        let frontZ = -length / 2
+        let height = length * profile.heightScale
 
-        addGeometryNode(
-            name: "hero-wedge-body",
-            geometry: VehicleGeometryFactory.heroSupercarBody(width: width, length: length, heightScale: profile.heightScale),
-            materials: [paint],
-            to: bodyYawNode
-        )
-        addGeometryNode(
-            name: "hero-faceted-glass-canopy",
-            geometry: VehicleGeometryFactory.heroCanopy(width: width * 0.66, length: length * 0.46, height: 0.36 * profile.heightScale),
-            materials: [glass],
-            position: SCNVector3(0, 0.61 * profile.heightScale, 0.12),
-            to: bodyYawNode
-        )
-        addGeometryNode(
-            name: "hero-large-rear-engine-glass",
-            geometry: VehicleGeometryFactory.heroRearWindow(width: width * 0.78, length: length * 0.44),
-            materials: [glass],
-            position: SCNVector3(0, 0.76 * profile.heightScale, 0.88),
-            to: bodyYawNode
-        )
-        for x in [-width * 0.18, 0, width * 0.18] {
+        for side: Float in [-1, 1] {
+            addNeonPath(name: "roadster-neon-side-skirt", points: [
+                SCNVector3(side * width * 0.46, height * 0.055, -length * 0.36),
+                SCNVector3(side * width * 0.49, height * 0.055, length * 0.34)
+            ], radius: 0.018, material: accent)
+            addNeonPath(name: "roadster-neon-shoulder", points: [
+                SCNVector3(side * width * 0.42, height * 0.17, -length * 0.40),
+                SCNVector3(side * width * 0.48, height * 0.18, -length * 0.16),
+                SCNVector3(side * width * 0.48, height * 0.18, length * 0.36)
+            ], radius: 0.012, material: warm)
+            addNeonPath(name: "roadster-neon-canopy-outline", points: [
+                SCNVector3(side * width * 0.36, height * 0.20, -length * 0.20),
+                SCNVector3(side * width * 0.29, height * 0.30, -length * 0.04),
+                SCNVector3(side * width * 0.30, height * 0.29, length * 0.15),
+                SCNVector3(side * width * 0.38, height * 0.20, length * 0.30)
+            ], radius: 0.012, material: accent)
+            for z: Float in [-0.31, 0.31] {
+                let halo = SCNNode(geometry: VehicleGeometryFactory.instance(
+                    VehicleGeometryFactory.rimRing(radius: CGFloat(length * 0.061), pipe: 0.017),
+                    materials: [accent]
+                ))
+                halo.name = "roadster-neon-wheel-halo"
+                halo.position = SCNVector3(side * width * 0.49, height * 0.077, length * z)
+                halo.eulerAngles.z = .pi / 2
+                bodyYawNode.addChildNode(halo)
+            }
             addBox(
-                name: "hero-glass-facet-edge-line",
-                width: 0.012,
-                height: 0.010,
-                length: length * 0.36,
-                chamfer: 0.003,
-                position: SCNVector3(x, 0.79 * profile.heightScale, 0.48),
-                material: glassEdge,
-                parent: bodyYawNode
+                name: "roadster-neon-headlight",
+                width: width * 0.27, height: 0.035, length: 0.04, chamfer: 0.008,
+                position: SCNVector3(side * width * 0.29, height * 0.13, -length * 0.49),
+                material: accent, parent: bodyYawNode
             )
         }
         addBox(
-            name: "hero-rear-window-lower-edge-line",
-            width: width * 0.58,
-            height: 0.018,
-            length: 0.030,
-            chamfer: 0.003,
-            position: SCNVector3(0, 0.69 * profile.heightScale, 1.70),
-            material: glassEdge,
-            parent: bodyYawNode
-        )
-
-        for x in [-width * 0.53, width * 0.53] {
-            addBox(
-                name: "hero-integrated-rear-haunch-highlight",
-                width: 0.055,
-                height: 0.035,
-                length: length * 0.55,
-                chamfer: 0.014,
-                position: SCNVector3(x, 0.72 * profile.heightScale, 0.38),
-                material: chrome,
-                parent: bodyYawNode
-            )
-        }
-        for x in [-width * 0.42, width * 0.42] {
-            addBox(
-                name: "hero-rear-fender-fresnel-catcher",
-                width: 0.075,
-                height: 0.030,
-                length: length * 0.38,
-                chamfer: 0.010,
-                position: SCNVector3(x, 0.82 * profile.heightScale, 0.58),
-                material: chrome,
-                parent: bodyYawNode
-            )
-        }
-        addBox(
-            name: "hero-front-splitter-cyan-edge",
-            width: width * 0.72,
-            height: 0.035,
-            length: 0.055,
-            chamfer: 0.006,
-            position: SCNVector3(0, 0.26, frontZ - 0.012),
-            material: accent,
-            parent: bodyYawNode
+            name: "roadster-brake-light-bar",
+            width: width * 0.82, height: 0.045, length: 0.045, chamfer: 0.01,
+            position: SCNVector3(0, height * 0.14, length * 0.50),
+            material: tail, parent: bodyYawNode
         )
         addBox(
-            name: "hero-left-side-pinstripe",
-            width: 0.030,
-            height: 0.045,
-            length: length * 0.70,
-            chamfer: 0.006,
-            position: SCNVector3(-width * 0.54, 0.52, -0.02),
-            material: accent,
-            parent: bodyYawNode
+            name: "roadster-neon-front-splitter",
+            width: width * 0.82, height: 0.028, length: 0.04, chamfer: 0.006,
+            position: SCNVector3(0, height * 0.055, -length * 0.50),
+            material: warm, parent: bodyYawNode
         )
-        addBox(
-            name: "hero-right-side-pinstripe",
-            width: 0.030,
-            height: 0.045,
-            length: length * 0.70,
-            chamfer: 0.006,
-            position: SCNVector3(width * 0.54, 0.52, -0.02),
-            material: accent,
-            parent: bodyYawNode
-        )
-        for x in [-width * 0.62, width * 0.62] {
+        for index in 0..<5 {
             addBox(
-                name: "hero-small-side-mirror",
-                width: 0.16,
-                height: 0.07,
-                length: 0.12,
-                chamfer: 0.018,
-                position: SCNVector3(x, 0.72 * profile.heightScale, -0.58),
-                material: dark,
-                parent: bodyYawNode
+                name: "roadster-neon-rear-diffuser",
+                width: 0.025, height: 0.09, length: length * 0.08, chamfer: 0.004,
+                position: SCNVector3(Float(index - 2) * width * 0.14, height * 0.045, length * 0.44),
+                material: accent, parent: bodyYawNode
             )
         }
-
-        addBox(
-            name: "hero-full-width-slatted-rear-grille",
-            width: width * 0.90,
-            height: 0.42,
-            length: 0.06,
-            chamfer: 0.012,
-            position: SCNVector3(0, 0.52, rearZ + 0.035),
-            material: dark,
-            parent: bodyYawNode
-        )
-        addBox(
-            name: "hero-continuous-red-rear-light-bar",
-            width: width * 0.76,
-            height: 0.052,
-            length: 0.088,
-            chamfer: 0.009,
-            position: SCNVector3(0, 0.678, rearZ + 0.136),
-            material: redGlow,
-            parent: bodyYawNode
-        )
-        for x in [-width * 0.36, width * 0.36] {
+        if profile.role == .commuter {
             addBox(
-                name: "hero-full-width-taillight-bar",
-                width: width * 0.20,
-                height: 0.075,
-                length: 0.082,
-                chamfer: 0.010,
-                position: SCNVector3(x, 0.665, rearZ + 0.090),
-                material: redGlow,
-                parent: bodyYawNode
+                name: "traffic-commuter-roof-accessibility-fin",
+                width: 0.12, height: 0.09, length: 0.52, chamfer: 0.012,
+                position: SCNVector3(0, height * 0.31, 0), material: accent, parent: bodyYawNode
             )
-            addBox(
-                name: "hero-smoked-taillight-lens-cover",
-                width: width * 0.23,
-                height: 0.115,
-                length: 0.040,
-                chamfer: 0.008,
-                position: SCNVector3(x, 0.665, rearZ + 0.122),
-                material: smokedLens,
-                parent: bodyYawNode
-            )
+        } else if profile.role == .rival {
+            addChevronTail(name: "traffic-rival-left-chevron-taillight", xSign: -1, z: length / 2 + 0.04, material: tail)
+            addChevronTail(name: "traffic-rival-right-chevron-taillight", xSign: 1, z: length / 2 + 0.04, material: tail)
+        } else {
+            addSpoiler(profile: profile, rearZ: length / 2, width: width,
+                       material: VehicleMaterialFactory.darkBody, accent: accent)
         }
-        for y in [0.38 as Float, 0.43, 0.48, 0.53, 0.58, 0.63] {
-            addBox(
-                name: "hero-grille-horizontal-slat",
-                width: width * 0.78,
-                height: 0.018,
-                length: 0.084,
-                chamfer: 0.003,
-                position: SCNVector3(0, y, rearZ + 0.098),
-                material: grilleSlat,
-                parent: bodyYawNode
-            )
-        }
-        for x in stride(from: -width * 0.38, through: width * 0.38, by: width * 0.19) {
-            addBox(
-                name: "hero-grille-vertical-facet-break",
-                width: 0.018,
-                height: 0.30,
-                length: 0.090,
-                chamfer: 0.002,
-                position: SCNVector3(x, 0.505, rearZ + 0.112),
-                material: grilleSlat,
-                parent: bodyYawNode
-            )
-        }
-        for x in [-width * 0.42, -width * 0.32, width * 0.32, width * 0.42] {
-            addBox(
-                name: "hero-segmented-rear-light-core",
-                width: width * 0.070,
-                height: 0.048,
-                length: 0.090,
-                chamfer: 0.008,
-                position: SCNVector3(x, 0.665, rearZ + 0.132),
-                material: redGlow,
-                parent: bodyYawNode
-            )
-        }
-        addBox(
-            name: "hero-license-shadow-panel",
-            width: width * 0.34,
-            height: 0.18,
-            length: 0.076,
-            chamfer: 0.012,
-            position: SCNVector3(0, 0.33, rearZ + 0.105),
-            material: plateMaterial,
-            parent: bodyYawNode
-        )
-        addLicensePlateText(text: "NR-82", width: width, rearZ: rearZ)
-        addBox(
-            name: "hero-chrome-rear-trim",
-            width: width * 0.92,
-            height: 0.032,
-            length: 0.065,
-            chamfer: 0.006,
-            position: SCNVector3(0, 0.735, rearZ + 0.090),
-            material: chrome,
-            parent: bodyYawNode
-        )
-        for x in stride(from: -width * 0.33, through: width * 0.33, by: width * 0.22) {
-            addBox(
-                name: "hero-rear-diffuser-fin",
-                width: 0.040,
-                height: 0.22,
-                length: 0.12,
-                chamfer: 0.004,
-                position: SCNVector3(x, 0.20, rearZ + 0.035),
-                material: dark,
-                parent: bodyYawNode
-            )
-        }
-
-        addHeroWheels(profile: profile, accent: accent)
-        addHeroQuadExhaustTips(width: width, rearZ: rearZ, material: exhaustBlue)
-        addExhausts(z: rearZ + 0.31, xOffset: width * 0.25, y: 0.25, accent: exhaustBlue)
-        addUnderglow(width: width * 0.78, length: length * 0.68, accent: profile.warmAccent, z: 0.04)
+        addExhausts(z: length / 2 + 0.06, xOffset: width * 0.27, y: height * 0.065, accent: accent)
+        addUnderglow(width: width * 1.45, length: length, accent: profile.accent, z: 0)
     }
 
-    private func buildCommuter(profile: VehicleModelProfile) {
-        let paint = VehicleMaterialFactory.paint(profile.paint, emission: profile.paintEmission)
-        let glass = VehicleMaterialFactory.glass(accent: profile.accent)
-        let accent = VehicleMaterialFactory.neon(profile.accent)
-        let tail = VehicleMaterialFactory.brakeLight(color: profile.warmAccent)
-        brakeLightMaterials.append(tail)
-
-        addGeometryNode(
-            name: "traffic-commuter-hatchback-body",
-            geometry: VehicleGeometryFactory.wedgeBody(
-                width: profile.width,
-                length: profile.length,
-                bottomY: 0.28,
-                frontTopY: 0.72,
-                rearTopY: 0.86,
-                frontTopWidth: profile.width * 0.72,
-                rearTopWidth: profile.width * 0.88
-            ),
-            materials: [paint],
-            to: bodyYawNode
-        )
-        addGeometryNode(
-            name: "traffic-commuter-upright-cabin",
-            geometry: VehicleGeometryFactory.cabin(
-                bottomWidth: profile.width * 0.72,
-                topWidth: profile.width * 0.56,
-                bottomLength: 1.24,
-                topLength: 0.95,
-                height: 0.55,
-                topZOffset: 0.08
-            ),
-            materials: [glass],
-            position: SCNVector3(0, 0.74, 0.10),
-            to: bodyYawNode
-        )
-        for x in [-0.42, 0.42] {
-            addBox(
-                name: "traffic-commuter-dot-taillight",
-                width: 0.26,
-                height: 0.16,
-                length: 0.05,
-                chamfer: 0.02,
-                position: SCNVector3(Float(x), 0.60, profile.length / 2 + 0.03),
-                material: tail,
-                parent: bodyYawNode
-            )
+    private func addNeonPath(name: String, points: [SCNVector3], radius: CGFloat, material: SCNMaterial) {
+        for (start, end) in zip(points, points.dropFirst()) {
+            let delta = SIMD3<Float>(end.x - start.x, end.y - start.y, end.z - start.z)
+            let node = SCNNode(geometry: VehicleGeometryFactory.instance(
+                VehicleGeometryFactory.cylinder(radius: radius, height: CGFloat(simd_length(delta))),
+                materials: [material]
+            ))
+            node.name = name
+            node.position = SCNVector3((start.x + end.x) / 2, (start.y + end.y) / 2, (start.z + end.z) / 2)
+            node.simdOrientation = simd_quatf(from: SIMD3<Float>(0, 1, 0), to: simd_normalize(delta))
+            bodyYawNode.addChildNode(node)
         }
-        addBox(
-            name: "traffic-commuter-roof-accessibility-fin",
-            width: 0.20,
-            height: 0.10,
-            length: 0.72,
-            chamfer: 0.015,
-            position: SCNVector3(0, 1.38, 0.25),
-            material: accent,
-            parent: bodyYawNode
-        )
-        addSimpleWheels(profile: profile, accent: accent, chunkyRear: false)
-        addExhausts(z: profile.length / 2 + 0.25, xOffset: 0.22, y: 0.30, accent: accent)
-        addUnderglow(width: profile.width * 0.72, length: profile.length * 0.62, accent: profile.accent, z: 0)
     }
 
     private func buildHauler(profile: VehicleModelProfile) {
@@ -478,115 +287,6 @@ final class NeonCarNode: SCNNode {
         addUnderglow(width: profile.width * 0.82, length: profile.length * 0.66, accent: profile.accent, z: 0.40)
     }
 
-    private func buildRival(profile: VehicleModelProfile) {
-        let paint = VehicleMaterialFactory.paint(profile.paint, emission: profile.paintEmission)
-        let glass = VehicleMaterialFactory.glass(accent: profile.accent)
-        let accent = VehicleMaterialFactory.neon(profile.accent)
-        let tail = VehicleMaterialFactory.brakeLight(color: profile.warmAccent)
-        brakeLightMaterials.append(tail)
-
-        addGeometryNode(
-            name: "traffic-rival-low-arrow-body",
-            geometry: VehicleGeometryFactory.rivalBody(width: profile.width, length: profile.length),
-            materials: [paint],
-            to: bodyYawNode
-        )
-        addGeometryNode(
-            name: "traffic-rival-slit-cabin",
-            geometry: VehicleGeometryFactory.cabin(
-                bottomWidth: profile.width * 0.58,
-                topWidth: profile.width * 0.38,
-                bottomLength: 1.12,
-                topLength: 0.72,
-                height: 0.42,
-                topZOffset: -0.10
-            ),
-            materials: [glass],
-            position: SCNVector3(0, 0.70, -0.22),
-            to: bodyYawNode
-        )
-        addChevronTail(name: "traffic-rival-left-chevron-taillight", xSign: -1, z: profile.length / 2 + 0.04, material: tail)
-        addChevronTail(name: "traffic-rival-right-chevron-taillight", xSign: 1, z: profile.length / 2 + 0.04, material: tail)
-        addBox(
-            name: "traffic-rival-center-warning-spine",
-            width: 0.10,
-            height: 0.06,
-            length: profile.length * 0.68,
-            chamfer: 0.01,
-            position: SCNVector3(0, 0.89, 0.12),
-            material: accent,
-            parent: bodyYawNode
-        )
-        addSimpleWheels(profile: profile, accent: accent, chunkyRear: true)
-        addExhausts(z: profile.length / 2 + 0.32, xOffset: profile.width * 0.24, y: 0.30, accent: accent)
-        addUnderglow(width: profile.width * 0.82, length: profile.length * 0.70, accent: profile.accent, z: 0.02)
-    }
-
-    private func addLicensePlateText(text: String, width: Float, rearZ: Float) {
-        let textGeometry = SCNText(string: text, extrusionDepth: 0.004)
-        textGeometry.font = UIFont.monospacedSystemFont(ofSize: 1.0, weight: .bold)
-        textGeometry.flatness = 0.02
-        textGeometry.alignmentMode = CATextLayerAlignmentMode.center.rawValue
-        textGeometry.materials = [VehicleMaterialFactory.licensePlateText]
-        let node = SCNNode(geometry: textGeometry)
-        node.name = "hero-fictional-license-text"
-        let bounds = textGeometry.boundingBox
-        node.pivot = SCNMatrix4MakeTranslation(
-            (bounds.min.x + bounds.max.x) * 0.5,
-            (bounds.min.y + bounds.max.y) * 0.5,
-            0
-        )
-        node.scale = SCNVector3(0.055, 0.055, 0.055)
-        node.position = SCNVector3(0, 0.33, rearZ + 0.150)
-        bodyYawNode.addChildNode(node)
-    }
-
-    private func addHeroQuadExhaustTips(width: Float, rearZ: Float, material: SCNMaterial) {
-        let surround = VehicleMaterialFactory.grilleSlat
-        for clusterX in [-width * 0.27, width * 0.27] {
-            for offsetX in [-0.055 as Float, 0.055] {
-                let outer = SCNNode(geometry: VehicleGeometryFactory.instance(
-                    VehicleGeometryFactory.cylinder(radius: 0.062, height: 0.10),
-                    materials: [surround]
-                ))
-                outer.name = "hero-black-quad-exhaust-surround"
-                outer.position = SCNVector3(clusterX + offsetX, 0.245, rearZ + 0.145)
-                outer.eulerAngles.x = .pi / 2
-                bodyYawNode.addChildNode(outer)
-
-                let tip = SCNNode(geometry: VehicleGeometryFactory.instance(
-                    VehicleGeometryFactory.cylinder(radius: 0.038, height: 0.112),
-                    materials: [material]
-                ))
-                tip.name = "hero-twin-blue-quad-exhaust-tip"
-                tip.position = SCNVector3(clusterX + offsetX, 0.245, rearZ + 0.155)
-                tip.eulerAngles.x = .pi / 2
-                bodyYawNode.addChildNode(tip)
-            }
-        }
-    }
-
-    private func addHeroWheels(profile: VehicleModelProfile, accent: SCNMaterial) {
-        let wheelZ = profile.length * 0.32
-        let wheelX = profile.width * 0.48
-        for (z, isFront) in [(-wheelZ, true), (wheelZ, false)] {
-            for side: Float in [-1, 1] {
-                let radius: CGFloat = isFront ? 0.33 : 0.39
-                addWheel(
-                    name: isFront ? "hero-front-steering-wheel" : "hero-chunky-rear-wheel",
-                    x: side * wheelX,
-                    y: Float(radius),
-                    z: z,
-                    radius: radius,
-                    width: isFront ? 0.22 : 0.30,
-                    accent: accent,
-                    steerable: isFront,
-                    rimSide: side
-                )
-            }
-        }
-    }
-
     private func addSimpleWheels(profile: VehicleModelProfile, accent: SCNMaterial, chunkyRear: Bool) {
         let wheelZ = profile.length * 0.33
         let wheelX = profile.width * 0.43
@@ -622,7 +322,6 @@ final class NeonCarNode: SCNNode {
         axle.name = "\(name)-axle"
         axle.position = SCNVector3(x, y, z)
         bodyYawNode.addChildNode(axle)
-        wheelAxleNodes.append(axle)
         if steerable { frontAxleNodes.append(axle) }
 
         let spin = SCNNode()
@@ -762,53 +461,6 @@ final class NeonCarNode: SCNNode {
         parent.addChildNode(node)
     }
 
-    private func addGeometryNode(
-        name: String,
-        geometry: SCNGeometry,
-        materials: [SCNMaterial],
-        position: SCNVector3 = SCNVector3Zero,
-        to parent: SCNNode
-    ) {
-        let node = SCNNode(geometry: VehicleGeometryFactory.instance(geometry, materials: materials))
-        node.name = name
-        node.position = position
-        parent.addChildNode(node)
-    }
-
-    private func flattenStaticBodyNodes() {
-        let dynamicDirectNodes = Set((wheelAxleNodes + boostFlameNodes).map(ObjectIdentifier.init))
-        let staticChildren = bodyYawNode.childNodes.filter { !dynamicDirectNodes.contains(ObjectIdentifier($0)) }
-        guard staticChildren.count > 1 else { return }
-
-        let staticRoot = SCNNode()
-        staticRoot.name = "vehicle-static-body-source"
-        for child in staticChildren {
-            child.removeFromParentNode()
-            staticRoot.addChildNode(child)
-        }
-        let flattened = staticRoot.flattenedClone()
-        flattened.name = "vehicle-static-body-flattened"
-        for name in [
-            "hero-wedge-body",
-            "hero-full-width-taillight-bar",
-            "hero-smoked-taillight-lens-cover",
-            "hero-segmented-rear-light-core",
-            "hero-chrome-rear-trim"
-        ] {
-            let marker = SCNNode()
-            marker.name = name
-            flattened.addChildNode(marker)
-        }
-        bodyYawNode.insertChildNode(flattened, at: 0)
-
-        let roofFacet = SCNNode(geometry: VehicleGeometryFactory.instance(
-            VehicleGeometryFactory.box(width: 0.055, height: 0.08, length: 0.32, chamfer: 0.004),
-            materials: [VehicleMaterialFactory.glassEdge]
-        ))
-        roofFacet.name = "hero-smoked-glass-roof-facet-marker"
-        roofFacet.position = SCNVector3(0, 1.10, 0.26)
-        bodyYawNode.addChildNode(roofFacet)
-    }
 }
 
 @MainActor
@@ -1140,15 +792,38 @@ private enum VehicleMaterialFactory {
     }
 
     static func underglow(_ color: UIColor) -> SCNMaterial {
+        let size = CGSize(width: 128, height: 128)
+        let format = UIGraphicsImageRendererFormat()
+        format.scale = 1
+        format.opaque = false
+        let image = UIGraphicsImageRenderer(size: size, format: format).image { context in
+            let colors = [
+                color.withAlphaComponent(0.8).cgColor,
+                color.withAlphaComponent(0.35).cgColor,
+                color.withAlphaComponent(0).cgColor
+            ] as CFArray
+            let gradient = CGGradient(
+                colorsSpace: CGColorSpaceCreateDeviceRGB(),
+                colors: colors, locations: [0, 0.4, 1]
+            )!
+            let center = CGPoint(x: size.width / 2, y: size.height / 2)
+            context.cgContext.drawRadialGradient(
+                gradient, startCenter: center, startRadius: 0,
+                endCenter: center, endRadius: size.width / 2 - 2, options: []
+            )
+        }
         let material = SCNMaterial()
         material.name = "vehicle-underglow-additive-plane"
-        material.diffuse.contents = color.withAlphaComponent(0.28)
-        material.emission.contents = color
+        material.diffuse.contents = image
+        material.emission.contents = image
+        material.transparent.contents = image
         material.emission.intensity = 1.1
         material.lightingModel = .constant
         material.blendMode = .add
+        material.transparencyMode = .aOne
         material.transparency = 0.52
         material.isDoubleSided = true
+        material.writesToDepthBuffer = false
         return material
     }
 
@@ -1170,6 +845,20 @@ private enum VehicleMaterialFactory {
 
 @MainActor
 private enum VehicleGeometryFactory {
+    static let roadster: SCNGeometry = {
+        guard let url = Bundle.main.url(forResource: "roadster", withExtension: "obj") else {
+            preconditionFailure("Missing bundled vehicle model: roadster.obj")
+        }
+        let asset = MDLAsset(url: url)
+        guard let mesh = asset.childObjects(of: MDLMesh.self).first as? MDLMesh,
+              mesh.vertexCount > 0,
+              mesh.vertexAttributeData(forAttributeNamed: MDLVertexAttributeColor) != nil else {
+            preconditionFailure("roadster.obj must contain a mesh with baked vertex colors")
+        }
+        mesh.addNormals(withAttributeNamed: MDLVertexAttributeNormal, creaseThreshold: 0.5)
+        return SCNGeometry(mdlMesh: mesh)
+    }()
+
     static let exhaustFlame: SCNGeometry = {
         let geometry = SCNCone(topRadius: 0.010, bottomRadius: 0.070, height: 0.34)
         geometry.radialSegmentCount = 8

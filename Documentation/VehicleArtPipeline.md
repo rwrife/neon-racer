@@ -1,8 +1,41 @@
 # Vehicle art pipeline
 
-The current vehicles are original code-generated vector placeholders. They establish gameplay proportions, state behavior, and replacement contracts; they are not final production illustrations.
+The SceneKit playable cars, commuter traffic, and rivals use the bundled
+`NeonRacer/Resources/roadster.obj`. The cargo hauler and legacy SpriteKit vehicle
+sheet remain code-generated placeholders.
 
-## Art direction and provenance
+## Roadster model and neon liveries
+
+- Source: owner-supplied `roadster.obj`, imported on 2026-10-18. The OBJ header
+  identifies Blender 5.0.1; creator, generator history, and redistribution rights
+  still require owner verification in `AssetProvenance.md`.
+- The source contains 11,512 vertices and 23,228 triangles, with per-vertex RGB
+  colors, not UVs or external texture images. Keep the OBJ unchanged so its baked
+  surface detail remains available.
+- `VehicleGeometryFactory` imports and caches the mesh with Model I/O, generates
+  normals, and preserves its vertex-color channel. Missing or invalid bundled
+  geometry is a packaging error, not a reason to silently show a placeholder.
+- `buildRoadster` centers and grounds the mesh, with Y up and the nose along -Z.
+  Existing vehicle profiles still determine width, length, and gameplay collision
+  footprints; the imported mesh never changes simulation geometry.
+- The paint shader neutralizes the source hue while retaining baked luminance.
+  Garage primary colors tint the body; secondary colors drive wheel halos,
+  canopy outlines, shoulder strips, skirts, splitter, diffuser, and underglow.
+  Seeded traffic paints remain deterministic. Material instances are independent.
+- Brake lights brighten under braking and exhaust/trim/underglow strengthen under
+  boost. New trim breathes slowly; Reduce Flashes freezes emission modulation,
+  and Reduce Motion also removes decorative bob/pitch/roll. Garage previews use
+  the same factory and a restrained static bloom.
+- Underglow uses a radial alpha texture stretched into an ellipse, fading fully
+  to transparent before its plane edges. It blends additively without writing
+  depth, preserving road markings and avoiding a hard rectangular footprint.
+- Wheels are integral to the supplied single mesh, so roadster tires do not
+  independently spin or steer; wheel halos follow their fixed source positions.
+  A future rigged asset must split the wheel meshes before restoring axle animation.
+- Commuters retain a roof fin, rivals retain chevron rear lights, and haulers keep
+  their tall cargo silhouette so traffic categories do not rely on paint alone.
+
+## Legacy SpriteKit art direction and provenance
 
 - Source: `NeonRacer/Game/Rendering/VehicleArt.swift`, authored for Neon Racer on 2026-09-26.
 - Method: hand-authored normalized polygon points rendered with SpriteKit primitives. No source images, generative model, external vehicle files, logos, type treatments, or traced reference pixels were used.
