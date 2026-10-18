@@ -96,17 +96,30 @@ struct VehicleModels3DTests {
     }
 
     @Test
-    func heroFactoryBuildsReadableRetroWedgeWithAnimatedParts() {
+    func heroFactoryLoadsRoadsterWithNeonAndBoostParts() throws {
         let car = VehicleModels3D.makeHeroCar(vehicleID: "prototype-zero", paletteID: "synthwave")
 
         #expect(car.name == "hero-car-prototype-zero-synthwave")
-        #expect(car.childNode(withName: "hero-wedge-body", recursively: true) != nil)
-        #expect(car.childNode(withName: "hero-full-width-taillight-bar", recursively: true) != nil)
-        #expect(car.childNode(withName: "hero-smoked-taillight-lens-cover", recursively: true) != nil)
-        #expect(car.childNode(withName: "hero-segmented-rear-light-core", recursively: true) != nil)
-        #expect(car.childNode(withName: "hero-chrome-rear-trim", recursively: true) != nil)
-        #expect(car.childNode(withName: "hero-chunky-rear-wheel-glowing-rim-ring", recursively: true) != nil)
+        let mesh = try #require(car.childNode(withName: "roadster-imported-body", recursively: true)?.geometry)
+        #expect(mesh.elements.reduce(0) { $0 + $1.primitiveCount } == 23_228)
+        let vertexCount = try #require(mesh.sources(for: .vertex).first).vectorCount
+        #expect(vertexCount >= 11_512)
+        #expect(mesh.sources(for: .color).first?.vectorCount == mesh.sources(for: .vertex).first?.vectorCount)
+        #expect(mesh.sources(for: .normal).isEmpty == false)
+        #expect(mesh.materials.first?.shaderModifiers?[.geometry] != nil)
+        for name in [
+            "roadster-brake-light-bar", "roadster-neon-wheel-halo",
+            "roadster-neon-side-skirt", "roadster-neon-shoulder",
+            "roadster-neon-canopy-outline", "roadster-neon-front-splitter",
+            "roadster-neon-rear-diffuser", "neon-underglow-plane"
+        ] {
+            #expect(car.childNode(withName: name, recursively: true)?.geometry != nil)
+        }
         #expect(car.childNode(withName: "boost-exhaust-flame", recursively: true) != nil)
+        let halo = try #require(car.childNode(withName: "roadster-neon-wheel-halo", recursively: true))
+        let axleDirection = halo.convertVector(SCNVector3(0, 1, 0), to: car)
+        #expect(abs(axleDirection.x) > 0.99)
+        #expect(abs(axleDirection.y) < 0.001)
 
         let size = dimensions(of: car)
         #expect(size.x > 1.8 && size.x < 3.3)
@@ -125,6 +138,88 @@ struct VehicleModels3DTests {
         #expect(rival.childNode(withName: "traffic-rival-left-chevron-taillight", recursively: true) != nil)
         #expect(dimensions(of: hauler).z > dimensions(of: commuter).z)
         #expect(dimensions(of: rival).x > dimensions(of: commuter).x)
+        #expect(commuter.childNode(withName: "roadster-imported-body", recursively: true)?.geometry != nil)
+        #expect(rival.childNode(withName: "roadster-imported-body", recursively: true)?.geometry != nil)
+        #expect(hauler.childNode(withName: "roadster-imported-body", recursively: true) == nil)
+    }
+
+    @Test
+    func underglowFadesToTransparentBeforeThePlaneEdges() throws {
+        let vehicles = [
+            VehicleModels3D.makeHeroCar(vehicleID: "prototype-zero", paletteID: "synthwave"),
+            VehicleModels3D.makeTrafficVehicle(kind: .commuter, seed: 1),
+            VehicleModels3D.makeTrafficVehicle(kind: .rival, seed: 2),
+            VehicleModels3D.makeTrafficVehicle(kind: .hauler, seed: 3)
+        ]
+        for vehicle in vehicles {
+            let glow = try #require(vehicle.childNode(withName: "neon-underglow-plane", recursively: true))
+            let material = try #require(glow.geometry?.firstMaterial)
+            let image = try #require((material.transparent.contents as? UIImage)?.cgImage)
+            #expect(material.diffuse.contents is UIImage)
+            #expect(material.emission.contents is UIImage)
+            #expect(material.blendMode == .add)
+            #expect(material.transparencyMode == .aOne)
+            #expect(material.writesToDepthBuffer == false)
+            let context = try #require(CGContext(
+                data: nil, width: image.width, height: image.height,
+                bitsPerComponent: 8, bytesPerRow: image.width * 4,
+                space: CGColorSpaceCreateDeviceRGB(),
+                bitmapInfo: CGBitmapInfo.byteOrder32Big.rawValue | CGImageAlphaInfo.premultipliedLast.rawValue
+            ))
+            context.draw(image, in: CGRect(x: 0, y: 0, width: image.width, height: image.height))
+            let pixels = try #require(context.data).bindMemory(to: UInt8.self, capacity: image.width * image.height * 4)
+            func alpha(x: Int, y: Int) -> UInt8 {
+                pixels[(y * image.width + x) * 4 + 3]
+            }
+            let center = image.width / 2
+            #expect(alpha(x: center, y: center) > alpha(x: center + 24, y: center))
+            #expect(alpha(x: center + 24, y: center) > alpha(x: center + 48, y: center))
+            #expect(alpha(x: center + 48, y: center) > 0)
+            for (x, y) in [
+                (0, 0), (image.width - 1, image.height - 1),
+                (0, center), (image.width - 1, center),
+                (center, 0), (center, image.height - 1)
+            ] {
+                #expect(alpha(x: x, y: y) == 0)
+            }
+        }
+    }
+
+    @Test
+    func roadsterMaterialsAreIndependentAndRespondToDrivingAndAccessibility() throws {
+        let car = VehicleModels3D.makeHeroCar(vehicleID: "prototype-zero", paletteID: "synthwave")
+        let other = VehicleModels3D.makeHeroCar(vehicleID: "vector-sprint", paletteID: "synthwave")
+        let trim = try #require(car.childNode(withName: "roadster-neon-side-skirt", recursively: true)?.geometry?.firstMaterial)
+        let otherTrim = try #require(other.childNode(withName: "roadster-neon-side-skirt", recursively: true)?.geometry?.firstMaterial)
+        let brake = try #require(car.childNode(withName: "roadster-brake-light-bar", recursively: true)?.geometry?.firstMaterial)
+        let flame = try #require(car.childNode(withName: "boost-exhaust-flame", recursively: true))
+        #expect(trim !== otherTrim)
+
+        car.update(steering: 0, speed: 40, isBoosting: false, isBraking: false, slipAngle: 0, time: 0)
+        let idleTrim = trim.emission.intensity
+        let idleBrake = brake.emission.intensity
+        let idleFlame = flame.scale.y
+        car.update(steering: 0.8, speed: 80, isBoosting: true, isBraking: true, slipAngle: 0.2, time: 1)
+        #expect(trim.emission.intensity > idleTrim)
+        #expect(brake.emission.intensity > idleBrake)
+        #expect(flame.scale.y > idleFlame)
+        #expect(abs(otherTrim.emission.intensity - 1.85) < 0.001)
+
+        car.apply(reduceMotion: false, reduceFlashes: true)
+        car.update(steering: 0.8, speed: 80, isBoosting: true, isBraking: true, slipAngle: 0.2, time: 2)
+        let steadyTrim = trim.emission.intensity
+        let steadyFlame = flame.scale.y
+        car.update(steering: 0.8, speed: 80, isBoosting: true, isBraking: true, slipAngle: 0.2, time: 3)
+        #expect(trim.emission.intensity == steadyTrim)
+        #expect(flame.scale.y == steadyFlame)
+        car.apply(reduceMotion: true, reduceFlashes: false)
+        car.update(steering: 0.8, speed: 80, isBoosting: true, isBraking: true, slipAngle: 0.2, time: 4)
+        #expect(trim.emission.intensity == steadyTrim)
+        #expect(flame.scale.y == steadyFlame)
+        let animatedRoot = try #require(car.childNode(withName: "vehicle-animated-root", recursively: true))
+        #expect(animatedRoot.position.y == 0)
+        #expect(animatedRoot.eulerAngles.x == 0)
+        #expect(animatedRoot.eulerAngles.z == 0)
     }
 
     @Test

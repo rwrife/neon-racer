@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		C0DE0000000000000000C001 /* roadster.obj in Resources */ = {isa = PBXBuildFile; fileRef = C0DE0000000000000000C002 /* roadster.obj */; };
 		200000000000000000000001 /* NeonRacerApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 300000000000000000000001 /* NeonRacerApp.swift */; };
 		200000000000000000000002 /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 300000000000000000000002 /* RootView.swift */; };
 		200000000000000000000003 /* MainMenuView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 300000000000000000000003 /* MainMenuView.swift */; };
@@ -119,6 +120,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		C0DE0000000000000000C002 /* roadster.obj */ = {isa = PBXFileReference; lastKnownFileType = text; path = roadster.obj; sourceTree = "<group>"; };
 		22C000000000000000000002 /* RunInterruptionCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RunInterruptionCoordinator.swift; sourceTree = "<group>"; };
 		300000000000000000000001 /* NeonRacerApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NeonRacerApp.swift; sourceTree = "<group>"; };
 		300000000000000000000002 /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
@@ -406,6 +408,7 @@
 				30000000000000000000000E /* Assets.xcassets */,
 				300000000000000000000014 /* PrivacyInfo.xcprivacy */,
 				300000000000000000000090 /* CyberpunkSpaceRace.mp3 */,
+				C0DE0000000000000000C002 /* roadster.obj */,
 			);
 			path = Resources;
 			sourceTree = "<group>";
@@ -656,6 +659,7 @@
 				20000000000000000000000E /* Assets.xcassets in Resources */,
 				200000000000000000000011 /* PrivacyInfo.xcprivacy in Resources */,
 				200000000000000000000090 /* CyberpunkSpaceRace.mp3 in Resources */,
+				C0DE0000000000000000C001 /* roadster.obj in Resources */,
 				D11000000000000000000004 /* neon-harbor.json in Resources */,
 				D1100000000000000000000B /* solar-to-summit.json in Resources */,
 			);

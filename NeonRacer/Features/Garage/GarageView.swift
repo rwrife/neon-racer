@@ -559,6 +559,10 @@ private struct CarPreview: UIViewRepresentable {
         camera.camera = SCNCamera()
         camera.camera?.usesOrthographicProjection = true
         camera.camera?.orthographicScale = 1.35
+        camera.camera?.wantsHDR = true
+        camera.camera?.bloomIntensity = 0.45
+        camera.camera?.bloomThreshold = 1.0
+        camera.camera?.bloomBlurRadius = 3
         camera.position = SCNVector3(6, 2.8, 7)
         camera.look(at: SCNVector3(0, 0.5, 0))
         view.scene?.rootNode.addChildNode(camera)
