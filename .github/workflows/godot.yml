@@ -1,0 +1,110 @@
+name: Godot port
+
+on:
+  pull_request:
+    paths: ['Godot/**', 'NeonRacer/**', 'Tools/GodotReference/**', 'scripts/*godot*.sh', '.github/workflows/godot.yml']
+  push:
+    branches: [main, feat/godot-port]
+    paths: ['Godot/**', 'NeonRacer/**', 'Tools/GodotReference/**', 'scripts/*godot*.sh', '.github/workflows/godot.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: godot-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  reference-check:
+    runs-on: macos-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - name: Verify native route and driving references are current
+        run: |
+          bash scripts/export_godot_reference.sh
+          git diff --exit-code -- Godot/assets/swift-reference.json
+
+  godot-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - name: Download verified Godot 4.7.2
+        run: |
+          set -euo pipefail
+          cd "$RUNNER_TEMP"
+          curl -fsSLO https://github.com/godotengine/godot/releases/download/4.7.2-stable/Godot_v4.7.2-stable_linux.x86_64.zip
+          curl -fsSLO https://github.com/godotengine/godot/releases/download/4.7.2-stable/SHA512-SUMS.txt
+          grep ' Godot_v4.7.2-stable_linux.x86_64.zip$' SHA512-SUMS.txt | sha512sum --check -
+          unzip -q Godot_v4.7.2-stable_linux.x86_64.zip
+          echo "$RUNNER_TEMP" >> "$GITHUB_PATH"
+      - name: Check source and exported application
+        env:
+          GODOT: Godot_v4.7.2-stable_linux.x86_64
+        run: bash scripts/test_godot.sh
+      - name: Upload tested content pack
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: godot-content-pack
+          path: Godot/exports/ios/NeonRacerGodot.pck
+          if-no-files-found: error
+          retention-days: 14
+
+  build-macos:
+    name: Build and smoke-test macOS application
+    needs: [reference-check, godot-tests]
+    runs-on: macos-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - name: Download verified Godot editor and macOS export template
+        run: |
+          set -euo pipefail
+          cd "$RUNNER_TEMP"
+          base=https://github.com/godotengine/godot/releases/download/4.7.2-stable
+          curl --retry 3 -fsSLO "$base/Godot_v4.7.2-stable_macos.universal.zip"
+          curl --retry 3 -fsSLO "$base/Godot_v4.7.2-stable_export_templates.tpz"
+          curl --retry 3 -fsSLO "$base/SHA512-SUMS.txt"
+          grep -E ' (Godot_v4.7.2-stable_macos.universal.zip|Godot_v4.7.2-stable_export_templates.tpz)$' \
+            SHA512-SUMS.txt | shasum -a 512 --check -
+          unzip -q Godot_v4.7.2-stable_macos.universal.zip
+          templates="$HOME/Library/Application Support/Godot/export_templates/4.7.2.stable"
+          mkdir -p "$templates"
+          unzip -p Godot_v4.7.2-stable_export_templates.tpz templates/macos.zip > "$templates/macos.zip"
+          echo "GODOT=$RUNNER_TEMP/Godot.app/Contents/MacOS/Godot" >> "$GITHUB_ENV"
+      - name: Build ad-hoc-signed universal macOS application
+        run: |
+          set -euo pipefail
+          mkdir -p Godot/exports/macos
+          "$GODOT" --headless --path Godot --editor --import 2>&1 | tee "$RUNNER_TEMP/godot-import.log"
+          if grep -Eq 'SCRIPT ERROR:|ERROR:' "$RUNNER_TEMP/godot-import.log"; then exit 1; fi
+          "$GODOT" --headless --path Godot --export-release macOS \
+            exports/macos/NeonRacerGodot.zip 2>&1 | tee "$RUNNER_TEMP/godot-export.log"
+          if grep -Eq 'SCRIPT ERROR:|ERROR:' "$RUNNER_TEMP/godot-export.log"; then exit 1; fi
+          test -s Godot/exports/macos/NeonRacerGodot.zip
+      - name: Smoke-test the exported application without the editor
+        run: |
+          set -euo pipefail
+          unzip -q Godot/exports/macos/NeonRacerGodot.zip -d "$RUNNER_TEMP/exported-game"
+          app=$(find "$RUNNER_TEMP/exported-game" -maxdepth 1 -name '*.app' -type d -print -quit)
+          test -n "$app"
+          codesign --verify --deep --strict "$app"
+          executable=$(/usr/libexec/PlistBuddy -c 'Print :CFBundleExecutable' "$app/Contents/Info.plist")
+          "$app/Contents/MacOS/$executable" --headless --quit-after 120 \
+            2>&1 | tee "$RUNNER_TEMP/godot-app-smoke.log"
+          if grep -Eq 'SCRIPT ERROR:|ERROR:' "$RUNNER_TEMP/godot-app-smoke.log"; then exit 1; fi
+      - name: Upload macOS application
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: godot-macos
+          path: Godot/exports/macos/NeonRacerGodot.zip
+          if-no-files-found: error
+          retention-days: 14

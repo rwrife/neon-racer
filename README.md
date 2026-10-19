@@ -2,6 +2,15 @@
 
 Neon Racer is an original native iOS arcade racing game with a retro-futurist neon visual style.
 
+## Godot port
+
+An experimental, side-by-side Godot 4.7.2 application lives in [`Godot/`](Godot/README.md).
+It uses typed GDScript and custom, shared screens and driving controls instead of
+SwiftUI/UIKit, targeting desktop and landscape iPhone. The Swift app remains intact
+as the behavioral and visual reference. The Godot build is playable, but full
+feature parity, near-pixel-perfect visual matching, and native iOS signoff are
+not complete. See the Godot README for running, export prerequisites, and limitations.
+
 ## Requirements
 
 - Xcode 26 or later

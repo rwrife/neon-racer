@@ -1,0 +1,3599 @@
+{
+  "driving" : [
+    {
+      "boosting" : false,
+      "command" : {
+        "b" : 0,
+        "s" : 0,
+        "t" : 1,
+        "x" : false
+      },
+      "curvature" : 0,
+      "drifting" : false,
+      "grade" : 0,
+      "initialLateral" : 0,
+      "initialSpeed" : 0,
+      "lateral" : 0,
+      "name" : "accelerate",
+      "profile" : "novice",
+      "slip" : 0,
+      "speed" : 35.075000000000024,
+      "steps" : 120
+    },
+    {
+      "boosting" : true,
+      "command" : {
+        "b" : 0,
+        "s" : 0,
+        "t" : 1,
+        "x" : true
+      },
+      "curvature" : 0,
+      "drifting" : false,
+      "grade" : 0,
+      "initialLateral" : 0,
+      "initialSpeed" : 0,
+      "lateral" : 0,
+      "name" : "boost",
+      "profile" : "novice",
+      "slip" : 0,
+      "speed" : 53.075000000000145,
+      "steps" : 120
+    },
+    {
+      "boosting" : false,
+      "command" : {
+        "b" : 0,
+        "s" : 0.25,
+        "t" : 1,
+        "x" : false
+      },
+      "curvature" : 0.35,
+      "drifting" : false,
+      "grade" : 0.04,
+      "initialLateral" : 0,
+      "initialSpeed" : 80,
+      "lateral" : 0.023746087510813637,
+      "name" : "curve",
+      "profile" : "novice",
+      "slip" : 0,
+      "speed" : 112,
+      "steps" : 120
+    },
+    {
+      "boosting" : false,
+      "command" : {
+        "b" : 0,
+        "s" : -0.1,
+        "t" : 1,
+        "x" : false
+      },
+      "curvature" : 0,
+      "drifting" : false,
+      "grade" : 0,
+      "initialLateral" : 1.3,
+      "initialSpeed" : 110,
+      "lateral" : 1.2136091674107146,
+      "name" : "offroad",
+      "profile" : "novice",
+      "slip" : 0,
+      "speed" : 63.39999999999941,
+      "steps" : 120
+    },
+    {
+      "boosting" : false,
+      "command" : {
+        "b" : 0.2,
+        "s" : 0.9,
+        "t" : 1,
+        "x" : false
+      },
+      "curvature" : 0.4,
+      "drifting" : true,
+      "grade" : 0,
+      "initialLateral" : 0,
+      "initialSpeed" : 115,
+      "lateral" : 1.2481281734357728,
+      "name" : "drift",
+      "profile" : "novice",
+      "slip" : 0.3464865251021344,
+      "speed" : 106.86142732867201,
+      "steps" : 120
+    },
+    {
+      "boosting" : false,
+      "command" : {
+        "b" : 1,
+        "s" : 0,
+        "t" : 1,
+        "x" : false
+      },
+      "curvature" : 0,
+      "drifting" : false,
+      "grade" : -0.06,
+      "initialLateral" : 0,
+      "initialSpeed" : 100,
+      "lateral" : 0,
+      "name" : "brake",
+      "profile" : "novice",
+      "slip" : 0,
+      "speed" : 74.91999999999962,
+      "steps" : 120
+    },
+    {
+      "boosting" : false,
+      "command" : {
+        "b" : 0,
+        "s" : 0,
+        "t" : 1,
+        "x" : false
+      },
+      "curvature" : 0,
+      "drifting" : false,
+      "grade" : 0,
+      "initialLateral" : 0,
+      "initialSpeed" : 0,
+      "lateral" : 0,
+      "name" : "accelerate",
+      "profile" : "standard",
+      "slip" : 0,
+      "speed" : 32.0833333333333,
+      "steps" : 120
+    },
+    {
+      "boosting" : true,
+      "command" : {
+        "b" : 0,
+        "s" : 0,
+        "t" : 1,
+        "x" : true
+      },
+      "curvature" : 0,
+      "drifting" : false,
+      "grade" : 0,
+      "initialLateral" : 0,
+      "initialSpeed" : 0,
+      "lateral" : 0,
+      "name" : "boost",
+      "profile" : "standard",
+      "slip" : 0,
+      "speed" : 53.08333333333348,
+      "steps" : 120
+    },
+    {
+      "boosting" : false,
+      "command" : {
+        "b" : 0,
+        "s" : 0.25,
+        "t" : 1,
+        "x" : false
+      },
+      "curvature" : 0.35,
+      "drifting" : false,
+      "grade" : 0.04,
+      "initialLateral" : 0,
+      "initialSpeed" : 80,
+      "lateral" : -0.007287222532001611,
+      "name" : "curve",
+      "profile" : "standard",
+      "slip" : 0,
+      "speed" : 110.48000000000059,
+      "steps" : 120
+    },
+    {
+      "boosting" : false,
+      "command" : {
+        "b" : 0,
+        "s" : -0.1,
+        "t" : 1,
+        "x" : false
+      },
+      "curvature" : 0,
+      "drifting" : false,
+      "grade" : 0,
+      "initialLateral" : 1.3,
+      "initialSpeed" : 110,
+      "lateral" : 1.2252652817499998,
+      "name" : "offroad",
+      "profile" : "standard",
+      "slip" : 0,
+      "speed" : 56.03333333333323,
+      "steps" : 120
+    },
+    {
+      "boosting" : false,
+      "command" : {
+        "b" : 0.2,
+        "s" : 0.9,
+        "t" : 1,
+        "x" : false
+      },
+      "curvature" : 0.4,
+      "drifting" : true,
+      "grade" : 0,
+      "initialLateral" : 0,
+      "initialSpeed" : 115,
+      "lateral" : 1.2738518683743485,
+      "name" : "drift",
+      "profile" : "standard",
+      "slip" : 0.33550796225670937,
+      "speed" : 107.05359725268542,
+      "steps" : 120
+    },
+    {
+      "boosting" : false,
+      "command" : {
+        "b" : 1,
+        "s" : 0,
+        "t" : 1,
+        "x" : false
+      },
+      "curvature" : 0,
+      "drifting" : false,
+      "grade" : -0.06,
+      "initialLateral" : 0,
+      "initialSpeed" : 100,
+      "lateral" : 0,
+      "name" : "brake",
+      "profile" : "standard",
+      "slip" : 0,
+      "speed" : 70.28000000000077,
+      "steps" : 120
+    },
+    {
+      "boosting" : false,
+      "command" : {
+        "b" : 0,
+        "s" : 0,
+        "t" : 1,
+        "x" : false
+      },
+      "curvature" : 0,
+      "drifting" : false,
+      "grade" : 0,
+      "initialLateral" : 0,
+      "initialSpeed" : 0,
+      "lateral" : 0,
+      "name" : "accelerate",
+      "profile" : "expert",
+      "slip" : 0,
+      "speed" : 29.0916666666667,
+      "steps" : 120
+    },
+    {
+      "boosting" : true,
+      "command" : {
+        "b" : 0,
+        "s" : 0,
+        "t" : 1,
+        "x" : true
+      },
+      "curvature" : 0,
+      "drifting" : false,
+      "grade" : 0,
+      "initialLateral" : 0,
+      "initialSpeed" : 0,
+      "lateral" : 0,
+      "name" : "boost",
+      "profile" : "expert",
+      "slip" : 0,
+      "speed" : 53.09166666666681,
+      "steps" : 120
+    },
+    {
+      "boosting" : false,
+      "command" : {
+        "b" : 0,
+        "s" : 0.25,
+        "t" : 1,
+        "x" : false
+      },
+      "curvature" : 0.35,
+      "drifting" : false,
+      "grade" : 0.04,
+      "initialLateral" : 0,
+      "initialSpeed" : 80,
+      "lateral" : -0.00989230529017499,
+      "name" : "curve",
+      "profile" : "expert",
+      "slip" : 0,
+      "speed" : 107.31999999999971,
+      "steps" : 120
+    },
+    {
+      "boosting" : false,
+      "command" : {
+        "b" : 0,
+        "s" : -0.1,
+        "t" : 1,
+        "x" : false
+      },
+      "curvature" : 0,
+      "drifting" : false,
+      "grade" : 0,
+      "initialLateral" : 1.3,
+      "initialSpeed" : 110,
+      "lateral" : 1.2287533723958333,
+      "name" : "offroad",
+      "profile" : "expert",
+      "slip" : 0,
+      "speed" : 48.68500000000003,
+      "steps" : 120
+    },
+    {
+      "boosting" : false,
+      "command" : {
+        "b" : 0.2,
+        "s" : 0.9,
+        "t" : 1,
+        "x" : false
+      },
+      "curvature" : 0.4,
+      "drifting" : true,
+      "grade" : 0,
+      "initialLateral" : 0,
+      "initialSpeed" : 115,
+      "lateral" : 1.308906216447467,
+      "name" : "drift",
+      "profile" : "expert",
+      "slip" : 0.3174636979414751,
+      "speed" : 95.92624335917284,
+      "steps" : 120
+    },
+    {
+      "boosting" : false,
+      "command" : {
+        "b" : 1,
+        "s" : 0,
+        "t" : 1,
+        "x" : false
+      },
+      "curvature" : 0,
+      "drifting" : false,
+      "grade" : -0.06,
+      "initialLateral" : 0,
+      "initialSpeed" : 100,
+      "lateral" : 0,
+      "name" : "brake",
+      "profile" : "expert",
+      "slip" : 0,
+      "speed" : 63.519999999999754,
+      "steps" : 120
+    }
+  ],
+  "routes" : {
+    "neon-loop\/expert" : {
+      "graph" : {
+        "forkDecisionDistance" : 500,
+        "minimumForkDecisionTime" : 3,
+        "stages" : [
+          {
+            "branches" : [
+              {
+                "destinationStageID" : "coast-solar-sweep",
+                "direction" : "straight",
+                "id" : "coast-causeway-to-coast-solar-sweep",
+                "previewName" : "Sunset Coast"
+              }
+            ],
+            "checkpointTimeAward" : 0,
+            "displayName" : "Coast Causeway",
+            "distance" : 850,
+            "environmentID" : "sunset-coast",
+            "id" : "coast-causeway"
+          },
+          {
+            "branches" : [
+              {
+                "destinationStageID" : "coast-cliff-arc",
+                "direction" : "straight",
+                "id" : "coast-solar-sweep-to-coast-cliff-arc",
+                "previewName" : "Sunset Coast"
+              }
+            ],
+            "checkpointTimeAward" : 0,
+            "displayName" : "Coast Solar Sweep",
+            "distance" : 1050,
+            "environmentID" : "sunset-coast",
+            "id" : "coast-solar-sweep"
+          },
+          {
+            "branches" : [
+              {
+                "destinationStageID" : "city-rain-gate",
+                "direction" : "straight",
+                "id" : "coast-cliff-arc-to-city-rain-gate",
+                "previewName" : "Neon City"
+              }
+            ],
+            "checkpointTimeAward" : 18,
+            "displayName" : "Coast Cliff Arc",
+            "distance" : 900,
+            "environmentID" : "sunset-coast",
+            "id" : "coast-cliff-arc"
+          },
+          {
+            "branches" : [
+              {
+                "destinationStageID" : "city-vanta-canyon",
+                "direction" : "straight",
+                "id" : "city-rain-gate-to-city-vanta-canyon",
+                "previewName" : "Neon City"
+              }
+            ],
+            "checkpointTimeAward" : 0,
+            "displayName" : "City Rain Gate",
+            "distance" : 760,
+            "environmentID" : "neon-city",
+            "id" : "city-rain-gate"
+          },
+          {
+            "branches" : [
+              {
+                "destinationStageID" : "city-fork",
+                "direction" : "straight",
+                "id" : "city-vanta-canyon-to-city-fork",
+                "previewName" : "Neon City"
+              }
+            ],
+            "checkpointTimeAward" : 0,
+            "displayName" : "City Vanta Canyon",
+            "distance" : 950,
+            "environmentID" : "neon-city",
+            "id" : "city-vanta-canyon"
+          },
+          {
+            "branches" : [
+              {
+                "destinationStageID" : "city-axis-tunnel",
+                "direction" : "left",
+                "id" : "gateway-choice-0",
+                "previewName" : "Neon City"
+              },
+              {
+                "destinationStageID" : "peaks-storm-switchback",
+                "direction" : "right",
+                "id" : "gateway-choice-1",
+                "previewName" : "Midnight Peaks"
+              }
+            ],
+            "checkpointTimeAward" : 18,
+            "displayName" : "City Fork",
+            "distance" : 520,
+            "environmentID" : "neon-city",
+            "id" : "city-fork"
+          },
+          {
+            "branches" : [
+              {
+                "destinationStageID" : "city-orbit-skyway",
+                "direction" : "straight",
+                "id" : "city-axis-tunnel-to-city-orbit-skyway",
+                "previewName" : "Neon City"
+              }
+            ],
+            "checkpointTimeAward" : 0,
+            "displayName" : "City Axis Tunnel",
+            "distance" : 720,
+            "environmentID" : "neon-city",
+            "id" : "city-axis-tunnel"
+          },
+          {
+            "branches" : [
+              {
+                "destinationStageID" : "peaks-relay-ridge",
+                "direction" : "straight",
+                "id" : "city-orbit-skyway-to-peaks-relay-ridge",
+                "previewName" : "Midnight Peaks"
+              }
+            ],
+            "checkpointTimeAward" : 0,
+            "displayName" : "City Orbit Skyway",
+            "distance" : 940,
+            "environmentID" : "neon-city",
+            "id" : "city-orbit-skyway"
+          },
+          {
+            "branches" : [
+              {
+                "destinationStageID" : "peaks-relay-ridge",
+                "direction" : "straight",
+                "id" : "peaks-storm-switchback-to-peaks-relay-ridge",
+                "previewName" : "Midnight Peaks"
+              }
+            ],
+            "checkpointTimeAward" : 0,
+            "displayName" : "Peaks Storm Switchback",
+            "distance" : 980,
+            "environmentID" : "midnight-peaks",
+            "id" : "peaks-storm-switchback"
+          },
+          {
+            "branches" : [
+              {
+                "destinationStageID" : "peaks-summit-finish",
+                "direction" : "straight",
+                "id" : "peaks-relay-ridge-to-peaks-summit-finish",
+                "previewName" : "Midnight Peaks"
+              }
+            ],
+            "checkpointTimeAward" : 18,
+            "displayName" : "Peaks Relay Ridge",
+            "distance" : 900,
+            "environmentID" : "midnight-peaks",
+            "id" : "peaks-relay-ridge"
+          },
+          {
+            "branches" : [
+
+            ],
+            "checkpointTimeAward" : 0,
+            "displayName" : "Peaks Summit Finish",
+            "distance" : 780,
+            "environmentID" : "midnight-peaks",
+            "id" : "peaks-summit-finish"
+          }
+        ],
+        "startStageID" : "coast-causeway"
+      },
+      "profiles" : {
+        "city-axis-tunnel" : {
+          "curveApex" : -0.22,
+          "curveEntry" : 0,
+          "curveExit" : -0.08,
+          "elevationCrest" : 76,
+          "elevationEnd" : 60,
+          "elevationStart" : 72,
+          "laneCount" : 3,
+          "laneWidth" : 4,
+          "length" : 720,
+          "shoulderWidth" : 0.9
+        },
+        "city-fork" : {
+          "curveApex" : 0.08,
+          "curveEntry" : 0,
+          "curveExit" : 0,
+          "elevationCrest" : 74,
+          "elevationEnd" : 72,
+          "elevationStart" : 68,
+          "laneCount" : 4,
+          "laneWidth" : 3.8,
+          "length" : 520,
+          "shoulderWidth" : 0.8
+        },
+        "city-orbit-skyway" : {
+          "curveApex" : 0.49,
+          "curveEntry" : -0.08,
+          "curveExit" : 0.18,
+          "elevationCrest" : 138,
+          "elevationEnd" : 132,
+          "elevationStart" : 60,
+          "laneCount" : 3,
+          "laneWidth" : 4.1,
+          "length" : 940,
+          "shoulderWidth" : 1
+        },
+        "city-rain-gate" : {
+          "curveApex" : -0.16,
+          "curveEntry" : 0.08,
+          "curveExit" : 0.05,
+          "elevationCrest" : 52,
+          "elevationEnd" : 48,
+          "elevationStart" : 42,
+          "laneCount" : 4,
+          "laneWidth" : 3.8,
+          "length" : 760,
+          "shoulderWidth" : 0.8
+        },
+        "city-vanta-canyon" : {
+          "curveApex" : 0.36,
+          "curveEntry" : 0.06,
+          "curveExit" : 0.1,
+          "elevationCrest" : 72,
+          "elevationEnd" : 68,
+          "elevationStart" : 48,
+          "laneCount" : 3,
+          "laneWidth" : 3.9,
+          "length" : 950,
+          "shoulderWidth" : 0.7
+        },
+        "coast-causeway" : {
+          "curveApex" : 0.18,
+          "curveEntry" : 0.05,
+          "curveExit" : 0.22,
+          "elevationCrest" : 10,
+          "elevationEnd" : 8,
+          "elevationStart" : 0,
+          "laneCount" : 3,
+          "laneWidth" : 4,
+          "length" : 850,
+          "shoulderWidth" : 1.4
+        },
+        "coast-cliff-arc" : {
+          "curveApex" : 0.58,
+          "curveEntry" : -0.1,
+          "curveExit" : 0.2,
+          "elevationCrest" : 48,
+          "elevationEnd" : 42,
+          "elevationStart" : 24,
+          "laneCount" : 3,
+          "laneWidth" : 3.9,
+          "length" : 900,
+          "shoulderWidth" : 1.1
+        },
+        "coast-solar-sweep" : {
+          "curveApex" : -0.48,
+          "curveEntry" : 0.12,
+          "curveExit" : -0.18,
+          "elevationCrest" : 28,
+          "elevationEnd" : 24,
+          "elevationStart" : 8,
+          "laneCount" : 3,
+          "laneWidth" : 4,
+          "length" : 1050,
+          "shoulderWidth" : 1.2
+        },
+        "peaks-relay-ridge" : {
+          "curveApex" : 0.65,
+          "curveEntry" : -0.12,
+          "curveExit" : 0.16,
+          "elevationCrest" : 252,
+          "elevationEnd" : 244,
+          "elevationStart" : 196,
+          "laneCount" : 2,
+          "laneWidth" : 3.8,
+          "length" : 900,
+          "shoulderWidth" : 1.3
+        },
+        "peaks-storm-switchback" : {
+          "curveApex" : -0.76,
+          "curveEntry" : 0.1,
+          "curveExit" : 0.24,
+          "elevationCrest" : 212,
+          "elevationEnd" : 196,
+          "elevationStart" : 74,
+          "laneCount" : 2,
+          "laneWidth" : 3.7,
+          "length" : 980,
+          "shoulderWidth" : 1.2
+        },
+        "peaks-summit-finish" : {
+          "curveApex" : -0.2,
+          "curveEntry" : 0.08,
+          "curveExit" : 0,
+          "elevationCrest" : 274,
+          "elevationEnd" : 270,
+          "elevationStart" : 244,
+          "laneCount" : 3,
+          "laneWidth" : 3.9,
+          "length" : 780,
+          "shoulderWidth" : 1.5
+        }
+      }
+    },
+    "neon-loop\/novice" : {
+      "graph" : {
+        "forkDecisionDistance" : 500,
+        "minimumForkDecisionTime" : 3,
+        "stages" : [
+          {
+            "branches" : [
+              {
+                "destinationStageID" : "coast-solar-sweep",
+                "direction" : "straight",
+                "id" : "coast-causeway-to-coast-solar-sweep",
+                "previewName" : "Sunset Coast"
+              }
+            ],
+            "checkpointTimeAward" : 0,
+            "displayName" : "Coast Causeway",
+            "distance" : 850,
+            "environmentID" : "sunset-coast",
+            "id" : "coast-causeway"
+          },
+          {
+            "branches" : [
+              {
+                "destinationStageID" : "coast-cliff-arc",
+                "direction" : "straight",
+                "id" : "coast-solar-sweep-to-coast-cliff-arc",
+                "previewName" : "Sunset Coast"
+              }
+            ],
+            "checkpointTimeAward" : 0,
+            "displayName" : "Coast Solar Sweep",
+            "distance" : 1050,
+            "environmentID" : "sunset-coast",
+            "id" : "coast-solar-sweep"
+          },
+          {
+            "branches" : [
+              {
+                "destinationStageID" : "city-rain-gate",
+                "direction" : "straight",
+                "id" : "coast-cliff-arc-to-city-rain-gate",
+                "previewName" : "Neon City"
+              }
+            ],
+            "checkpointTimeAward" : 18,
+            "displayName" : "Coast Cliff Arc",
+            "distance" : 900,
+            "environmentID" : "sunset-coast",
+            "id" : "coast-cliff-arc"
+          },
+          {
+            "branches" : [
+              {
+                "destinationStageID" : "city-vanta-canyon",
+                "direction" : "straight",
+                "id" : "city-rain-gate-to-city-vanta-canyon",
+                "previewName" : "Neon City"
+              }
+            ],
+            "checkpointTimeAward" : 0,
+            "displayName" : "City Rain Gate",
+            "distance" : 760,
+            "environmentID" : "neon-city",
+            "id" : "city-rain-gate"
+          },
+          {
+            "branches" : [
+              {
+                "destinationStageID" : "city-fork",
+                "direction" : "straight",
+                "id" : "city-vanta-canyon-to-city-fork",
+                "previewName" : "Neon City"
+              }
+            ],
+            "checkpointTimeAward" : 0,
+            "displayName" : "City Vanta Canyon",
+            "distance" : 950,
+            "environmentID" : "neon-city",
+            "id" : "city-vanta-canyon"
+          },
+          {
+            "branches" : [
+              {
+                "destinationStageID" : "city-axis-tunnel",
+                "direction" : "left",
+                "id" : "gateway-choice-0",
+                "previewName" : "Neon City"
+              },
+              {
+                "destinationStageID" : "peaks-storm-switchback",
+                "direction" : "right",
+                "id" : "gateway-choice-1",
+                "previewName" : "Midnight Peaks"
+              }
+            ],
+            "checkpointTimeAward" : 18,
+            "displayName" : "City Fork",
+            "distance" : 520,
+            "environmentID" : "neon-city",
+            "id" : "city-fork"
+          },
+          {
+            "branches" : [
+              {
+                "destinationStageID" : "city-orbit-skyway",
+                "direction" : "straight",
+                "id" : "city-axis-tunnel-to-city-orbit-skyway",
+                "previewName" : "Neon City"
+              }
+            ],
+            "checkpointTimeAward" : 0,
+            "displayName" : "City Axis Tunnel",
+            "distance" : 720,
+            "environmentID" : "neon-city",
+            "id" : "city-axis-tunnel"
+          },
+          {
+            "branches" : [
+              {
+                "destinationStageID" : "peaks-relay-ridge",
+                "direction" : "straight",
+                "id" : "city-orbit-skyway-to-peaks-relay-ridge",
+                "previewName" : "Midnight Peaks"
+              }
+            ],
+            "checkpointTimeAward" : 0,
+            "displayName" : "City Orbit Skyway",
+            "distance" : 940,
+            "environmentID" : "neon-city",
+            "id" : "city-orbit-skyway"
+          },
+          {
+            "branches" : [
+              {
+                "destinationStageID" : "peaks-relay-ridge",
+                "direction" : "straight",
+                "id" : "peaks-storm-switchback-to-peaks-relay-ridge",
+                "previewName" : "Midnight Peaks"
+              }
+            ],
+            "checkpointTimeAward" : 0,
+            "displayName" : "Peaks Storm Switchback",
+            "distance" : 980,
+            "environmentID" : "midnight-peaks",
+            "id" : "peaks-storm-switchback"
+          },
+          {
+            "branches" : [
+              {
+                "destinationStageID" : "peaks-summit-finish",
+                "direction" : "straight",
+                "id" : "peaks-relay-ridge-to-peaks-summit-finish",
+                "previewName" : "Midnight Peaks"
+              }
+            ],
+            "checkpointTimeAward" : 18,
+            "displayName" : "Peaks Relay Ridge",
+            "distance" : 900,
+            "environmentID" : "midnight-peaks",
+            "id" : "peaks-relay-ridge"
+          },
+          {
+            "branches" : [
+
+            ],
+            "checkpointTimeAward" : 0,
+            "displayName" : "Peaks Summit Finish",
+            "distance" : 780,
+            "environmentID" : "midnight-peaks",
+            "id" : "peaks-summit-finish"
+          }
+        ],
+        "startStageID" : "coast-causeway"
+      },
+      "profiles" : {
+        "city-axis-tunnel" : {
+          "curveApex" : -0.22,
+          "curveEntry" : 0,
+          "curveExit" : -0.08,
+          "elevationCrest" : 76,
+          "elevationEnd" : 60,
+          "elevationStart" : 72,
+          "laneCount" : 3,
+          "laneWidth" : 4,
+          "length" : 720,
+          "shoulderWidth" : 0.9
+        },
+        "city-fork" : {
+          "curveApex" : 0.08,
+          "curveEntry" : 0,
+          "curveExit" : 0,
+          "elevationCrest" : 74,
+          "elevationEnd" : 72,
+          "elevationStart" : 68,
+          "laneCount" : 4,
+          "laneWidth" : 3.8,
+          "length" : 520,
+          "shoulderWidth" : 0.8
+        },
+        "city-orbit-skyway" : {
+          "curveApex" : 0.49,
+          "curveEntry" : -0.08,
+          "curveExit" : 0.18,
+          "elevationCrest" : 138,
+          "elevationEnd" : 132,
+          "elevationStart" : 60,
+          "laneCount" : 3,
+          "laneWidth" : 4.1,
+          "length" : 940,
+          "shoulderWidth" : 1
+        },
+        "city-rain-gate" : {
+          "curveApex" : -0.16,
+          "curveEntry" : 0.08,
+          "curveExit" : 0.05,
+          "elevationCrest" : 52,
+          "elevationEnd" : 48,
+          "elevationStart" : 42,
+          "laneCount" : 4,
+          "laneWidth" : 3.8,
+          "length" : 760,
+          "shoulderWidth" : 0.8
+        },
+        "city-vanta-canyon" : {
+          "curveApex" : 0.36,
+          "curveEntry" : 0.06,
+          "curveExit" : 0.1,
+          "elevationCrest" : 72,
+          "elevationEnd" : 68,
+          "elevationStart" : 48,
+          "laneCount" : 3,
+          "laneWidth" : 3.9,
+          "length" : 950,
+          "shoulderWidth" : 0.7
+        },
+        "coast-causeway" : {
+          "curveApex" : 0.18,
+          "curveEntry" : 0.05,
+          "curveExit" : 0.22,
+          "elevationCrest" : 10,
+          "elevationEnd" : 8,
+          "elevationStart" : 0,
+          "laneCount" : 3,
+          "laneWidth" : 4,
+          "length" : 850,
+          "shoulderWidth" : 1.4
+        },
+        "coast-cliff-arc" : {
+          "curveApex" : 0.58,
+          "curveEntry" : -0.1,
+          "curveExit" : 0.2,
+          "elevationCrest" : 48,
+          "elevationEnd" : 42,
+          "elevationStart" : 24,
+          "laneCount" : 3,
+          "laneWidth" : 3.9,
+          "length" : 900,
+          "shoulderWidth" : 1.1
+        },
+        "coast-solar-sweep" : {
+          "curveApex" : -0.48,
+          "curveEntry" : 0.12,
+          "curveExit" : -0.18,
+          "elevationCrest" : 28,
+          "elevationEnd" : 24,
+          "elevationStart" : 8,
+          "laneCount" : 3,
+          "laneWidth" : 4,
+          "length" : 1050,
+          "shoulderWidth" : 1.2
+        },
+        "peaks-relay-ridge" : {
+          "curveApex" : 0.65,
+          "curveEntry" : -0.12,
+          "curveExit" : 0.16,
+          "elevationCrest" : 252,
+          "elevationEnd" : 244,
+          "elevationStart" : 196,
+          "laneCount" : 2,
+          "laneWidth" : 3.8,
+          "length" : 900,
+          "shoulderWidth" : 1.3
+        },
+        "peaks-storm-switchback" : {
+          "curveApex" : -0.76,
+          "curveEntry" : 0.1,
+          "curveExit" : 0.24,
+          "elevationCrest" : 212,
+          "elevationEnd" : 196,
+          "elevationStart" : 74,
+          "laneCount" : 2,
+          "laneWidth" : 3.7,
+          "length" : 980,
+          "shoulderWidth" : 1.2
+        },
+        "peaks-summit-finish" : {
+          "curveApex" : -0.2,
+          "curveEntry" : 0.08,
+          "curveExit" : 0,
+          "elevationCrest" : 274,
+          "elevationEnd" : 270,
+          "elevationStart" : 244,
+          "laneCount" : 3,
+          "laneWidth" : 3.9,
+          "length" : 780,
+          "shoulderWidth" : 1.5
+        }
+      }
+    },
+    "neon-loop\/standard" : {
+      "graph" : {
+        "forkDecisionDistance" : 500,
+        "minimumForkDecisionTime" : 3,
+        "stages" : [
+          {
+            "branches" : [
+              {
+                "destinationStageID" : "coast-solar-sweep",
+                "direction" : "straight",
+                "id" : "coast-causeway-to-coast-solar-sweep",
+                "previewName" : "Sunset Coast"
+              }
+            ],
+            "checkpointTimeAward" : 0,
+            "displayName" : "Coast Causeway",
+            "distance" : 850,
+            "environmentID" : "sunset-coast",
+            "id" : "coast-causeway"
+          },
+          {
+            "branches" : [
+              {
+                "destinationStageID" : "coast-cliff-arc",
+                "direction" : "straight",
+                "id" : "coast-solar-sweep-to-coast-cliff-arc",
+                "previewName" : "Sunset Coast"
+              }
+            ],
+            "checkpointTimeAward" : 0,
+            "displayName" : "Coast Solar Sweep",
+            "distance" : 1050,
+            "environmentID" : "sunset-coast",
+            "id" : "coast-solar-sweep"
+          },
+          {
+            "branches" : [
+              {
+                "destinationStageID" : "city-rain-gate",
+                "direction" : "straight",
+                "id" : "coast-cliff-arc-to-city-rain-gate",
+                "previewName" : "Neon City"
+              }
+            ],
+            "checkpointTimeAward" : 18,
+            "displayName" : "Coast Cliff Arc",
+            "distance" : 900,
+            "environmentID" : "sunset-coast",
+            "id" : "coast-cliff-arc"
+          },
+          {
+            "branches" : [
+              {
+                "destinationStageID" : "city-vanta-canyon",
+                "direction" : "straight",
+                "id" : "city-rain-gate-to-city-vanta-canyon",
+                "previewName" : "Neon City"
+              }
+            ],
+            "checkpointTimeAward" : 0,
+            "displayName" : "City Rain Gate",
+            "distance" : 760,
+            "environmentID" : "neon-city",
+            "id" : "city-rain-gate"
+          },
+          {
+            "branches" : [
+              {
+                "destinationStageID" : "city-fork",
+                "direction" : "straight",
+                "id" : "city-vanta-canyon-to-city-fork",
+                "previewName" : "Neon City"
+              }
+            ],
+            "checkpointTimeAward" : 0,
+            "displayName" : "City Vanta Canyon",
+            "distance" : 950,
+            "environmentID" : "neon-city",
+            "id" : "city-vanta-canyon"
+          },
+          {
+            "branches" : [
+              {
+                "destinationStageID" : "city-axis-tunnel",
+                "direction" : "left",
+                "id" : "gateway-choice-0",
+                "previewName" : "Neon City"
+              },
+              {
+                "destinationStageID" : "peaks-storm-switchback",
+                "direction" : "right",
+                "id" : "gateway-choice-1",
+                "previewName" : "Midnight Peaks"
+              }
+            ],
+            "checkpointTimeAward" : 18,
+            "displayName" : "City Fork",
+            "distance" : 520,
+            "environmentID" : "neon-city",
+            "id" : "city-fork"
+          },
+          {
+            "branches" : [
+              {
+                "destinationStageID" : "city-orbit-skyway",
+                "direction" : "straight",
+                "id" : "city-axis-tunnel-to-city-orbit-skyway",
+                "previewName" : "Neon City"
+              }
+            ],
+            "checkpointTimeAward" : 0,
+            "displayName" : "City Axis Tunnel",
+            "distance" : 720,
+            "environmentID" : "neon-city",
+            "id" : "city-axis-tunnel"
+          },
+          {
+            "branches" : [
+              {
+                "destinationStageID" : "peaks-relay-ridge",
+                "direction" : "straight",
+                "id" : "city-orbit-skyway-to-peaks-relay-ridge",
+                "previewName" : "Midnight Peaks"
+              }
+            ],
+            "checkpointTimeAward" : 0,
+            "displayName" : "City Orbit Skyway",
+            "distance" : 940,
+            "environmentID" : "neon-city",
+            "id" : "city-orbit-skyway"
+          },
+          {
+            "branches" : [
+              {
+                "destinationStageID" : "peaks-relay-ridge",
+                "direction" : "straight",
+                "id" : "peaks-storm-switchback-to-peaks-relay-ridge",
+                "previewName" : "Midnight Peaks"
+              }
+            ],
+            "checkpointTimeAward" : 0,
+            "displayName" : "Peaks Storm Switchback",
+            "distance" : 980,
+            "environmentID" : "midnight-peaks",
+            "id" : "peaks-storm-switchback"
+          },
+          {
+            "branches" : [
+              {
+                "destinationStageID" : "peaks-summit-finish",
+                "direction" : "straight",
+                "id" : "peaks-relay-ridge-to-peaks-summit-finish",
+                "previewName" : "Midnight Peaks"
+              }
+            ],
+            "checkpointTimeAward" : 18,
+            "displayName" : "Peaks Relay Ridge",
+            "distance" : 900,
+            "environmentID" : "midnight-peaks",
+            "id" : "peaks-relay-ridge"
+          },
+          {
+            "branches" : [
+
+            ],
+            "checkpointTimeAward" : 0,
+            "displayName" : "Peaks Summit Finish",
+            "distance" : 780,
+            "environmentID" : "midnight-peaks",
+            "id" : "peaks-summit-finish"
+          }
+        ],
+        "startStageID" : "coast-causeway"
+      },
+      "profiles" : {
+        "city-axis-tunnel" : {
+          "curveApex" : -0.22,
+          "curveEntry" : 0,
+          "curveExit" : -0.08,
+          "elevationCrest" : 76,
+          "elevationEnd" : 60,
+          "elevationStart" : 72,
+          "laneCount" : 3,
+          "laneWidth" : 4,
+          "length" : 720,
+          "shoulderWidth" : 0.9
+        },
+        "city-fork" : {
+          "curveApex" : 0.08,
+          "curveEntry" : 0,
+          "curveExit" : 0,
+          "elevationCrest" : 74,
+          "elevationEnd" : 72,
+          "elevationStart" : 68,
+          "laneCount" : 4,
+          "laneWidth" : 3.8,
+          "length" : 520,
+          "shoulderWidth" : 0.8
+        },
+        "city-orbit-skyway" : {
+          "curveApex" : 0.49,
+          "curveEntry" : -0.08,
+          "curveExit" : 0.18,
+          "elevationCrest" : 138,
+          "elevationEnd" : 132,
+          "elevationStart" : 60,
+          "laneCount" : 3,
+          "laneWidth" : 4.1,
+          "length" : 940,
+          "shoulderWidth" : 1
+        },
+        "city-rain-gate" : {
+          "curveApex" : -0.16,
+          "curveEntry" : 0.08,
+          "curveExit" : 0.05,
+          "elevationCrest" : 52,
+          "elevationEnd" : 48,
+          "elevationStart" : 42,
+          "laneCount" : 4,
+          "laneWidth" : 3.8,
+          "length" : 760,
+          "shoulderWidth" : 0.8
+        },
+        "city-vanta-canyon" : {
+          "curveApex" : 0.36,
+          "curveEntry" : 0.06,
+          "curveExit" : 0.1,
+          "elevationCrest" : 72,
+          "elevationEnd" : 68,
+          "elevationStart" : 48,
+          "laneCount" : 3,
+          "laneWidth" : 3.9,
+          "length" : 950,
+          "shoulderWidth" : 0.7
+        },
+        "coast-causeway" : {
+          "curveApex" : 0.18,
+          "curveEntry" : 0.05,
+          "curveExit" : 0.22,
+          "elevationCrest" : 10,
+          "elevationEnd" : 8,
+          "elevationStart" : 0,
+          "laneCount" : 3,
+          "laneWidth" : 4,
+          "length" : 850,
+          "shoulderWidth" : 1.4
+        },
+        "coast-cliff-arc" : {
+          "curveApex" : 0.58,
+          "curveEntry" : -0.1,
+          "curveExit" : 0.2,
+          "elevationCrest" : 48,
+          "elevationEnd" : 42,
+          "elevationStart" : 24,
+          "laneCount" : 3,
+          "laneWidth" : 3.9,
+          "length" : 900,
+          "shoulderWidth" : 1.1
+        },
+        "coast-solar-sweep" : {
+          "curveApex" : -0.48,
+          "curveEntry" : 0.12,
+          "curveExit" : -0.18,
+          "elevationCrest" : 28,
+          "elevationEnd" : 24,
+          "elevationStart" : 8,
+          "laneCount" : 3,
+          "laneWidth" : 4,
+          "length" : 1050,
+          "shoulderWidth" : 1.2
+        },
+        "peaks-relay-ridge" : {
+          "curveApex" : 0.65,
+          "curveEntry" : -0.12,
+          "curveExit" : 0.16,
+          "elevationCrest" : 252,
+          "elevationEnd" : 244,
+          "elevationStart" : 196,
+          "laneCount" : 2,
+          "laneWidth" : 3.8,
+          "length" : 900,
+          "shoulderWidth" : 1.3
+        },
+        "peaks-storm-switchback" : {
+          "curveApex" : -0.76,
+          "curveEntry" : 0.1,
+          "curveExit" : 0.24,
+          "elevationCrest" : 212,
+          "elevationEnd" : 196,
+          "elevationStart" : 74,
+          "laneCount" : 2,
+          "laneWidth" : 3.7,
+          "length" : 980,
+          "shoulderWidth" : 1.2
+        },
+        "peaks-summit-finish" : {
+          "curveApex" : -0.2,
+          "curveEntry" : 0.08,
+          "curveExit" : 0,
+          "elevationCrest" : 274,
+          "elevationEnd" : 270,
+          "elevationStart" : 244,
+          "laneCount" : 3,
+          "laneWidth" : 3.9,
+          "length" : 780,
+          "shoulderWidth" : 1.5
+        }
+      }
+    },
+    "skyline-run\/expert" : {
+      "graph" : {
+        "forkDecisionDistance" : 0,
+        "minimumForkDecisionTime" : 0,
+        "stages" : [
+          {
+            "branches" : [
+              {
+                "destinationStageID" : "skyline-2",
+                "direction" : "straight",
+                "id" : "skyline-1-continue",
+                "previewName" : "Violet Skyway"
+              }
+            ],
+            "checkpointTimeAward" : 10,
+            "displayName" : "Neon City",
+            "distance" : 1925,
+            "environmentID" : "neon-city",
+            "id" : "skyline-1"
+          },
+          {
+            "branches" : [
+              {
+                "destinationStageID" : "skyline-3",
+                "direction" : "straight",
+                "id" : "skyline-2-continue",
+                "previewName" : "Midnight Peaks"
+              }
+            ],
+            "checkpointTimeAward" : 10,
+            "displayName" : "Violet Skyway",
+            "distance" : 1925,
+            "environmentID" : "violet-skyway",
+            "id" : "skyline-2"
+          },
+          {
+            "branches" : [
+
+            ],
+            "checkpointTimeAward" : 0,
+            "displayName" : "Midnight Peaks",
+            "distance" : 1925,
+            "environmentID" : "midnight-peaks",
+            "id" : "skyline-3"
+          }
+        ],
+        "startStageID" : "skyline-1"
+      },
+      "profiles" : {
+        "skyline-1" : {
+          "curveApex" : 0.4932661936369878,
+          "curveEntry" : -0.11296253910124361,
+          "curveExit" : -0.11480582894636454,
+          "elevationCrest" : -13.084550240329596,
+          "elevationEnd" : -4.640878919661249,
+          "elevationStart" : 0,
+          "laneCount" : 3,
+          "laneWidth" : 4,
+          "length" : 1925,
+          "shoulderWidth" : 1.2
+        },
+        "skyline-2" : {
+          "curveApex" : 0.4932661936369878,
+          "curveEntry" : -0.1049973296711681,
+          "curveExit" : -0.11011825741969941,
+          "elevationCrest" : -13.08088807507439,
+          "elevationEnd" : -4.640878919661249,
+          "elevationStart" : 0,
+          "laneCount" : 3,
+          "laneWidth" : 4,
+          "length" : 1925,
+          "shoulderWidth" : 1.2
+        },
+        "skyline-3" : {
+          "curveApex" : 0.4932661936369878,
+          "curveEntry" : -0.10765239948119326,
+          "curveExit" : -0.11168078126192112,
+          "elevationCrest" : -13.08162050812543,
+          "elevationEnd" : -4.640878919661249,
+          "elevationStart" : 0,
+          "laneCount" : 3,
+          "laneWidth" : 4,
+          "length" : 1925,
+          "shoulderWidth" : 1.2
+        }
+      }
+    },
+    "skyline-run\/novice" : {
+      "graph" : {
+        "forkDecisionDistance" : 0,
+        "minimumForkDecisionTime" : 0,
+        "stages" : [
+          {
+            "branches" : [
+              {
+                "destinationStageID" : "skyline-2",
+                "direction" : "straight",
+                "id" : "skyline-1-continue",
+                "previewName" : "Violet Skyway"
+              }
+            ],
+            "checkpointTimeAward" : 10,
+            "displayName" : "Neon City",
+            "distance" : 1575,
+            "environmentID" : "neon-city",
+            "id" : "skyline-1"
+          },
+          {
+            "branches" : [
+              {
+                "destinationStageID" : "skyline-3",
+                "direction" : "straight",
+                "id" : "skyline-2-continue",
+                "previewName" : "Midnight Peaks"
+              }
+            ],
+            "checkpointTimeAward" : 10,
+            "displayName" : "Violet Skyway",
+            "distance" : 1575,
+            "environmentID" : "violet-skyway",
+            "id" : "skyline-2"
+          },
+          {
+            "branches" : [
+
+            ],
+            "checkpointTimeAward" : 0,
+            "displayName" : "Midnight Peaks",
+            "distance" : 1575,
+            "environmentID" : "midnight-peaks",
+            "id" : "skyline-3"
+          }
+        ],
+        "startStageID" : "skyline-1"
+      },
+      "profiles" : {
+        "skyline-1" : {
+          "curveApex" : 0.4932661936369878,
+          "curveEntry" : -0.11296253910124361,
+          "curveExit" : -0.11480582894636454,
+          "elevationCrest" : -13.084550240329596,
+          "elevationEnd" : -4.640878919661249,
+          "elevationStart" : 0,
+          "laneCount" : 3,
+          "laneWidth" : 4,
+          "length" : 1575,
+          "shoulderWidth" : 1.2
+        },
+        "skyline-2" : {
+          "curveApex" : 0.4932661936369878,
+          "curveEntry" : -0.1049973296711681,
+          "curveExit" : -0.11011825741969941,
+          "elevationCrest" : -13.08088807507439,
+          "elevationEnd" : -4.640878919661249,
+          "elevationStart" : 0,
+          "laneCount" : 3,
+          "laneWidth" : 4,
+          "length" : 1575,
+          "shoulderWidth" : 1.2
+        },
+        "skyline-3" : {
+          "curveApex" : 0.4932661936369878,
+          "curveEntry" : -0.10765239948119326,
+          "curveExit" : -0.11168078126192112,
+          "elevationCrest" : -13.08162050812543,
+          "elevationEnd" : -4.640878919661249,
+          "elevationStart" : 0,
+          "laneCount" : 3,
+          "laneWidth" : 4,
+          "length" : 1575,
+          "shoulderWidth" : 1.2
+        }
+      }
+    },
+    "skyline-run\/standard" : {
+      "graph" : {
+        "forkDecisionDistance" : 0,
+        "minimumForkDecisionTime" : 0,
+        "stages" : [
+          {
+            "branches" : [
+              {
+                "destinationStageID" : "skyline-2",
+                "direction" : "straight",
+                "id" : "skyline-1-continue",
+                "previewName" : "Violet Skyway"
+              }
+            ],
+            "checkpointTimeAward" : 10,
+            "displayName" : "Neon City",
+            "distance" : 1750,
+            "environmentID" : "neon-city",
+            "id" : "skyline-1"
+          },
+          {
+            "branches" : [
+              {
+                "destinationStageID" : "skyline-3",
+                "direction" : "straight",
+                "id" : "skyline-2-continue",
+                "previewName" : "Midnight Peaks"
+              }
+            ],
+            "checkpointTimeAward" : 10,
+            "displayName" : "Violet Skyway",
+            "distance" : 1750,
+            "environmentID" : "violet-skyway",
+            "id" : "skyline-2"
+          },
+          {
+            "branches" : [
+
+            ],
+            "checkpointTimeAward" : 0,
+            "displayName" : "Midnight Peaks",
+            "distance" : 1750,
+            "environmentID" : "midnight-peaks",
+            "id" : "skyline-3"
+          }
+        ],
+        "startStageID" : "skyline-1"
+      },
+      "profiles" : {
+        "skyline-1" : {
+          "curveApex" : 0.4932661936369878,
+          "curveEntry" : -0.11296253910124361,
+          "curveExit" : -0.11480582894636454,
+          "elevationCrest" : -13.084550240329596,
+          "elevationEnd" : -4.640878919661249,
+          "elevationStart" : 0,
+          "laneCount" : 3,
+          "laneWidth" : 4,
+          "length" : 1750,
+          "shoulderWidth" : 1.2
+        },
+        "skyline-2" : {
+          "curveApex" : 0.4932661936369878,
+          "curveEntry" : -0.1049973296711681,
+          "curveExit" : -0.11011825741969941,
+          "elevationCrest" : -13.08088807507439,
+          "elevationEnd" : -4.640878919661249,
+          "elevationStart" : 0,
+          "laneCount" : 3,
+          "laneWidth" : 4,
+          "length" : 1750,
+          "shoulderWidth" : 1.2
+        },
+        "skyline-3" : {
+          "curveApex" : 0.4932661936369878,
+          "curveEntry" : -0.10765239948119326,
+          "curveExit" : -0.11168078126192112,
+          "elevationCrest" : -13.08162050812543,
+          "elevationEnd" : -4.640878919661249,
+          "elevationStart" : 0,
+          "laneCount" : 3,
+          "laneWidth" : 4,
+          "length" : 1750,
+          "shoulderWidth" : 1.2
+        }
+      }
+    },
+    "void-causeway\/expert" : {
+      "graph" : {
+        "forkDecisionDistance" : 0,
+        "minimumForkDecisionTime" : 0,
+        "stages" : [
+          {
+            "branches" : [
+              {
+                "destinationStageID" : "void-2",
+                "direction" : "straight",
+                "id" : "void-1-continue",
+                "previewName" : "Ion Storm"
+              }
+            ],
+            "checkpointTimeAward" : 10,
+            "displayName" : "Midnight Peaks",
+            "distance" : 2053.3333333333335,
+            "environmentID" : "midnight-peaks",
+            "id" : "void-1"
+          },
+          {
+            "branches" : [
+              {
+                "destinationStageID" : "void-3",
+                "direction" : "straight",
+                "id" : "void-2-continue",
+                "previewName" : "Summit Core"
+              }
+            ],
+            "checkpointTimeAward" : 10,
+            "displayName" : "Ion Storm",
+            "distance" : 2053.3333333333335,
+            "environmentID" : "ion-storm",
+            "id" : "void-2"
+          },
+          {
+            "branches" : [
+
+            ],
+            "checkpointTimeAward" : 0,
+            "displayName" : "Summit Core",
+            "distance" : 2053.3333333333335,
+            "environmentID" : "summit-core",
+            "id" : "void-3"
+          }
+        ],
+        "startStageID" : "void-1"
+      },
+      "profiles" : {
+        "void-1" : {
+          "curveApex" : 0.46248569466697176,
+          "curveEntry" : 0.15051194018463418,
+          "curveExit" : 0.0631265735866331,
+          "elevationCrest" : 7.85204852368963,
+          "elevationEnd" : 11.24705882352941,
+          "elevationStart" : 0,
+          "laneCount" : 3,
+          "laneWidth" : 4,
+          "length" : 2053.3333333333335,
+          "shoulderWidth" : 1.2
+        },
+        "void-2" : {
+          "curveApex" : 0.46248569466697176,
+          "curveEntry" : 0.15316700999465935,
+          "curveExit" : 0.0646890974288548,
+          "elevationCrest" : 7.853513389791713,
+          "elevationEnd" : 11.24705882352941,
+          "elevationStart" : 0,
+          "laneCount" : 3,
+          "laneWidth" : 4,
+          "length" : 2053.3333333333335,
+          "shoulderWidth" : 1.2
+        },
+        "void-3" : {
+          "curveApex" : 0.46248569466697176,
+          "curveEntry" : 0.15582207980468452,
+          "curveExit" : 0.06625162127107652,
+          "elevationCrest" : 7.8542458228427545,
+          "elevationEnd" : 11.24705882352941,
+          "elevationStart" : 0,
+          "laneCount" : 3,
+          "laneWidth" : 4,
+          "length" : 2053.3333333333335,
+          "shoulderWidth" : 1.2
+        }
+      }
+    },
+    "void-causeway\/novice" : {
+      "graph" : {
+        "forkDecisionDistance" : 0,
+        "minimumForkDecisionTime" : 0,
+        "stages" : [
+          {
+            "branches" : [
+              {
+                "destinationStageID" : "void-2",
+                "direction" : "straight",
+                "id" : "void-1-continue",
+                "previewName" : "Ion Storm"
+              }
+            ],
+            "checkpointTimeAward" : 10,
+            "displayName" : "Midnight Peaks",
+            "distance" : 1680.0000000000002,
+            "environmentID" : "midnight-peaks",
+            "id" : "void-1"
+          },
+          {
+            "branches" : [
+              {
+                "destinationStageID" : "void-3",
+                "direction" : "straight",
+                "id" : "void-2-continue",
+                "previewName" : "Summit Core"
+              }
+            ],
+            "checkpointTimeAward" : 10,
+            "displayName" : "Ion Storm",
+            "distance" : 1680.0000000000002,
+            "environmentID" : "ion-storm",
+            "id" : "void-2"
+          },
+          {
+            "branches" : [
+
+            ],
+            "checkpointTimeAward" : 0,
+            "displayName" : "Summit Core",
+            "distance" : 1680.0000000000002,
+            "environmentID" : "summit-core",
+            "id" : "void-3"
+          }
+        ],
+        "startStageID" : "void-1"
+      },
+      "profiles" : {
+        "void-1" : {
+          "curveApex" : 0.46248569466697176,
+          "curveEntry" : 0.15051194018463418,
+          "curveExit" : 0.0631265735866331,
+          "elevationCrest" : 7.85204852368963,
+          "elevationEnd" : 11.24705882352941,
+          "elevationStart" : 0,
+          "laneCount" : 3,
+          "laneWidth" : 4,
+          "length" : 1680.0000000000002,
+          "shoulderWidth" : 1.2
+        },
+        "void-2" : {
+          "curveApex" : 0.46248569466697176,
+          "curveEntry" : 0.15316700999465935,
+          "curveExit" : 0.0646890974288548,
+          "elevationCrest" : 7.853513389791713,
+          "elevationEnd" : 11.24705882352941,
+          "elevationStart" : 0,
+          "laneCount" : 3,
+          "laneWidth" : 4,
+          "length" : 1680.0000000000002,
+          "shoulderWidth" : 1.2
+        },
+        "void-3" : {
+          "curveApex" : 0.46248569466697176,
+          "curveEntry" : 0.15582207980468452,
+          "curveExit" : 0.06625162127107652,
+          "elevationCrest" : 7.8542458228427545,
+          "elevationEnd" : 11.24705882352941,
+          "elevationStart" : 0,
+          "laneCount" : 3,
+          "laneWidth" : 4,
+          "length" : 1680.0000000000002,
+          "shoulderWidth" : 1.2
+        }
+      }
+    },
+    "void-causeway\/standard" : {
+      "graph" : {
+        "forkDecisionDistance" : 0,
+        "minimumForkDecisionTime" : 0,
+        "stages" : [
+          {
+            "branches" : [
+              {
+                "destinationStageID" : "void-2",
+                "direction" : "straight",
+                "id" : "void-1-continue",
+                "previewName" : "Ion Storm"
+              }
+            ],
+            "checkpointTimeAward" : 10,
+            "displayName" : "Midnight Peaks",
+            "distance" : 1866.666666666667,
+            "environmentID" : "midnight-peaks",
+            "id" : "void-1"
+          },
+          {
+            "branches" : [
+              {
+                "destinationStageID" : "void-3",
+                "direction" : "straight",
+                "id" : "void-2-continue",
+                "previewName" : "Summit Core"
+              }
+            ],
+            "checkpointTimeAward" : 10,
+            "displayName" : "Ion Storm",
+            "distance" : 1866.666666666667,
+            "environmentID" : "ion-storm",
+            "id" : "void-2"
+          },
+          {
+            "branches" : [
+
+            ],
+            "checkpointTimeAward" : 0,
+            "displayName" : "Summit Core",
+            "distance" : 1866.666666666667,
+            "environmentID" : "summit-core",
+            "id" : "void-3"
+          }
+        ],
+        "startStageID" : "void-1"
+      },
+      "profiles" : {
+        "void-1" : {
+          "curveApex" : 0.46248569466697176,
+          "curveEntry" : 0.15051194018463418,
+          "curveExit" : 0.0631265735866331,
+          "elevationCrest" : 7.85204852368963,
+          "elevationEnd" : 11.24705882352941,
+          "elevationStart" : 0,
+          "laneCount" : 3,
+          "laneWidth" : 4,
+          "length" : 1866.666666666667,
+          "shoulderWidth" : 1.2
+        },
+        "void-2" : {
+          "curveApex" : 0.46248569466697176,
+          "curveEntry" : 0.15316700999465935,
+          "curveExit" : 0.0646890974288548,
+          "elevationCrest" : 7.853513389791713,
+          "elevationEnd" : 11.24705882352941,
+          "elevationStart" : 0,
+          "laneCount" : 3,
+          "laneWidth" : 4,
+          "length" : 1866.666666666667,
+          "shoulderWidth" : 1.2
+        },
+        "void-3" : {
+          "curveApex" : 0.46248569466697176,
+          "curveEntry" : 0.15582207980468452,
+          "curveExit" : 0.06625162127107652,
+          "elevationCrest" : 7.8542458228427545,
+          "elevationEnd" : 11.24705882352941,
+          "elevationStart" : 0,
+          "laneCount" : 3,
+          "laneWidth" : 4,
+          "length" : 1866.666666666667,
+          "shoulderWidth" : 1.2
+        }
+      }
+    }
+  },
+  "trackSamples" : [
+    {
+      "curvature" : 0,
+      "distance" : 0,
+      "elevation" : 0,
+      "grade" : 0,
+      "halfWidth" : 6,
+      "side" : -1,
+      "stage" : "coast-causeway"
+    },
+    {
+      "curvature" : 0,
+      "distance" : 0,
+      "elevation" : 0,
+      "grade" : 0,
+      "halfWidth" : 6,
+      "side" : 1,
+      "stage" : "coast-causeway"
+    },
+    {
+      "curvature" : 6.887369791666667e-05,
+      "distance" : 42.5,
+      "elevation" : 0.0019773582175925926,
+      "grade" : 0.001615459899237473,
+      "halfWidth" : 6,
+      "side" : -1,
+      "stage" : "coast-causeway"
+    },
+    {
+      "curvature" : 6.887369791666667e-05,
+      "distance" : 42.5,
+      "elevation" : 0.0019773582175925926,
+      "grade" : 0.001615459899237473,
+      "halfWidth" : 6,
+      "side" : 1,
+      "stage" : "coast-causeway"
+    },
+    {
+      "curvature" : 0.09953312,
+      "distance" : 178.5,
+      "elevation" : 5.6616,
+      "grade" : 0.02578823529411789,
+      "halfWidth" : 6,
+      "side" : -1,
+      "stage" : "coast-causeway"
+    },
+    {
+      "curvature" : 0.09953312,
+      "distance" : 178.5,
+      "elevation" : 5.6616,
+      "grade" : 0.02578823529411789,
+      "halfWidth" : 6,
+      "side" : 1,
+      "stage" : "coast-causeway"
+    },
+    {
+      "curvature" : 0.13424000000000003,
+      "distance" : 255,
+      "elevation" : 7.4399999999999995,
+      "grade" : 0.020705882352940908,
+      "halfWidth" : 6,
+      "side" : -1,
+      "stage" : "coast-causeway"
+    },
+    {
+      "curvature" : 0.13424000000000003,
+      "distance" : 255,
+      "elevation" : 7.4399999999999995,
+      "grade" : 0.020705882352940908,
+      "halfWidth" : 6,
+      "side" : 1,
+      "stage" : "coast-causeway"
+    },
+    {
+      "curvature" : 0.18,
+      "distance" : 425,
+      "elevation" : 10,
+      "grade" : 0.009411764705881787,
+      "halfWidth" : 6,
+      "side" : -1,
+      "stage" : "coast-causeway"
+    },
+    {
+      "curvature" : 0.18,
+      "distance" : 425,
+      "elevation" : 10,
+      "grade" : 0.009411764705881787,
+      "halfWidth" : 6,
+      "side" : 1,
+      "stage" : "coast-causeway"
+    },
+    {
+      "curvature" : 0.19408,
+      "distance" : 595,
+      "elevation" : 10.64,
+      "grade" : -0.001882352941176002,
+      "halfWidth" : 6,
+      "side" : -1,
+      "stage" : "coast-causeway"
+    },
+    {
+      "curvature" : 0.19408,
+      "distance" : 595,
+      "elevation" : 10.64,
+      "grade" : -0.001882352941176002,
+      "halfWidth" : 6,
+      "side" : 1,
+      "stage" : "coast-causeway"
+    },
+    {
+      "curvature" : 0.20706176,
+      "distance" : 688.5,
+      "elevation" : 10.1736,
+      "grade" : -0.008094117647059917,
+      "halfWidth" : 6,
+      "side" : -1,
+      "stage" : "coast-causeway"
+    },
+    {
+      "curvature" : 0.20706176,
+      "distance" : 688.5,
+      "elevation" : 10.1736,
+      "grade" : -0.008094117647059917,
+      "halfWidth" : 6,
+      "side" : 1,
+      "stage" : "coast-causeway"
+    },
+    {
+      "curvature" : 0.21584,
+      "distance" : 765,
+      "elevation" : 9.36,
+      "grade" : -0.013176470588234679,
+      "halfWidth" : 6,
+      "side" : -1,
+      "stage" : "coast-causeway"
+    },
+    {
+      "curvature" : 0.21584,
+      "distance" : 765,
+      "elevation" : 9.36,
+      "grade" : -0.013176470588234679,
+      "halfWidth" : 6,
+      "side" : 1,
+      "stage" : "coast-causeway"
+    },
+    {
+      "curvature" : 0.22,
+      "distance" : 850,
+      "elevation" : 8,
+      "grade" : -0.01879031141868559,
+      "halfWidth" : 6,
+      "side" : -1,
+      "stage" : "coast-causeway"
+    },
+    {
+      "curvature" : 0.22,
+      "distance" : 850,
+      "elevation" : 8,
+      "grade" : -0.01879031141868559,
+      "halfWidth" : 6,
+      "side" : 1,
+      "stage" : "coast-causeway"
+    },
+    {
+      "curvature" : 0.12,
+      "distance" : 0,
+      "elevation" : 8,
+      "grade" : 0.060908843537415436,
+      "halfWidth" : 6,
+      "side" : -1,
+      "stage" : "coast-solar-sweep"
+    },
+    {
+      "curvature" : 0.12,
+      "distance" : 0,
+      "elevation" : 8,
+      "grade" : 0.060908843537415436,
+      "halfWidth" : 6,
+      "side" : 1,
+      "stage" : "coast-solar-sweep"
+    },
+    {
+      "curvature" : 0.10319999999999999,
+      "distance" : 52.5,
+      "elevation" : 11.08,
+      "grade" : 0.056380952380951754,
+      "halfWidth" : 6,
+      "side" : -1,
+      "stage" : "coast-solar-sweep"
+    },
+    {
+      "curvature" : 0.10319999999999999,
+      "distance" : 52.5,
+      "elevation" : 11.08,
+      "grade" : 0.056380952380951754,
+      "halfWidth" : 6,
+      "side" : 1,
+      "stage" : "coast-solar-sweep"
+    },
+    {
+      "curvature" : -0.85,
+      "distance" : 220.5,
+      "elevation" : 19.323199959821103,
+      "grade" : 0.04171111071433538,
+      "halfWidth" : 6,
+      "side" : -1,
+      "stage" : "coast-solar-sweep"
+    },
+    {
+      "curvature" : 0.85,
+      "distance" : 220.5,
+      "elevation" : 19.32326525925711,
+      "grade" : 0.041697480867640295,
+      "halfWidth" : 5.9898244598765435,
+      "side" : 1,
+      "stage" : "coast-solar-sweep"
+    },
+    {
+      "curvature" : 0.85,
+      "distance" : 315,
+      "elevation" : 22.81580008577336,
+      "grade" : 0.030535047689041087,
+      "halfWidth" : 6,
+      "side" : -1,
+      "stage" : "coast-solar-sweep"
+    },
+    {
+      "curvature" : -0.85,
+      "distance" : 315,
+      "elevation" : 24.015792799173024,
+      "grade" : 0.054478836821447996,
+      "halfWidth" : 4.070987654320988,
+      "side" : 1,
+      "stage" : "coast-solar-sweep"
+    },
+    {
+      "curvature" : -0.20416062848461347,
+      "distance" : 525,
+      "elevation" : 26.80614891477699,
+      "grade" : 0.014068419829762533,
+      "halfWidth" : 6,
+      "side" : -1,
+      "stage" : "coast-solar-sweep"
+    },
+    {
+      "curvature" : -0.2851496752987004,
+      "distance" : 525,
+      "elevation" : 32.98717330847974,
+      "grade" : 0.01767897026660373,
+      "halfWidth" : 4,
+      "side" : 1,
+      "stage" : "coast-solar-sweep"
+    },
+    {
+      "curvature" : -0.4877504843751493,
+      "distance" : 735,
+      "elevation" : 29.152196870110807,
+      "grade" : 0.0004965976636731637,
+      "halfWidth" : 6,
+      "side" : -1,
+      "stage" : "coast-solar-sweep"
+    },
+    {
+      "curvature" : 0.16000537715638413,
+      "distance" : 735,
+      "elevation" : 30.91173686788795,
+      "grade" : -0.025474653019170197,
+      "halfWidth" : 4,
+      "side" : 1,
+      "stage" : "coast-solar-sweep"
+    },
+    {
+      "curvature" : -0.85,
+      "distance" : 850.5,
+      "elevation" : 28.347199959821104,
+      "grade" : -0.013091790277383978,
+      "halfWidth" : 6,
+      "side" : -1,
+      "stage" : "coast-solar-sweep"
+    },
+    {
+      "curvature" : 0.85,
+      "distance" : 850.5,
+      "elevation" : 28.34726525925711,
+      "grade" : -0.013108389960589837,
+      "halfWidth" : 5.989824459876544,
+      "side" : 1,
+      "stage" : "coast-solar-sweep"
+    },
+    {
+      "curvature" : -0.21119999999999994,
+      "distance" : 945,
+      "elevation" : 26.72,
+      "grade" : -0.02133333333333276,
+      "halfWidth" : 6,
+      "side" : -1,
+      "stage" : "coast-solar-sweep"
+    },
+    {
+      "curvature" : -0.21119999999999994,
+      "distance" : 945,
+      "elevation" : 26.72,
+      "grade" : -0.02133333333333276,
+      "halfWidth" : 6,
+      "side" : 1,
+      "stage" : "coast-solar-sweep"
+    },
+    {
+      "curvature" : -0.18,
+      "distance" : 1050,
+      "elevation" : 24,
+      "grade" : -0.030432653061222226,
+      "halfWidth" : 6,
+      "side" : -1,
+      "stage" : "coast-solar-sweep"
+    },
+    {
+      "curvature" : -0.18,
+      "distance" : 1050,
+      "elevation" : 24,
+      "grade" : -0.030432653061222226,
+      "halfWidth" : 6,
+      "side" : 1,
+      "stage" : "coast-solar-sweep"
+    },
+    {
+      "curvature" : -0.1,
+      "distance" : 0,
+      "elevation" : 24,
+      "grade" : 0.086592592592595,
+      "halfWidth" : 5.85,
+      "side" : -1,
+      "stage" : "coast-cliff-arc"
+    },
+    {
+      "curvature" : -0.1,
+      "distance" : 0,
+      "elevation" : 24,
+      "grade" : 0.086592592592595,
+      "halfWidth" : 5.85,
+      "side" : 1,
+      "stage" : "coast-cliff-arc"
+    },
+    {
+      "curvature" : -0.08096,
+      "distance" : 45,
+      "elevation" : 27.75,
+      "grade" : 0.08000000000000007,
+      "halfWidth" : 5.85,
+      "side" : -1,
+      "stage" : "coast-cliff-arc"
+    },
+    {
+      "curvature" : -0.08096,
+      "distance" : 45,
+      "elevation" : 27.75,
+      "grade" : 0.08000000000000007,
+      "halfWidth" : 5.85,
+      "side" : 1,
+      "stage" : "coast-cliff-arc"
+    },
+    {
+      "curvature" : 0.15909631999999993,
+      "distance" : 189,
+      "elevation" : 37.733999999999995,
+      "grade" : 0.05866666666666731,
+      "halfWidth" : 5.85,
+      "side" : -1,
+      "stage" : "coast-cliff-arc"
+    },
+    {
+      "curvature" : 0.15909631999999993,
+      "distance" : 189,
+      "elevation" : 37.733999999999995,
+      "grade" : 0.05866666666666731,
+      "halfWidth" : 5.85,
+      "side" : 1,
+      "stage" : "coast-cliff-arc"
+    },
+    {
+      "curvature" : 0.34063999999999994,
+      "distance" : 270,
+      "elevation" : 42,
+      "grade" : 0.046666666666666856,
+      "halfWidth" : 5.85,
+      "side" : -1,
+      "stage" : "coast-cliff-arc"
+    },
+    {
+      "curvature" : 0.34063999999999994,
+      "distance" : 270,
+      "elevation" : 42,
+      "grade" : 0.046666666666666856,
+      "halfWidth" : 5.85,
+      "side" : 1,
+      "stage" : "coast-cliff-arc"
+    },
+    {
+      "curvature" : 0.58,
+      "distance" : 450,
+      "elevation" : 48,
+      "grade" : 0.020000000000003126,
+      "halfWidth" : 5.85,
+      "side" : -1,
+      "stage" : "coast-cliff-arc"
+    },
+    {
+      "curvature" : 0.58,
+      "distance" : 450,
+      "elevation" : 48,
+      "grade" : 0.020000000000003126,
+      "halfWidth" : 5.85,
+      "side" : 1,
+      "stage" : "coast-cliff-arc"
+    },
+    {
+      "curvature" : 0.44624,
+      "distance" : 630,
+      "elevation" : 49.2,
+      "grade" : -0.0066666666666712615,
+      "halfWidth" : 5.85,
+      "side" : -1,
+      "stage" : "coast-cliff-arc"
+    },
+    {
+      "curvature" : 0.44624,
+      "distance" : 630,
+      "elevation" : 49.2,
+      "grade" : -0.0066666666666712615,
+      "halfWidth" : 5.85,
+      "side" : 1,
+      "stage" : "coast-cliff-arc"
+    },
+    {
+      "curvature" : 0.3229132799999999,
+      "distance" : 729,
+      "elevation" : 47.81399999999999,
+      "grade" : -0.021333333333334537,
+      "halfWidth" : 5.85,
+      "side" : -1,
+      "stage" : "coast-cliff-arc"
+    },
+    {
+      "curvature" : 0.3229132799999999,
+      "distance" : 729,
+      "elevation" : 47.81399999999999,
+      "grade" : -0.021333333333334537,
+      "halfWidth" : 5.85,
+      "side" : 1,
+      "stage" : "coast-cliff-arc"
+    },
+    {
+      "curvature" : 0.23951999999999996,
+      "distance" : 810,
+      "elevation" : 45.6,
+      "grade" : -0.03333333333333499,
+      "halfWidth" : 5.85,
+      "side" : -1,
+      "stage" : "coast-cliff-arc"
+    },
+    {
+      "curvature" : 0.23951999999999996,
+      "distance" : 810,
+      "elevation" : 45.6,
+      "grade" : -0.03333333333333499,
+      "halfWidth" : 5.85,
+      "side" : 1,
+      "stage" : "coast-cliff-arc"
+    },
+    {
+      "curvature" : 0.2,
+      "distance" : 900,
+      "elevation" : 42,
+      "grade" : -0.046592592592588744,
+      "halfWidth" : 5.85,
+      "side" : -1,
+      "stage" : "coast-cliff-arc"
+    },
+    {
+      "curvature" : 0.2,
+      "distance" : 900,
+      "elevation" : 42,
+      "grade" : -0.046592592592588744,
+      "halfWidth" : 5.85,
+      "side" : 1,
+      "stage" : "coast-cliff-arc"
+    },
+    {
+      "curvature" : 0.08,
+      "distance" : 0,
+      "elevation" : 42,
+      "grade" : 0.044688365650969786,
+      "halfWidth" : 7.6,
+      "side" : -1,
+      "stage" : "city-rain-gate"
+    },
+    {
+      "curvature" : 0.08,
+      "distance" : 0,
+      "elevation" : 42,
+      "grade" : 0.044688365650969786,
+      "halfWidth" : 7.6,
+      "side" : 1,
+      "stage" : "city-rain-gate"
+    },
+    {
+      "curvature" : 0.07328,
+      "distance" : 38,
+      "elevation" : 43.63,
+      "grade" : 0.04105263157894967,
+      "halfWidth" : 7.6,
+      "side" : -1,
+      "stage" : "city-rain-gate"
+    },
+    {
+      "curvature" : 0.07328,
+      "distance" : 38,
+      "elevation" : 43.63,
+      "grade" : 0.04105263157894967,
+      "halfWidth" : 7.6,
+      "side" : 1,
+      "stage" : "city-rain-gate"
+    },
+    {
+      "curvature" : -0.011445759999999985,
+      "distance" : 159.6,
+      "elevation" : 47.9052,
+      "grade" : 0.02926315789473577,
+      "halfWidth" : 7.6,
+      "side" : -1,
+      "stage" : "city-rain-gate"
+    },
+    {
+      "curvature" : -0.011445759999999985,
+      "distance" : 159.6,
+      "elevation" : 47.9052,
+      "grade" : 0.02926315789473577,
+      "halfWidth" : 7.6,
+      "side" : 1,
+      "stage" : "city-rain-gate"
+    },
+    {
+      "curvature" : -0.07551999999999999,
+      "distance" : 228,
+      "elevation" : 49.68,
+      "grade" : 0.02263157894736878,
+      "halfWidth" : 7.6,
+      "side" : -1,
+      "stage" : "city-rain-gate"
+    },
+    {
+      "curvature" : -0.07551999999999999,
+      "distance" : 228,
+      "elevation" : 49.68,
+      "grade" : 0.02263157894736878,
+      "halfWidth" : 7.6,
+      "side" : 1,
+      "stage" : "city-rain-gate"
+    },
+    {
+      "curvature" : -0.16,
+      "distance" : 380,
+      "elevation" : 52,
+      "grade" : 0.00789473684210762,
+      "halfWidth" : 7.6,
+      "side" : -1,
+      "stage" : "city-rain-gate"
+    },
+    {
+      "curvature" : -0.16,
+      "distance" : 380,
+      "elevation" : 52,
+      "grade" : 0.00789473684210762,
+      "halfWidth" : 7.6,
+      "side" : 1,
+      "stage" : "city-rain-gate"
+    },
+    {
+      "curvature" : -0.08608000000000002,
+      "distance" : 532,
+      "elevation" : 52.08,
+      "grade" : -0.006842105263160647,
+      "halfWidth" : 7.6,
+      "side" : -1,
+      "stage" : "city-rain-gate"
+    },
+    {
+      "curvature" : -0.08608000000000002,
+      "distance" : 532,
+      "elevation" : 52.08,
+      "grade" : -0.006842105263160647,
+      "halfWidth" : 7.6,
+      "side" : 1,
+      "stage" : "city-rain-gate"
+    },
+    {
+      "curvature" : -0.017925759999999957,
+      "distance" : 615.6,
+      "elevation" : 51.169200000000004,
+      "grade" : -0.014947368421051266,
+      "halfWidth" : 7.6,
+      "side" : -1,
+      "stage" : "city-rain-gate"
+    },
+    {
+      "curvature" : -0.017925759999999957,
+      "distance" : 615.6,
+      "elevation" : 51.169200000000004,
+      "grade" : -0.014947368421051266,
+      "halfWidth" : 7.6,
+      "side" : 1,
+      "stage" : "city-rain-gate"
+    },
+    {
+      "curvature" : 0.028160000000000046,
+      "distance" : 684,
+      "elevation" : 49.92,
+      "grade" : -0.021578947368421808,
+      "halfWidth" : 7.6,
+      "side" : -1,
+      "stage" : "city-rain-gate"
+    },
+    {
+      "curvature" : 0.028160000000000046,
+      "distance" : 684,
+      "elevation" : 49.92,
+      "grade" : -0.021578947368421808,
+      "halfWidth" : 7.6,
+      "side" : 1,
+      "stage" : "city-rain-gate"
+    },
+    {
+      "curvature" : 0.05000000000000002,
+      "distance" : 760,
+      "elevation" : 48,
+      "grade" : -0.028898891966754547,
+      "halfWidth" : 7.6,
+      "side" : -1,
+      "stage" : "city-rain-gate"
+    },
+    {
+      "curvature" : 0.05000000000000002,
+      "distance" : 760,
+      "elevation" : 48,
+      "grade" : -0.028898891966754547,
+      "halfWidth" : 7.6,
+      "side" : 1,
+      "stage" : "city-rain-gate"
+    },
+    {
+      "curvature" : 0.06,
+      "distance" : 0,
+      "elevation" : 48,
+      "grade" : 0.07993795013850047,
+      "halfWidth" : 5.85,
+      "side" : -1,
+      "stage" : "city-vanta-canyon"
+    },
+    {
+      "curvature" : 0.06,
+      "distance" : 0,
+      "elevation" : 48,
+      "grade" : 0.07993795013850047,
+      "halfWidth" : 5.85,
+      "side" : 1,
+      "stage" : "city-vanta-canyon"
+    },
+    {
+      "curvature" : 0.0684,
+      "distance" : 47.5,
+      "elevation" : 51.660000000000004,
+      "grade" : 0.07410526315788957,
+      "halfWidth" : 5.85,
+      "side" : -1,
+      "stage" : "city-vanta-canyon"
+    },
+    {
+      "curvature" : 0.0684,
+      "distance" : 47.5,
+      "elevation" : 51.660000000000004,
+      "grade" : 0.07410526315788957,
+      "halfWidth" : 5.85,
+      "side" : 1,
+      "stage" : "city-vanta-canyon"
+    },
+    {
+      "curvature" : 0.1743072,
+      "distance" : 199.5,
+      "elevation" : 61.49040000000001,
+      "grade" : 0.05524210526315443,
+      "halfWidth" : 5.85,
+      "side" : -1,
+      "stage" : "city-vanta-canyon"
+    },
+    {
+      "curvature" : 0.1743072,
+      "distance" : 199.5,
+      "elevation" : 61.49040000000001,
+      "grade" : 0.05524210526315443,
+      "halfWidth" : 5.85,
+      "side" : 1,
+      "stage" : "city-vanta-canyon"
+    },
+    {
+      "curvature" : 0.25439999999999996,
+      "distance" : 285,
+      "elevation" : 65.75999999999999,
+      "grade" : 0.044631578947367245,
+      "halfWidth" : 5.85,
+      "side" : -1,
+      "stage" : "city-vanta-canyon"
+    },
+    {
+      "curvature" : 0.25439999999999996,
+      "distance" : 285,
+      "elevation" : 65.75999999999999,
+      "grade" : 0.044631578947367245,
+      "halfWidth" : 5.85,
+      "side" : 1,
+      "stage" : "city-vanta-canyon"
+    },
+    {
+      "curvature" : 0.36,
+      "distance" : 475,
+      "elevation" : 72,
+      "grade" : 0.021052631578946546,
+      "halfWidth" : 5.85,
+      "side" : -1,
+      "stage" : "city-vanta-canyon"
+    },
+    {
+      "curvature" : 0.36,
+      "distance" : 475,
+      "elevation" : 72,
+      "grade" : 0.021052631578946546,
+      "halfWidth" : 5.85,
+      "side" : 1,
+      "stage" : "city-vanta-canyon"
+    },
+    {
+      "curvature" : 0.26848000000000005,
+      "distance" : 665,
+      "elevation" : 73.75999999999999,
+      "grade" : -0.0025263157894670485,
+      "halfWidth" : 5.85,
+      "side" : -1,
+      "stage" : "city-vanta-canyon"
+    },
+    {
+      "curvature" : 0.26848000000000005,
+      "distance" : 665,
+      "elevation" : 73.75999999999999,
+      "grade" : -0.0025263157894670485,
+      "halfWidth" : 5.85,
+      "side" : 1,
+      "stage" : "city-vanta-canyon"
+    },
+    {
+      "curvature" : 0.18409855999999994,
+      "distance" : 769.5,
+      "elevation" : 72.8184,
+      "grade" : -0.015494736842100565,
+      "halfWidth" : 5.85,
+      "side" : -1,
+      "stage" : "city-vanta-canyon"
+    },
+    {
+      "curvature" : 0.18409855999999994,
+      "distance" : 769.5,
+      "elevation" : 72.8184,
+      "grade" : -0.015494736842100565,
+      "halfWidth" : 5.85,
+      "side" : 1,
+      "stage" : "city-vanta-canyon"
+    },
+    {
+      "curvature" : 0.12703999999999996,
+      "distance" : 855,
+      "elevation" : 71.04,
+      "grade" : -0.026105263157894854,
+      "halfWidth" : 5.85,
+      "side" : -1,
+      "stage" : "city-vanta-canyon"
+    },
+    {
+      "curvature" : 0.12703999999999996,
+      "distance" : 855,
+      "elevation" : 71.04,
+      "grade" : -0.026105263157894854,
+      "halfWidth" : 5.85,
+      "side" : 1,
+      "stage" : "city-vanta-canyon"
+    },
+    {
+      "curvature" : 0.09999999999999998,
+      "distance" : 950,
+      "elevation" : 68,
+      "grade" : -0.03783268698062159,
+      "halfWidth" : 5.85,
+      "side" : -1,
+      "stage" : "city-vanta-canyon"
+    },
+    {
+      "curvature" : 0.09999999999999998,
+      "distance" : 950,
+      "elevation" : 68,
+      "grade" : -0.03783268698062159,
+      "halfWidth" : 5.85,
+      "side" : 1,
+      "stage" : "city-vanta-canyon"
+    },
+    {
+      "curvature" : 0,
+      "distance" : 0,
+      "elevation" : 68,
+      "grade" : 0.03840236686390597,
+      "halfWidth" : 7.6,
+      "side" : -1,
+      "stage" : "city-fork"
+    },
+    {
+      "curvature" : 0,
+      "distance" : 0,
+      "elevation" : 68,
+      "grade" : 0.03840236686390597,
+      "halfWidth" : 7.6,
+      "side" : 1,
+      "stage" : "city-fork"
+    },
+    {
+      "curvature" : 0.0022400000000000002,
+      "distance" : 26,
+      "elevation" : 68.96000000000001,
+      "grade" : 0.035384615384614904,
+      "halfWidth" : 7.6,
+      "side" : -1,
+      "stage" : "city-fork"
+    },
+    {
+      "curvature" : 0.0022400000000000002,
+      "distance" : 26,
+      "elevation" : 68.96000000000001,
+      "grade" : 0.035384615384614904,
+      "halfWidth" : 7.6,
+      "side" : 1,
+      "stage" : "city-fork"
+    },
+    {
+      "curvature" : 0.03048192,
+      "distance" : 109.2,
+      "elevation" : 71.49440000000001,
+      "grade" : 0.02553846153846706,
+      "halfWidth" : 7.6,
+      "side" : -1,
+      "stage" : "city-fork"
+    },
+    {
+      "curvature" : 0.03048192,
+      "distance" : 109.2,
+      "elevation" : 71.49440000000001,
+      "grade" : 0.02553846153846706,
+      "halfWidth" : 7.6,
+      "side" : 1,
+      "stage" : "city-fork"
+    },
+    {
+      "curvature" : 0.051840000000000004,
+      "distance" : 156,
+      "elevation" : 72.55999999999999,
+      "grade" : 0.020000000000003126,
+      "halfWidth" : 7.6,
+      "side" : -1,
+      "stage" : "city-fork"
+    },
+    {
+      "curvature" : 0.051840000000000004,
+      "distance" : 156,
+      "elevation" : 72.55999999999999,
+      "grade" : 0.020000000000003126,
+      "halfWidth" : 7.6,
+      "side" : 1,
+      "stage" : "city-fork"
+    },
+    {
+      "curvature" : 0.08,
+      "distance" : 260,
+      "elevation" : 74,
+      "grade" : 0.007692307692309441,
+      "halfWidth" : 7.6,
+      "side" : -1,
+      "stage" : "city-fork"
+    },
+    {
+      "curvature" : 0.08,
+      "distance" : 260,
+      "elevation" : 74,
+      "grade" : 0.007692307692309441,
+      "halfWidth" : 7.6,
+      "side" : 1,
+      "stage" : "city-fork"
+    },
+    {
+      "curvature" : 0.05184000000000001,
+      "distance" : 364,
+      "elevation" : 74.16,
+      "grade" : -0.004615384615391349,
+      "halfWidth" : 7.6,
+      "side" : -1,
+      "stage" : "city-fork"
+    },
+    {
+      "curvature" : 0.05184000000000001,
+      "distance" : 364,
+      "elevation" : 74.16,
+      "grade" : -0.004615384615391349,
+      "halfWidth" : 7.6,
+      "side" : 1,
+      "stage" : "city-fork"
+    },
+    {
+      "curvature" : 0.025876479999999986,
+      "distance" : 421.20000000000005,
+      "elevation" : 73.7024,
+      "grade" : -0.011384615384613994,
+      "halfWidth" : 7.6,
+      "side" : -1,
+      "stage" : "city-fork"
+    },
+    {
+      "curvature" : 0.025876479999999986,
+      "distance" : 421.20000000000005,
+      "elevation" : 73.7024,
+      "grade" : -0.011384615384613994,
+      "halfWidth" : 7.6,
+      "side" : 1,
+      "stage" : "city-fork"
+    },
+    {
+      "curvature" : 0.008319999999999994,
+      "distance" : 468,
+      "elevation" : 73.04,
+      "grade" : -0.01692307692307793,
+      "halfWidth" : 7.6,
+      "side" : -1,
+      "stage" : "city-fork"
+    },
+    {
+      "curvature" : 0.008319999999999994,
+      "distance" : 468,
+      "elevation" : 73.04,
+      "grade" : -0.01692307692307793,
+      "halfWidth" : 7.6,
+      "side" : 1,
+      "stage" : "city-fork"
+    },
+    {
+      "curvature" : 0,
+      "distance" : 520,
+      "elevation" : 72,
+      "grade" : -0.023017751479287085,
+      "halfWidth" : 7.6,
+      "side" : -1,
+      "stage" : "city-fork"
+    },
+    {
+      "curvature" : 0,
+      "distance" : 520,
+      "elevation" : 72,
+      "grade" : -0.023017751479287085,
+      "halfWidth" : 7.6,
+      "side" : 1,
+      "stage" : "city-fork"
+    },
+    {
+      "curvature" : 0,
+      "distance" : 0,
+      "elevation" : 72,
+      "grade" : 0.03881172839504643,
+      "halfWidth" : 6,
+      "side" : -1,
+      "stage" : "city-axis-tunnel"
+    },
+    {
+      "curvature" : 0,
+      "distance" : 0,
+      "elevation" : 72,
+      "grade" : 0.03881172839504643,
+      "halfWidth" : 6,
+      "side" : 1,
+      "stage" : "city-axis-tunnel"
+    },
+    {
+      "curvature" : -0.0061600000000000005,
+      "distance" : 36,
+      "elevation" : 73.30000000000001,
+      "grade" : 0.03333333333333144,
+      "halfWidth" : 6,
+      "side" : -1,
+      "stage" : "city-axis-tunnel"
+    },
+    {
+      "curvature" : -0.0061600000000000005,
+      "distance" : 36,
+      "elevation" : 73.30000000000001,
+      "grade" : 0.03333333333333144,
+      "halfWidth" : 6,
+      "side" : 1,
+      "stage" : "city-axis-tunnel"
+    },
+    {
+      "curvature" : -0.08382527999999999,
+      "distance" : 151.2,
+      "elevation" : 76.116,
+      "grade" : 0.015555555555557987,
+      "halfWidth" : 6,
+      "side" : -1,
+      "stage" : "city-axis-tunnel"
+    },
+    {
+      "curvature" : -0.08382527999999999,
+      "distance" : 151.2,
+      "elevation" : 76.116,
+      "grade" : 0.015555555555557987,
+      "halfWidth" : 6,
+      "side" : 1,
+      "stage" : "city-axis-tunnel"
+    },
+    {
+      "curvature" : -0.14256,
+      "distance" : 216,
+      "elevation" : 76.8,
+      "grade" : 0.005555555555552871,
+      "halfWidth" : 6,
+      "side" : -1,
+      "stage" : "city-axis-tunnel"
+    },
+    {
+      "curvature" : -0.14256,
+      "distance" : 216,
+      "elevation" : 76.8,
+      "grade" : 0.005555555555552871,
+      "halfWidth" : 6,
+      "side" : 1,
+      "stage" : "city-axis-tunnel"
+    },
+    {
+      "curvature" : -0.22,
+      "distance" : 360,
+      "elevation" : 76,
+      "grade" : -0.01666666666666572,
+      "halfWidth" : 6,
+      "side" : -1,
+      "stage" : "city-axis-tunnel"
+    },
+    {
+      "curvature" : -0.22,
+      "distance" : 360,
+      "elevation" : 76,
+      "grade" : -0.01666666666666572,
+      "halfWidth" : 6,
+      "side" : 1,
+      "stage" : "city-axis-tunnel"
+    },
+    {
+      "curvature" : -0.17072,
+      "distance" : 503.99999999999994,
+      "elevation" : 72,
+      "grade" : -0.03888888888888431,
+      "halfWidth" : 6,
+      "side" : -1,
+      "stage" : "city-axis-tunnel"
+    },
+    {
+      "curvature" : -0.17072,
+      "distance" : 503.99999999999994,
+      "elevation" : 72,
+      "grade" : -0.03888888888888431,
+      "halfWidth" : 6,
+      "side" : 1,
+      "stage" : "city-axis-tunnel"
+    },
+    {
+      "curvature" : -0.12528383999999998,
+      "distance" : 583.2,
+      "elevation" : 68.436,
+      "grade" : -0.0511111111111191,
+      "halfWidth" : 6,
+      "side" : -1,
+      "stage" : "city-axis-tunnel"
+    },
+    {
+      "curvature" : -0.12528383999999998,
+      "distance" : 583.2,
+      "elevation" : 68.436,
+      "grade" : -0.0511111111111191,
+      "halfWidth" : 6,
+      "side" : 1,
+      "stage" : "city-axis-tunnel"
+    },
+    {
+      "curvature" : -0.09455999999999998,
+      "distance" : 648,
+      "elevation" : 64.8,
+      "grade" : -0.061111111111110006,
+      "halfWidth" : 6,
+      "side" : -1,
+      "stage" : "city-axis-tunnel"
+    },
+    {
+      "curvature" : -0.09455999999999998,
+      "distance" : 648,
+      "elevation" : 64.8,
+      "grade" : -0.061111111111110006,
+      "halfWidth" : 6,
+      "side" : 1,
+      "stage" : "city-axis-tunnel"
+    },
+    {
+      "curvature" : -0.07999999999999999,
+      "distance" : 720,
+      "elevation" : 60,
+      "grade" : -0.07214506172839208,
+      "halfWidth" : 6,
+      "side" : -1,
+      "stage" : "city-axis-tunnel"
+    },
+    {
+      "curvature" : -0.07999999999999999,
+      "distance" : 720,
+      "elevation" : 60,
+      "grade" : -0.07214506172839208,
+      "halfWidth" : 6,
+      "side" : 1,
+      "stage" : "city-axis-tunnel"
+    },
+    {
+      "curvature" : -0.08,
+      "distance" : 0,
+      "elevation" : 60,
+      "grade" : 0.2551290176550438,
+      "halfWidth" : 6.1499999999999995,
+      "side" : -1,
+      "stage" : "city-orbit-skyway"
+    },
+    {
+      "curvature" : -0.08,
+      "distance" : 0,
+      "elevation" : 60,
+      "grade" : 0.2551290176550438,
+      "halfWidth" : 6.1499999999999995,
+      "side" : 1,
+      "stage" : "city-orbit-skyway"
+    },
+    {
+      "curvature" : -0.06404,
+      "distance" : 47,
+      "elevation" : 71.58,
+      "grade" : 0.23744680851064714,
+      "halfWidth" : 6.1499999999999995,
+      "side" : -1,
+      "stage" : "city-orbit-skyway"
+    },
+    {
+      "curvature" : -0.06404,
+      "distance" : 47,
+      "elevation" : 71.58,
+      "grade" : 0.23744680851064714,
+      "halfWidth" : 6.1499999999999995,
+      "side" : 1,
+      "stage" : "city-orbit-skyway"
+    },
+    {
+      "curvature" : 0.13718367999999997,
+      "distance" : 197.4,
+      "elevation" : 102.9912,
+      "grade" : 0.18025531914894088,
+      "halfWidth" : 6.1499999999999995,
+      "side" : -1,
+      "stage" : "city-orbit-skyway"
+    },
+    {
+      "curvature" : 0.13718367999999997,
+      "distance" : 197.4,
+      "elevation" : 102.9912,
+      "grade" : 0.18025531914894088,
+      "halfWidth" : 6.1499999999999995,
+      "side" : 1,
+      "stage" : "city-orbit-skyway"
+    },
+    {
+      "curvature" : 0.28935999999999995,
+      "distance" : 282,
+      "elevation" : 116.87999999999998,
+      "grade" : 0.1480851063829789,
+      "halfWidth" : 6.1499999999999995,
+      "side" : -1,
+      "stage" : "city-orbit-skyway"
+    },
+    {
+      "curvature" : 0.28935999999999995,
+      "distance" : 282,
+      "elevation" : 116.87999999999998,
+      "grade" : 0.1480851063829789,
+      "halfWidth" : 6.1499999999999995,
+      "side" : 1,
+      "stage" : "city-orbit-skyway"
+    },
+    {
+      "curvature" : 0.49,
+      "distance" : 470,
+      "elevation" : 138,
+      "grade" : 0.07659574468083008,
+      "halfWidth" : 6.1499999999999995,
+      "side" : -1,
+      "stage" : "city-orbit-skyway"
+    },
+    {
+      "curvature" : 0.49,
+      "distance" : 470,
+      "elevation" : 138,
+      "grade" : 0.07659574468083008,
+      "halfWidth" : 6.1499999999999995,
+      "side" : 1,
+      "stage" : "city-orbit-skyway"
+    },
+    {
+      "curvature" : 0.38088000000000005,
+      "distance" : 658,
+      "elevation" : 145.68,
+      "grade" : 0.0051063829787239,
+      "halfWidth" : 6.1499999999999995,
+      "side" : -1,
+      "stage" : "city-orbit-skyway"
+    },
+    {
+      "curvature" : 0.38088000000000005,
+      "distance" : 658,
+      "elevation" : 145.68,
+      "grade" : 0.0051063829787239,
+      "halfWidth" : 6.1499999999999995,
+      "side" : 1,
+      "stage" : "city-orbit-skyway"
+    },
+    {
+      "curvature" : 0.28027135999999997,
+      "distance" : 761.4000000000001,
+      "elevation" : 144.1752,
+      "grade" : -0.03421276595744871,
+      "halfWidth" : 6.1499999999999995,
+      "side" : -1,
+      "stage" : "city-orbit-skyway"
+    },
+    {
+      "curvature" : 0.28027135999999997,
+      "distance" : 761.4000000000001,
+      "elevation" : 144.1752,
+      "grade" : -0.03421276595744871,
+      "halfWidth" : 6.1499999999999995,
+      "side" : 1,
+      "stage" : "city-orbit-skyway"
+    },
+    {
+      "curvature" : 0.21223999999999993,
+      "distance" : 846,
+      "elevation" : 139.92,
+      "grade" : -0.0663829787234107,
+      "halfWidth" : 6.1499999999999995,
+      "side" : -1,
+      "stage" : "city-orbit-skyway"
+    },
+    {
+      "curvature" : 0.21223999999999993,
+      "distance" : 846,
+      "elevation" : 139.92,
+      "grade" : -0.0663829787234107,
+      "halfWidth" : 6.1499999999999995,
+      "side" : 1,
+      "stage" : "city-orbit-skyway"
+    },
+    {
+      "curvature" : 0.18,
+      "distance" : 940,
+      "elevation" : 132,
+      "grade" : -0.10193752829334812,
+      "halfWidth" : 6.1499999999999995,
+      "side" : -1,
+      "stage" : "city-orbit-skyway"
+    },
+    {
+      "curvature" : 0.18,
+      "distance" : 940,
+      "elevation" : 132,
+      "grade" : -0.10193752829334812,
+      "halfWidth" : 6.1499999999999995,
+      "side" : 1,
+      "stage" : "city-orbit-skyway"
+    },
+    {
+      "curvature" : 0.1,
+      "distance" : 0,
+      "elevation" : 74,
+      "grade" : 0.43845481049562807,
+      "halfWidth" : 3.7,
+      "side" : -1,
+      "stage" : "peaks-storm-switchback"
+    },
+    {
+      "curvature" : 0.1,
+      "distance" : 0,
+      "elevation" : 74,
+      "grade" : 0.43845481049562807,
+      "halfWidth" : 3.7,
+      "side" : 1,
+      "stage" : "peaks-storm-switchback"
+    },
+    {
+      "curvature" : 0.07592,
+      "distance" : 49,
+      "elevation" : 94.72999999999999,
+      "grade" : 0.4073469387755182,
+      "halfWidth" : 3.7,
+      "side" : -1,
+      "stage" : "peaks-storm-switchback"
+    },
+    {
+      "curvature" : 0.07592,
+      "distance" : 49,
+      "elevation" : 94.72999999999999,
+      "grade" : 0.4073469387755182,
+      "halfWidth" : 3.7,
+      "side" : 1,
+      "stage" : "peaks-storm-switchback"
+    },
+    {
+      "curvature" : -0.22768063999999996,
+      "distance" : 205.79999999999998,
+      "elevation" : 150.7172,
+      "grade" : 0.30677551020407634,
+      "halfWidth" : 3.7,
+      "side" : -1,
+      "stage" : "peaks-storm-switchback"
+    },
+    {
+      "curvature" : -0.22768063999999996,
+      "distance" : 205.79999999999998,
+      "elevation" : 150.7172,
+      "grade" : 0.30677551020407634,
+      "halfWidth" : 3.7,
+      "side" : 1,
+      "stage" : "peaks-storm-switchback"
+    },
+    {
+      "curvature" : -0.45728,
+      "distance" : 294,
+      "elevation" : 175.27999999999997,
+      "grade" : 0.25020408163265984,
+      "halfWidth" : 3.7,
+      "side" : -1,
+      "stage" : "peaks-storm-switchback"
+    },
+    {
+      "curvature" : -0.45728,
+      "distance" : 294,
+      "elevation" : 175.27999999999997,
+      "grade" : 0.25020408163265984,
+      "halfWidth" : 3.7,
+      "side" : 1,
+      "stage" : "peaks-storm-switchback"
+    },
+    {
+      "curvature" : -0.76,
+      "distance" : 490,
+      "elevation" : 212,
+      "grade" : 0.12448979591836462,
+      "halfWidth" : 3.7,
+      "side" : -1,
+      "stage" : "peaks-storm-switchback"
+    },
+    {
+      "curvature" : -0.76,
+      "distance" : 490,
+      "elevation" : 212,
+      "grade" : 0.12448979591836462,
+      "halfWidth" : 3.7,
+      "side" : 1,
+      "stage" : "peaks-storm-switchback"
+    },
+    {
+      "curvature" : -0.40800000000000014,
+      "distance" : 686,
+      "elevation" : 224.08,
+      "grade" : -0.0012244897959021728,
+      "halfWidth" : 3.7,
+      "side" : -1,
+      "stage" : "peaks-storm-switchback"
+    },
+    {
+      "curvature" : -0.40800000000000014,
+      "distance" : 686,
+      "elevation" : 224.08,
+      "grade" : -0.0012244897959021728,
+      "halfWidth" : 3.7,
+      "side" : 1,
+      "stage" : "peaks-storm-switchback"
+    },
+    {
+      "curvature" : -0.08345599999999986,
+      "distance" : 793.8000000000001,
+      "elevation" : 220.22119999999998,
+      "grade" : -0.07036734693876667,
+      "halfWidth" : 3.7,
+      "side" : -1,
+      "stage" : "peaks-storm-switchback"
+    },
+    {
+      "curvature" : -0.08345599999999986,
+      "distance" : 793.8000000000001,
+      "elevation" : 220.22119999999998,
+      "grade" : -0.07036734693876667,
+      "halfWidth" : 3.7,
+      "side" : 1,
+      "stage" : "peaks-storm-switchback"
+    },
+    {
+      "curvature" : 0.13600000000000012,
+      "distance" : 882,
+      "elevation" : 211.52,
+      "grade" : -0.1269387755102116,
+      "halfWidth" : 3.7,
+      "side" : -1,
+      "stage" : "peaks-storm-switchback"
+    },
+    {
+      "curvature" : 0.13600000000000012,
+      "distance" : 882,
+      "elevation" : 211.52,
+      "grade" : -0.1269387755102116,
+      "halfWidth" : 3.7,
+      "side" : 1,
+      "stage" : "peaks-storm-switchback"
+    },
+    {
+      "curvature" : 0.24,
+      "distance" : 980,
+      "elevation" : 196,
+      "grade" : -0.18947521865891304,
+      "halfWidth" : 3.7,
+      "side" : -1,
+      "stage" : "peaks-storm-switchback"
+    },
+    {
+      "curvature" : 0.24,
+      "distance" : 980,
+      "elevation" : 196,
+      "grade" : -0.18947521865891304,
+      "halfWidth" : 3.7,
+      "side" : 1,
+      "stage" : "peaks-storm-switchback"
+    },
+    {
+      "curvature" : -0.12,
+      "distance" : 0,
+      "elevation" : 196,
+      "grade" : 0.19539753086422706,
+      "halfWidth" : 3.8,
+      "side" : -1,
+      "stage" : "peaks-relay-ridge"
+    },
+    {
+      "curvature" : -0.12,
+      "distance" : 0,
+      "elevation" : 196,
+      "grade" : 0.19539753086422706,
+      "halfWidth" : 3.8,
+      "side" : 1,
+      "stage" : "peaks-relay-ridge"
+    },
+    {
+      "curvature" : -0.09844,
+      "distance" : 45,
+      "elevation" : 204.48,
+      "grade" : 0.18133333333332757,
+      "halfWidth" : 3.8,
+      "side" : -1,
+      "stage" : "peaks-relay-ridge"
+    },
+    {
+      "curvature" : -0.09844,
+      "distance" : 45,
+      "elevation" : 204.48,
+      "grade" : 0.18133333333332757,
+      "halfWidth" : 3.8,
+      "side" : 1,
+      "stage" : "peaks-relay-ridge"
+    },
+    {
+      "curvature" : 0.17338848,
+      "distance" : 189,
+      "elevation" : 227.3152,
+      "grade" : 0.13582222222221674,
+      "halfWidth" : 3.8,
+      "side" : -1,
+      "stage" : "peaks-relay-ridge"
+    },
+    {
+      "curvature" : 0.17338848,
+      "distance" : 189,
+      "elevation" : 227.3152,
+      "grade" : 0.13582222222221674,
+      "halfWidth" : 3.8,
+      "side" : 1,
+      "stage" : "peaks-relay-ridge"
+    },
+    {
+      "curvature" : 0.37896,
+      "distance" : 270,
+      "elevation" : 237.28,
+      "grade" : 0.11022222222221956,
+      "halfWidth" : 3.8,
+      "side" : -1,
+      "stage" : "peaks-relay-ridge"
+    },
+    {
+      "curvature" : 0.37896,
+      "distance" : 270,
+      "elevation" : 237.28,
+      "grade" : 0.11022222222221956,
+      "halfWidth" : 3.8,
+      "side" : 1,
+      "stage" : "peaks-relay-ridge"
+    },
+    {
+      "curvature" : 0.65,
+      "distance" : 450,
+      "elevation" : 252,
+      "grade" : 0.05333333333335588,
+      "halfWidth" : 3.8,
+      "side" : -1,
+      "stage" : "peaks-relay-ridge"
+    },
+    {
+      "curvature" : 0.65,
+      "distance" : 450,
+      "elevation" : 252,
+      "grade" : 0.05333333333335588,
+      "halfWidth" : 3.8,
+      "side" : 1,
+      "stage" : "peaks-relay-ridge"
+    },
+    {
+      "curvature" : 0.47752000000000006,
+      "distance" : 630,
+      "elevation" : 256.48,
+      "grade" : -0.003555555555550427,
+      "halfWidth" : 3.8,
+      "side" : -1,
+      "stage" : "peaks-relay-ridge"
+    },
+    {
+      "curvature" : 0.47752000000000006,
+      "distance" : 630,
+      "elevation" : 256.48,
+      "grade" : -0.003555555555550427,
+      "halfWidth" : 3.8,
+      "side" : 1,
+      "stage" : "peaks-relay-ridge"
+    },
+    {
+      "curvature" : 0.31849343999999996,
+      "distance" : 729,
+      "elevation" : 254.57920000000001,
+      "grade" : -0.034844444444445344,
+      "halfWidth" : 3.8,
+      "side" : -1,
+      "stage" : "peaks-relay-ridge"
+    },
+    {
+      "curvature" : 0.31849343999999996,
+      "distance" : 729,
+      "elevation" : 254.57920000000001,
+      "grade" : -0.034844444444445344,
+      "halfWidth" : 3.8,
+      "side" : 1,
+      "stage" : "peaks-relay-ridge"
+    },
+    {
+      "curvature" : 0.21095999999999998,
+      "distance" : 810,
+      "elevation" : 250.72,
+      "grade" : -0.060444444444456735,
+      "halfWidth" : 3.8,
+      "side" : -1,
+      "stage" : "peaks-relay-ridge"
+    },
+    {
+      "curvature" : 0.21095999999999998,
+      "distance" : 810,
+      "elevation" : 250.72,
+      "grade" : -0.060444444444456735,
+      "halfWidth" : 3.8,
+      "side" : 1,
+      "stage" : "peaks-relay-ridge"
+    },
+    {
+      "curvature" : 0.16000000000000003,
+      "distance" : 900,
+      "elevation" : 244,
+      "grade" : -0.08873086419754372,
+      "halfWidth" : 3.8,
+      "side" : -1,
+      "stage" : "peaks-relay-ridge"
+    },
+    {
+      "curvature" : 0.16000000000000003,
+      "distance" : 900,
+      "elevation" : 244,
+      "grade" : -0.08873086419754372,
+      "halfWidth" : 3.8,
+      "side" : 1,
+      "stage" : "peaks-relay-ridge"
+    },
+    {
+      "curvature" : 0.08,
+      "distance" : 0,
+      "elevation" : 244,
+      "grade" : 0.12040105193955242,
+      "halfWidth" : 5.85,
+      "side" : -1,
+      "stage" : "peaks-summit-finish"
+    },
+    {
+      "curvature" : 0.08,
+      "distance" : 0,
+      "elevation" : 244,
+      "grade" : 0.12040105193955242,
+      "halfWidth" : 5.85,
+      "side" : 1,
+      "stage" : "peaks-summit-finish"
+    },
+    {
+      "curvature" : 0.07216,
+      "distance" : 39,
+      "elevation" : 248.53,
+      "grade" : 0.11179487179489911,
+      "halfWidth" : 5.85,
+      "side" : -1,
+      "stage" : "peaks-summit-finish"
+    },
+    {
+      "curvature" : 0.07216,
+      "distance" : 39,
+      "elevation" : 248.53,
+      "grade" : 0.11179487179489911,
+      "halfWidth" : 5.85,
+      "side" : 1,
+      "stage" : "peaks-summit-finish"
+    },
+    {
+      "curvature" : -0.026686719999999983,
+      "distance" : 163.79999999999998,
+      "elevation" : 260.7412,
+      "grade" : 0.08389743589742693,
+      "halfWidth" : 5.85,
+      "side" : -1,
+      "stage" : "peaks-summit-finish"
+    },
+    {
+      "curvature" : -0.026686719999999983,
+      "distance" : 163.79999999999998,
+      "elevation" : 260.7412,
+      "grade" : 0.08389743589742693,
+      "halfWidth" : 5.85,
+      "side" : 1,
+      "stage" : "peaks-summit-finish"
+    },
+    {
+      "curvature" : -0.10144000000000002,
+      "distance" : 234,
+      "elevation" : 266.08,
+      "grade" : 0.06820512820513613,
+      "halfWidth" : 5.85,
+      "side" : -1,
+      "stage" : "peaks-summit-finish"
+    },
+    {
+      "curvature" : -0.10144000000000002,
+      "distance" : 234,
+      "elevation" : 266.08,
+      "grade" : 0.06820512820513613,
+      "halfWidth" : 5.85,
+      "side" : 1,
+      "stage" : "peaks-summit-finish"
+    },
+    {
+      "curvature" : -0.2,
+      "distance" : 390,
+      "elevation" : 274,
+      "grade" : 0.03333333333335986,
+      "halfWidth" : 5.85,
+      "side" : -1,
+      "stage" : "peaks-summit-finish"
+    },
+    {
+      "curvature" : -0.2,
+      "distance" : 390,
+      "elevation" : 274,
+      "grade" : 0.03333333333335986,
+      "halfWidth" : 5.85,
+      "side" : 1,
+      "stage" : "peaks-summit-finish"
+    },
+    {
+      "curvature" : -0.12960000000000005,
+      "distance" : 546,
+      "elevation" : 276.48,
+      "grade" : -0.001538461538473257,
+      "halfWidth" : 5.85,
+      "side" : -1,
+      "stage" : "peaks-summit-finish"
+    },
+    {
+      "curvature" : -0.12960000000000005,
+      "distance" : 546,
+      "elevation" : 276.48,
+      "grade" : -0.001538461538473257,
+      "halfWidth" : 5.85,
+      "side" : 1,
+      "stage" : "peaks-summit-finish"
+    },
+    {
+      "curvature" : -0.06469119999999998,
+      "distance" : 631.8000000000001,
+      "elevation" : 275.52520000000004,
+      "grade" : -0.020717948717930312,
+      "halfWidth" : 5.85,
+      "side" : -1,
+      "stage" : "peaks-summit-finish"
+    },
+    {
+      "curvature" : -0.06469119999999998,
+      "distance" : 631.8000000000001,
+      "elevation" : 275.52520000000004,
+      "grade" : -0.020717948717930312,
+      "halfWidth" : 5.85,
+      "side" : 1,
+      "stage" : "peaks-summit-finish"
+    },
+    {
+      "curvature" : -0.020799999999999985,
+      "distance" : 702,
+      "elevation" : 273.52,
+      "grade" : -0.03641025641027795,
+      "halfWidth" : 5.85,
+      "side" : -1,
+      "stage" : "peaks-summit-finish"
+    },
+    {
+      "curvature" : -0.020799999999999985,
+      "distance" : 702,
+      "elevation" : 273.52,
+      "grade" : -0.03641025641027795,
+      "halfWidth" : 5.85,
+      "side" : 1,
+      "stage" : "peaks-summit-finish"
+    },
+    {
+      "curvature" : 0,
+      "distance" : 780,
+      "elevation" : 270,
+      "grade" : -0.05373438527288954,
+      "halfWidth" : 5.85,
+      "side" : -1,
+      "stage" : "peaks-summit-finish"
+    },
+    {
+      "curvature" : 0,
+      "distance" : 780,
+      "elevation" : 270,
+      "grade" : -0.05373438527288954,
+      "halfWidth" : 5.85,
+      "side" : 1,
+      "stage" : "peaks-summit-finish"
+    }
+  ]
+}

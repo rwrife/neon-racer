@@ -19,3 +19,7 @@ PreviewOutput/
 .hud-artifacts/
 
 __pycache__/
+
+# Godot imports and local exports
+Godot/.godot/
+Godot/exports/
